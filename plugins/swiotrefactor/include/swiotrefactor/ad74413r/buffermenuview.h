@@ -52,6 +52,8 @@ Q_SIGNALS:
 	void broadcastThresholdForward();
 	void broadcastThresholdBackward();
 
+	void runBtnsPressed(bool en);
+
 private:
 	void createConnections();
 	QWidget *createDescriptionSection(QWidget *parent);

@@ -79,7 +79,7 @@ void BufferLogic::createChannels()
 	}
 }
 
-bool BufferLogic::verifyChannelsEnabledChanges(std::vector<bool> enabledChnls)
+bool BufferLogic::verifyChannelsEnabledChanges(QVector<bool> enabledChnls)
 {
 	bool changes = false;
 	for(int i = 0; i < enabledChnls.size(); i++) {
@@ -93,7 +93,7 @@ bool BufferLogic::verifyChannelsEnabledChanges(std::vector<bool> enabledChnls)
 	return changes;
 }
 
-void BufferLogic::applyChannelsEnabledChanges(std::vector<bool> enabledChnls)
+void BufferLogic::applyChannelsEnabledChanges(QVector<bool> enabledChnls)
 {
 	for(int i = 0; i < enabledChnls.size(); i++) {
 		if(m_chnlsInfo.contains(i)) {

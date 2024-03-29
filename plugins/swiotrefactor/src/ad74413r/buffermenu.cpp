@@ -25,6 +25,7 @@
 #include <iio-widgets/iiowidgetfactory.h>
 #include <iio-widgets/datastrategy/cmdqchannelattrdatastrategy.h>
 #include <iio-widgets/guistrategy/editableguistrategy.h>
+#include <guistrategy/comboguistrategy.h>
 
 using namespace scopy::swiotrefactor;
 BufferMenu::BufferMenu(QWidget *parent, QString chnlFunction, Connection *conn, QMap<QString, iio_channel *> chnls)
@@ -36,17 +37,17 @@ BufferMenu::BufferMenu(QWidget *parent, QString chnlFunction, Connection *conn, 
 
 	if(m_chnls.contains(INPUT_CHNL)) {
 		// channels sampling freq - input channel
-		IIOWidget *samplingFreq =
+		m_samplingFreq =
 			IIOWidgetFactory::buildSingle(IIOWidgetFactory::CMDQAttrData | IIOWidgetFactory::ComboUi,
 						      {.connection = const_cast<Connection *>(m_connection),
 						       .channel = const_cast<iio_channel *>(m_chnls[INPUT_CHNL]),
 						       .data = "sampling_frequency",
 						       .iioDataOptions = "sampling_frequency_available"},
 						      this);
-		samplingFreq->getDataStrategy()->requestData();
-		addMenuWidget(samplingFreq);
+		m_samplingFreq->getDataStrategy()->requestData();
+		addMenuWidget(m_samplingFreq);
 
-		connect(dynamic_cast<CmdQChannelAttrDataStrategy *>(samplingFreq->getDataStrategy()),
+		connect(dynamic_cast<CmdQChannelAttrDataStrategy *>(m_samplingFreq->getDataStrategy()),
 			&CmdQChannelAttrDataStrategy::sendData, this, [=, this](QString data, QString dataOptions) {
 				Q_EMIT samplingFrequencyUpdated(data.toInt());
 			});
@@ -66,6 +67,11 @@ QString BufferMenu::getInfoMessage()
 void BufferMenu::addMenuWidget(QWidget *widget) { m_widgetsList.push_back(widget); }
 
 void BufferMenu::onBroadcastThreshold() {}
+
+void BufferMenu::onRunBtnsPressed(bool en)
+{
+	dynamic_cast<ComboAttrUi *>(m_samplingFreq->getUiStrategy())->ui()->setEnabled(!en);
+}
 
 QList<QWidget *> BufferMenu::getWidgetsList() { return m_widgetsList; }
 

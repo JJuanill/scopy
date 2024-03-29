@@ -78,6 +78,8 @@ void BufferMenuView::createConnections()
 	connect(m_swiotAdvMenu, &BufferMenu::samplingFrequencyUpdated, this, &BufferMenuView::samplingFrequencyUpdated);
 	connect(m_swiotAdvMenu, &BufferMenu::broadcastThreshold, this, &BufferMenuView::broadcastThresholdForward);
 	connect(this, &BufferMenuView::broadcastThresholdBackward, m_swiotAdvMenu, &BufferMenu::onBroadcastThreshold);
+
+	connect(this, &BufferMenuView::runBtnsPressed, m_swiotAdvMenu, &BufferMenu::onRunBtnsPressed);
 }
 
 QWidget *BufferMenuView::createDescriptionSection(QWidget *parent)

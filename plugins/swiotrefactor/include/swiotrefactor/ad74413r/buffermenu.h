@@ -46,6 +46,7 @@ public:
 
 public Q_SLOTS:
 	virtual void onBroadcastThreshold();
+	void onRunBtnsPressed(bool en);
 
 Q_SIGNALS:
 	void broadcastThreshold();
@@ -53,6 +54,7 @@ Q_SIGNALS:
 	void samplingFrequencyUpdated(int sr);
 
 protected:
+	IIOWidget *m_samplingFreq;
 	QString m_chnlFunction;
 	Connection *m_connection;
 	QMap<QString, iio_channel *> m_chnls;

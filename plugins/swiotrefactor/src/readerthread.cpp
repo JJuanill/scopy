@@ -185,7 +185,7 @@ void ReaderThread::bufferRefillCommandFinished(scopy::Command *cmd)
 		uint32_t *endAdr = (uint32_t *)iio_buffer_end(m_iioBuff);
 		m_bufferData.clear();
 		for(int i = 0; i < m_enabledChnlsNo; i++) {
-			m_bufferData.push_back({});
+			m_bufferData.insert(i, {});
 		}
 
 		for(uint32_t *ptr = startAdr; ptr != endAdr; ptr++) {

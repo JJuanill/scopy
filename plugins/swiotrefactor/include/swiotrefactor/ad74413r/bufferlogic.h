@@ -34,12 +34,12 @@
 
 Q_DECLARE_OPAQUE_POINTER(struct iio_buffer *)
 
-namespace scopy::swiotrefactor {
 #define MAX_BUFFER_SIZE 160
 #define MIN_BUFFER_SIZE 5
 #define SAMPLING_FREQ_ATTR_NAME "sampling_frequency"
 #define MAX_INPUT_CHNLS_NO 8
 
+namespace scopy::swiotrefactor {
 class BufferLogic : public QObject
 {
 	Q_OBJECT
@@ -50,8 +50,8 @@ public:
 
 	QMap<QString, iio_channel *> getIioChnl(int chnlIdx);
 
-	bool verifyChannelsEnabledChanges(std::vector<bool> enabledChnls);
-	void applyChannelsEnabledChanges(std::vector<bool> enabledChnls);
+	bool verifyChannelsEnabledChanges(QVector<bool> enabledChnls);
+	void applyChannelsEnabledChanges(QVector<bool> enabledChnls);
 
 	void applySamplingFrequencyChanges(int channelId, int value);
 
@@ -65,7 +65,7 @@ public:
 	void initDiagnosticChannels();
 
 Q_SIGNALS:
-	void chnlsChanged(QMap<int, ChnlInfo *> chnlsInfo);
+	void chnlsChanged(QMap<int, swiotrefactor::ChnlInfo *> chnlsInfo);
 	void samplingFrequencyComputed(double value);
 	void channelFunctionDetermined(unsigned int i, QString function);
 	void instantValueChanged(int channel, double value);

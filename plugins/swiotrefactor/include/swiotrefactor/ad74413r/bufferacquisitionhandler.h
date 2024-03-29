@@ -18,62 +18,49 @@
  * along with this program. If not, see <https://www.gnu.org/licenses/>.
  */
 
-#ifndef BUFFERPLOTHANDLER_H
-#define BUFFERPLOTHANDLER_H
+#ifndef BUFFERACQUISITIONHANDLER_H
+#define BUFFERACQUISITIONHANDLER_H
 
-#include "bufferlogic.h"
-//#include "channelplotscalescontroller.h"
-
-#include <QWidget>
-#include <qmutex.h>
 #include <QObject>
-
-#include <deque>
+#include <qmutex.h>
+#include <QMap>
 
 namespace scopy::swiotrefactor {
 #define DIAG_CHNLS_NUMBER 4
-class BufferPlotHandler : public QWidget
+class BufferAcquisitionHandler : public QObject
 {
 	Q_OBJECT
 public:
-	BufferPlotHandler(QWidget *parent = nullptr, int plotChnlsNo = 0);
-	~BufferPlotHandler();
+	BufferAcquisitionHandler(QObject *parent);
+	~BufferAcquisitionHandler();
 
 	void setSingleCapture(bool en);
 	void resetPlotParameters();
-	void drawPlot();
 	bool singleCapture() const;
 	int getRequiredBuffersNumber();
 public Q_SLOTS:
-	void onBufferRefilled(QMap<int, std::vector<double>> data, int bufferCounter);
+	void onBufferRefilled(QMap<int, QVector<double>> data, int bufferCounter);
 	void onTimespanChanged(double value);
 	void onSamplingFrequencyComputed(double samplingFrequency);
 Q_SIGNALS:
-	void bufferDataReady(QMap<int, std::vector<double>> data);
+	void bufferDataReady(QMap<int, QVector<double>> data);
 	void singleCaptureFinished();
 
 private:
 	void resetDataPoints();
-	void resetDeque();
 
 	double m_plotSamplingFreq = 4800;
 	double m_timespan = 1;
-	int m_plotChnlsNo;
 
-	// all of these will be calculated in functions; for example we will have a spinbox for timespan,
-	// and in a slot we will set its value and we will calculate plotSampleRate and the number of necessary buffers
 	int m_buffersNumber = 0;
 	int m_bufferIndex = 0;
 	int m_bufferSize = 0;
-	int m_plotSampleRate = 0;
 
 	bool m_singleCapture = false;
 
-	QMap<int, std::deque<std::vector<double>>> m_dataPointsDeque;
-	QMap<int, std::vector<double>> m_dataPoints;
-	std::vector<bool> m_enabledPlots;
+	QMap<int, QVector<double>> m_dataPoints;
 	QMutex *m_lock;
 };
 } // namespace scopy::swiotrefactor
 
-#endif // BUFFERPLOTHANDLER_H
+#endif // BUFFERACQUISITIONHANDLER_H
