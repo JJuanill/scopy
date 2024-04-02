@@ -195,6 +195,7 @@ void DataMonitorPlugin::initPreferences()
 	Preferences *p = Preferences::GetInstance();
 	p->init("datamonitorplugin_data_storage_size", "10 Kb");
 	p->init("datamonitorplugin_read_interval", "1");
+	p->init("datamonitorplugin_date_time_format", "hh:mm:ss");
 }
 
 bool DataMonitorPlugin::loadPreferencesPage()
@@ -220,6 +221,9 @@ bool DataMonitorPlugin::loadPreferencesPage()
 
 	generalSection->contentLayout()->addWidget(PreferencesHelper::addPreferenceEdit(
 		p, "datamonitorplugin_read_interval", "Read interval (seconds) ", generalSection));
+
+	generalSection->contentLayout()->addWidget(PreferencesHelper::addPreferenceEdit(
+		p, "datamonitorplugin_date_time_format", "DateTime format :", generalSection));
 	return true;
 }
 
