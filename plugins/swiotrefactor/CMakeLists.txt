@@ -39,6 +39,8 @@ file(
 	src/ad74413r/*.cc
 	src/*.cpp
 	src/*.cc
+	src/config/*.cpp
+	src/config/*.cc
 	model/*
 )
 
@@ -53,6 +55,8 @@ file(
 	include/${SCOPY_MODULE}/faults/*.hpp
 	include/${SCOPY_MODULE}/ad74413r/*.h
 	include/${SCOPY_MODULE}/ad74413r/*.hpp
+	include/${SCOPY_MODULE}/config/*.h
+	include/${SCOPY_MODULE}/config/*.hpp
 )
 file(GLOB UI_LIST ui/*.ui)
 
