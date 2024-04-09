@@ -57,9 +57,9 @@ BufferMenu::~BufferMenu() {}
 
 QString BufferMenu::getInfoMessage()
 {
-	QString defaultMessage = "\"" + m_chnlFunction + "\" configuration generates\n" +
-		"a buffer capable channel which is directly\n" + "related to the plot. The channel attributes\n" +
-		"can be changed through this menu.";
+	QString defaultMessage = "\"" + m_chnlFunction +
+		"\" configuration generates a buffer capable channel which is directly related to the plot. The "
+		"channel attributes can be changed through this menu.";
 	return defaultMessage;
 }
 
@@ -98,10 +98,10 @@ CurrentInLoopMenu::~CurrentInLoopMenu() {}
 
 QString CurrentInLoopMenu::getInfoMessage()
 {
-	QString infoMessage = "\"" + m_chnlFunction + "\" configuration generates 2 context channels.\n" +
-		"One of them is an input buffer capable channel (current_in)\n" +
-		"which is related to the plot and the other one is an output\n" +
-		"channel (current_out) whose attributes can be changed from\n" + "this menu.";
+	QString infoMessage = "\"" + m_chnlFunction +
+		"\" configuration generates 2 context channels. One of them is an input buffer capable channel "
+		"(current_in) which is related to the plot and the other one is an output channel (current_out) whose "
+		"attributes can be changed from this menu.";
 	return infoMessage;
 }
 
@@ -147,11 +147,10 @@ DigitalInLoopMenu::~DigitalInLoopMenu() {}
 
 QString DigitalInLoopMenu::getInfoMessage()
 {
-	QString infoMessage = "\"" + m_chnlFunction + "\" configuration generates 2 context channels.\n" +
-		"One of them is an input buffer capable channel (voltage_in)\n" +
-		"which is related to the plot and the other one is an output\n" +
-		"channel (current_out). The threshold is set for the\n" +
-		"input channel and the DAC Code for the output channel.";
+	QString infoMessage = "\"" + m_chnlFunction +
+		"\" configuration generates 2 context channels. One of them is an input buffer capable channel "
+		"(voltage_in) which is related to the plot and the other one is an output channel (current_out). The "
+		"threshold is set for the input channel and the DAC Code for the output channel.";
 	return infoMessage;
 }
 
@@ -227,10 +226,10 @@ VoltageOutMenu::~VoltageOutMenu() {}
 
 QString VoltageOutMenu::getInfoMessage()
 {
-	QString infoMessage = "\"" + m_chnlFunction + "\" configuration generates 2 context channels.\n" +
-		"One of them is an input buffer capable channel (current_in)\n" +
-		"which is related to the plot and the other one is an\n" +
-		"output channel whose attributes can be changed from\n" + "this menu.";
+	QString infoMessage = "\"" + m_chnlFunction +
+		"\" configuration generates 2 context channels. One of them is an input buffer capable channel "
+		"(current_in) which is related to the plot and the other one is an output channel whose attributes can "
+		"be changed from this menu.";
 	return infoMessage;
 }
 
@@ -289,10 +288,10 @@ CurrentOutMenu::~CurrentOutMenu() {}
 
 QString CurrentOutMenu::getInfoMessage()
 {
-	QString infoMessage = "\"" + m_chnlFunction + "\" configuration generates 2 context channels.\n" +
-		"One of them is an input buffer capable channel (voltage_in)\n" +
-		"which is related to the plot and the other one is an\n" +
-		"output channel whose attributes can be changed from\n" + "this menu.";
+	QString infoMessage = "\"" + m_chnlFunction +
+		"\" configuration generates 2 context channels. One of them is an input buffer capable channel "
+		"(voltage_in) which is related to the plot and the other one is an output channel whose attributes can "
+		"be changed from this menu.";
 	return infoMessage;
 }
 

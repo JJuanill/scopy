@@ -54,6 +54,8 @@ Q_SIGNALS:
 
 private:
 	void createConnections();
+	QWidget *createDescriptionSection(QWidget *parent);
+	QWidget *createAttrSection(QWidget *parent);
 	QWidget *createVerticalSettingsMenu(QString unit, double yMin, double yMax, QWidget *parent);
 
 	BufferMenu *m_swiotAdvMenu;

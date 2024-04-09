@@ -36,7 +36,6 @@ BufferMenuView::BufferMenuView(QMap<QString, iio_channel *> chnls, Connection *c
 {
 	setLayout(new QVBoxLayout());
 	layout()->setMargin(0);
-	layout()->setSpacing(10);
 }
 
 BufferMenuView::~BufferMenuView() {}
@@ -45,30 +44,30 @@ void BufferMenuView::init(QString title, QString function, QPen color, QString u
 {
 	m_swiotAdvMenu = BufferMenuBuilder::newAdvMenu(this, function, m_connection, m_chnls);
 
-	MenuHeaderWidget *header = new MenuHeaderWidget(title, color, this);
+	QScrollArea *scrollArea = new QScrollArea(this);
+	QWidget *scrollWidget = new QWidget(scrollArea);
+	QVBoxLayout *layScroll = new QVBoxLayout(scrollWidget);
+	layScroll->setSpacing(10);
+	layScroll->setMargin(0);
+	scrollWidget->setLayout(layScroll);
 
-	MenuSectionWidget *attrContainer = new MenuSectionWidget(this);
-	auto layout = new QVBoxLayout(attrContainer);
-	layout->setSpacing(10);
-	layout->setContentsMargins(0, 0, 0, 10);
-	layout->setMargin(0);
-	MenuCollapseSection *attrSection =
-		new MenuCollapseSection("ATTRIBUTES", MenuCollapseSection::MHCW_NONE, attrContainer);
+	scrollArea->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
+	scrollArea->setWidgetResizable(true);
+	scrollArea->setWidget(scrollWidget);
 
-	QList<QWidget *> widgets = m_swiotAdvMenu->getWidgetsList();
-	for(QWidget *w : qAsConst(widgets)) {
-		layout->addWidget(w);
-	}
+	MenuHeaderWidget *header = new MenuHeaderWidget(title, color, scrollWidget);
+	QWidget *descriptionSection = createDescriptionSection(scrollWidget);
+	QWidget *yAxisMenu = createVerticalSettingsMenu(unit, yMin, yMax, scrollWidget);
+	QWidget *attrSection = createAttrSection(scrollWidget);
 
-	attrSection->contentLayout()->addLayout(layout);
-	attrContainer->contentLayout()->addWidget(attrSection);
+	layScroll->addWidget(header);
+	layScroll->addWidget(descriptionSection);
+	layScroll->addWidget(yAxisMenu);
+	layScroll->addWidget(attrSection);
+	layScroll->addItem(new QSpacerItem(0, 0, QSizePolicy::Minimum, QSizePolicy::Expanding));
 
-	QWidget *yAxisMenu = createVerticalSettingsMenu(unit, yMin, yMax, this);
+	layout()->addWidget(scrollArea);
 
-	this->layout()->addWidget(header);
-	this->layout()->addWidget(yAxisMenu);
-	this->layout()->addWidget(attrContainer);
-	this->layout()->addItem(new QSpacerItem(0, 0, QSizePolicy::Minimum, QSizePolicy::Expanding));
 	createConnections();
 }
 
@@ -81,12 +80,49 @@ void BufferMenuView::createConnections()
 	connect(this, &BufferMenuView::broadcastThresholdBackward, m_swiotAdvMenu, &BufferMenu::onBroadcastThreshold);
 }
 
+QWidget *BufferMenuView::createDescriptionSection(QWidget *parent)
+{
+	MenuSectionWidget *descriptionContainer = new MenuSectionWidget(parent);
+	MenuCollapseSection *descriptionSection =
+		new MenuCollapseSection("FUNCTION DESCRIPTION", MenuCollapseSection::MHCW_NONE, descriptionContainer);
+
+	QLabel *description = new QLabel(descriptionContainer);
+	description->setText(m_swiotAdvMenu->getInfoMessage());
+	description->setTextFormat(Qt::TextFormat::RichText);
+	description->setWordWrap(true);
+
+	descriptionSection->contentLayout()->addWidget(description);
+	descriptionContainer->contentLayout()->addWidget(descriptionSection);
+
+	return descriptionContainer;
+}
+
+QWidget *BufferMenuView::createAttrSection(QWidget *parent)
+{
+	MenuSectionWidget *attrContainer = new MenuSectionWidget(parent);
+	auto layout = new QVBoxLayout(attrContainer);
+	layout->setSpacing(10);
+	layout->setMargin(0);
+
+	MenuCollapseSection *attrSection =
+		new MenuCollapseSection("ATTRIBUTES", MenuCollapseSection::MHCW_NONE, attrContainer);
+
+	QList<QWidget *> widgets = m_swiotAdvMenu->getWidgetsList();
+	for(QWidget *w : qAsConst(widgets)) {
+		layout->addWidget(w);
+	}
+
+	attrSection->contentLayout()->addLayout(layout);
+	attrContainer->contentLayout()->addWidget(attrSection);
+
+	return attrContainer;
+}
+
 QWidget *BufferMenuView::createVerticalSettingsMenu(QString unit, double yMin, double yMax, QWidget *parent)
 {
 	MenuSectionWidget *verticalContainer = new MenuSectionWidget(this);
 	auto layout = new QHBoxLayout(verticalContainer);
 	layout->setSpacing(10);
-	layout->setContentsMargins(0, 0, 0, 10);
 	layout->setMargin(0);
 
 	MenuCollapseSection *verticalSettings =
