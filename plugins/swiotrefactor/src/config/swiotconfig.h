@@ -45,10 +45,9 @@ public:
 
 public Q_SLOTS:
 	void onConfigBtnPressed();
-	void modeAttributeChanged(std::string mode);
 
 Q_SIGNALS:
-	void writeModeAttribute(std::string mode);
+	void writeModeAttribute(QString mode);
 	void configBtnPressed();
 
 private:

@@ -88,10 +88,3 @@ void SwiotRuntime::createDevicesMap()
 }
 
 void SwiotRuntime::onBackBtnPressed() { Q_EMIT writeModeAttribute("config"); }
-
-void SwiotRuntime::modeAttributeChanged(std::string mode)
-{
-	if(mode == "config") {
-		Q_EMIT backBtnPressed();
-	}
-}

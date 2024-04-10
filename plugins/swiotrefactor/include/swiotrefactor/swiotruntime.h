@@ -40,14 +40,12 @@ public:
 
 public Q_SLOTS:
 	void onBackBtnPressed();
-	void modeAttributeChanged(std::string mode);
 	void writeTriggerDevice();
 	void onIsRuntimeCtxChanged(bool isRuntimeCtx);
 private Q_SLOTS:
 	void setTriggerCommandFinished(scopy::Command *);
 Q_SIGNALS:
-	void writeModeAttribute(std::string mode);
-	void backBtnPressed();
+	void writeModeAttribute(QString mode);
 
 private:
 	void createDevicesMap();

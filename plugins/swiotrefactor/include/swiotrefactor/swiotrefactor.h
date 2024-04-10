@@ -11,6 +11,7 @@
 #include "scopy-swiotrefactor_export.h"
 #include "swiotcontroller.h"
 #include "swiotruntime.h"
+#include "swiotinfopage.h"
 #include <QObject>
 #include <QPushButton>
 #include <tutorialbuilder.h>
@@ -37,8 +38,6 @@ public:
 public Q_SLOTS:
 	bool onConnect() override;
 	bool onDisconnect() override;
-	void startCtxSwitch();
-	void onCtxSwitched();
 	void onIsRuntimeCtxChanged(bool isRuntimeCtx);
 
 	void startTutorial();
@@ -50,12 +49,18 @@ public Q_SLOTS:
 
 	void powerSupplyStatus(bool ps);
 
+private Q_SLOTS:
+	void setCtxMode(QString mode);
+	void onModeAttributeChanged(QString mode);
+
 private:
-	void createStatusContainer();
+	void switchCtx();
 	void setupToolList();
+	void createStatusContainer();
 	QPushButton *m_btnIdentify;
 	QPushButton *m_btnTutorial;
 	QWidget *m_statusContainer;
+	SwiotInfoPage *m_infoPage;
 
 	QWidget *config;
 	QWidget *adtool;
@@ -70,6 +75,8 @@ private:
 	gui::TutorialBuilder *m_faultsTutorial;
 
 	bool m_isRuntime;
+	bool m_switchCmd = false;
+	QString m_ctxMode;
 };
 } // namespace scopy::swiotrefactor
 #endif // SWIOTREFACTORPLUGIN_H

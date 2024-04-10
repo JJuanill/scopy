@@ -26,7 +26,6 @@
 #include "swiotidentifytask.h"
 #include "swiotpingtask.h"
 #include "swiotreadtemperaturetask.h"
-#include "swiotswitchctxtask.h"
 
 #include <iio.h>
 
@@ -46,9 +45,6 @@ public:
 	void startPowerSupplyTask(QString attribute);
 	void stopPowerSupplyTask();
 
-	void startSwitchContextTask(bool isRuntime);
-	void stopSwitchContextTask();
-
 	void startTemperatureTask();
 	void stopTemperatureTask();
 
@@ -57,17 +53,17 @@ public:
 
 public Q_SLOTS:
 	void identify();
-	void writeModeAttribute(std::string mode);
+	void writeModeAttribute(QString mode);
 	void readModeAttribute();
 
 Q_SIGNALS:
 	void pingSuccess();
 	void pingFailed();
-	void contextSwitched();
 	void hasConnectedPowerSupply(bool ps);
 	void readTemperature(double temperature);
-	void modeAttributeChanged(std::string mode);
+	void modeAttributeChanged(QString mode);
 	void isRuntimeCtxChanged(bool isRuntimeCtx);
+	void writeModeFailed();
 private Q_SLOTS:
 	void writeModeCommandFinished(scopy::Command *cmd);
 	void readModeCommandFinished(scopy::Command *cmd);
@@ -77,7 +73,6 @@ private:
 
 	SwiotIdentifyTask *identifyTask;
 	SwiotPingTask *pingTask;
-	SwiotSwitchCtxTask *switchCtxTask;
 	ExternalPsReaderThread *extPsTask;
 	SwiotReadTemperatureTask *temperatureTask;
 	CommandQueue *m_cmdQueue;

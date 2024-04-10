@@ -63,25 +63,11 @@ void SwiotController::stopPingTask()
 	pingTask->deleteLater();
 }
 
-void SwiotController::startSwitchContextTask(bool isRuntime)
-{
-	switchCtxTask = new SwiotSwitchCtxTask(uri, isRuntime);
-	connect(switchCtxTask, &SwiotSwitchCtxTask::contextSwitched, this, &SwiotController::contextSwitched);
-	switchCtxTask->start();
-}
-
-void SwiotController::stopSwitchContextTask()
-{
-	switchCtxTask->requestInterruption();
-	disconnect(switchCtxTask, &SwiotSwitchCtxTask::contextSwitched, this, &SwiotController::contextSwitched);
-}
-
 void SwiotController::connectSwiot()
 {
 	m_conn = ConnectionProvider::open(uri);
 	m_iioCtx = m_conn->context();
 	m_cmdQueue = m_conn->commandQueue();
-	readModeAttribute();
 }
 
 void SwiotController::disconnectSwiot()
@@ -151,19 +137,21 @@ void SwiotController::identify()
 	}
 }
 
-void SwiotController::writeModeAttribute(std::string mode)
+void SwiotController::writeModeAttribute(QString mode)
 {
 	if(!m_iioCtx || !m_cmdQueue) {
 		return;
 	}
 	struct iio_device *swiot = iio_context_find_device(m_iioCtx, "swiot");
 	if(swiot) {
-		Command *writeModeCommand = new IioDeviceAttributeWrite(swiot, "mode", mode.c_str(), nullptr);
+		Command *writeModeCommand =
+			new IioDeviceAttributeWrite(swiot, "mode", mode.toStdString().c_str(), nullptr);
 		connect(writeModeCommand, &scopy::Command::finished, this, &SwiotController::writeModeCommandFinished,
 			Qt::QueuedConnection);
 		m_cmdQueue->enqueue(writeModeCommand);
 	} else {
 		qDebug(CAT_SWIOT) << "Can't find swiot iio_device";
+		Q_EMIT writeModeFailed();
 	}
 }
 
@@ -175,10 +163,12 @@ void SwiotController::writeModeCommandFinished(scopy::Command *cmd)
 	}
 	if(tcmd->getReturnCode() >= 0) {
 		ConnectionProvider::closeAll(m_conn->uri());
-		Q_EMIT modeAttributeChanged(tcmd->getAttributeValue());
+		QString attrVal = QString::fromStdString(tcmd->getAttributeValue());
+		Q_EMIT modeAttributeChanged(attrVal);
 		qInfo(CAT_SWIOT) << R"(Successfully written swiot mode)";
 	} else {
 		qDebug(CAT_SWIOT) << R"(Error, could not change swiot mode)" << tcmd->getReturnCode();
+		Q_EMIT writeModeFailed();
 	}
 }
 

@@ -164,11 +164,4 @@ QPushButton *SwiotConfig::createApplyBtn()
 
 void SwiotConfig::onConfigBtnPressed() { Q_EMIT writeModeAttribute("runtime"); }
 
-void SwiotConfig::modeAttributeChanged(std::string mode)
-{
-	if(mode == "runtime") {
-		Q_EMIT configBtnPressed();
-	}
-}
-
 #include "moc_swiotconfig.cpp"

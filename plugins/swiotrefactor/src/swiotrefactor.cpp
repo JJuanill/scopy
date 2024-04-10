@@ -43,40 +43,55 @@ void SWIOTREFACTORPlugin::preload()
 	m_displayName = "SWIOT1L";
 	m_swiotController = new SwiotController(m_param, this);
 	m_statusContainer = nullptr;
-	connect(m_swiotController, &SwiotController::contextSwitched, this, &SWIOTREFACTORPlugin::onCtxSwitched,
-		Qt::QueuedConnection);
 	connect(m_swiotController, &SwiotController::isRuntimeCtxChanged, this,
 		&SWIOTREFACTORPlugin::onIsRuntimeCtxChanged);
+	connect(m_swiotController, &SwiotController::modeAttributeChanged, this,
+		&SWIOTREFACTORPlugin::onModeAttributeChanged);
+	connect(m_swiotController, &SwiotController::writeModeFailed, m_swiotController,
+		&SwiotController::disconnectSwiot);
 }
 
 bool SWIOTREFACTORPlugin::loadPage()
 {
-	// Here you must write the code for the plugin info page
-	// Below is an example for an iio device
-	/*m_page = new QWidget();
+	m_page = new QWidget();
 	m_page->setLayout(new QVBoxLayout(m_page));
 	m_page->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
-	m_infoPage = new InfoPage(m_page);
-	m_infoPage->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Fixed);
+	m_infoPage = new swiotrefactor::SwiotInfoPage(m_page);
 	m_page->layout()->addWidget(m_infoPage);
 	m_page->layout()->addItem(new QSpacerItem(0, 0, QSizePolicy::Preferred, QSizePolicy::Expanding));
 
-	auto cp = ContextProvider::GetInstance();
-	struct iio_context *context = cp->open(m_param);
-	ssize_t attributeCount = iio_context_get_attrs_count(context);
+	connect(m_swiotController, &SwiotController::readTemperature, this, [=, this](double temperature) {
+		if(m_isRuntime) {
+			m_infoPage->update("Temperature", QString::number(temperature));
+		}
+	});
+	connect(m_infoPage, &SwiotInfoPage::temperatureReadEnabled, this, [=, this](bool toggled) {
+		if(toggled) {
+			m_swiotController->startTemperatureTask();
+		} else {
+			m_swiotController->stopTemperatureTask();
+		}
+	});
+	connect(m_btnTutorial, &QPushButton::clicked, this, &SWIOTREFACTORPlugin::startTutorial);
+
+	Connection *conn = ConnectionProvider::open(m_param);
+
+	ssize_t attributeCount = iio_context_get_attrs_count(conn->context());
 	for(int i = 0; i < attributeCount; ++i) {
 		const char *name;
 		const char *value;
-		int ret = iio_context_get_attr(context, i, &name, &value);
+		int ret = iio_context_get_attr(conn->context(), i, &name, &value);
 		if(ret < 0) {
-			qWarning(CAT_SWIOTREFACTOR) << "Could not read attribute with index:" << i;
+			qWarning(CAT_SWIOT) << "Could not read attribute with index:" << i;
 			continue;
 		}
 
 		m_infoPage->update(name, value);
 	}
-	cp->close(m_param);
-	m_page->ensurePolished();*/
+
+	ConnectionProvider::close(m_param);
+	m_page->ensurePolished();
+
 	return true;
 }
 
@@ -117,8 +132,11 @@ void SWIOTREFACTORPlugin::unload()
 {
 	disconnect(m_swiotController, &SwiotController::isRuntimeCtxChanged, this,
 		   &SWIOTREFACTORPlugin::onIsRuntimeCtxChanged);
-	disconnect(m_swiotController, &SwiotController::contextSwitched, this, &SWIOTREFACTORPlugin::onCtxSwitched);
-
+	disconnect(m_swiotController, &SwiotController::modeAttributeChanged, this,
+		   &SWIOTREFACTORPlugin::onModeAttributeChanged);
+	disconnect(m_swiotController, &SwiotController::writeModeFailed, m_swiotController,
+		   &SwiotController::disconnectSwiot);
+	delete m_infoPage;
 	delete m_swiotController;
 }
 
@@ -131,22 +149,18 @@ bool SWIOTREFACTORPlugin::onConnect()
 	}
 
 	m_runtime = new SwiotRuntime(m_param, this);
-	connect(m_runtime, &SwiotRuntime::writeModeAttribute, m_swiotController, &SwiotController::writeModeAttribute);
-	connect(m_swiotController, &SwiotController::modeAttributeChanged, m_runtime,
-		&SwiotRuntime::modeAttributeChanged);
-	connect(m_runtime, &SwiotRuntime::backBtnPressed, this, &SWIOTREFACTORPlugin::startCtxSwitch);
+	connect(m_runtime, &SwiotRuntime::writeModeAttribute, this, &SWIOTREFACTORPlugin::setCtxMode);
 	connect(m_swiotController, &SwiotController::isRuntimeCtxChanged, m_runtime,
 		&SwiotRuntime::onIsRuntimeCtxChanged);
 	connect(m_swiotController, &SwiotController::hasConnectedPowerSupply, this,
 		&SWIOTREFACTORPlugin::powerSupplyStatus);
 
 	m_swiotController->connectSwiot();
+	m_swiotController->readModeAttribute();
 	m_swiotController->startPingTask();
 	m_swiotController->startPowerSupplyTask("ext_psu");
 	m_btnTutorial->setEnabled(true);
 	m_btnTutorial->setToolTip("");
-
-	return true;
 
 	return true;
 }
@@ -166,12 +180,8 @@ bool SWIOTREFACTORPlugin::onDisconnect()
 		tme->setTool(nullptr);
 	}
 
-	disconnect(dynamic_cast<SwiotConfig *>(configTme->tool()), &SwiotConfig::configBtnPressed, this,
-		   &SWIOTREFACTORPlugin::startCtxSwitch);
-	disconnect(m_swiotController, &SwiotController::modeAttributeChanged,
-		   dynamic_cast<SwiotConfig *>(configTme->tool()), &SwiotConfig::modeAttributeChanged);
-	disconnect(dynamic_cast<SwiotConfig *>(configTme->tool()), &SwiotConfig::writeModeAttribute, m_swiotController,
-		   &SwiotController::writeModeAttribute);
+	disconnect(dynamic_cast<SwiotConfig *>(configTme->tool()), &SwiotConfig::writeModeAttribute, this,
+		   &SWIOTREFACTORPlugin::setCtxMode);
 	disconnect(dynamic_cast<Ad74413r *>(ad74413rTme->tool()), &Ad74413r::configBtnPressed, m_runtime,
 		   &SwiotRuntime::onBackBtnPressed);
 	disconnect(dynamic_cast<Max14906 *>(max14906Tme->tool()), &Max14906::configBtnPressed, m_runtime,
@@ -186,11 +196,6 @@ bool SWIOTREFACTORPlugin::onDisconnect()
 
 	disconnect(m_swiotController, &SwiotController::isRuntimeCtxChanged, m_runtime,
 		   &SwiotRuntime::onIsRuntimeCtxChanged);
-	disconnect(m_runtime, &SwiotRuntime::backBtnPressed, this, &SWIOTREFACTORPlugin::startCtxSwitch);
-	disconnect(m_swiotController, &SwiotController::modeAttributeChanged, m_runtime,
-		   &SwiotRuntime::modeAttributeChanged);
-	disconnect(m_runtime, &SwiotRuntime::writeModeAttribute, m_swiotController,
-		   &SwiotController::writeModeAttribute);
 
 	m_swiotController->stopPingTask();
 	m_swiotController->stopPowerSupplyTask();
@@ -200,6 +205,7 @@ bool SWIOTREFACTORPlugin::onDisconnect()
 	m_btnTutorial->setEnabled(false);
 
 	if(m_runtime) {
+		disconnect(m_runtime, &SwiotRuntime::writeModeAttribute, this, &SWIOTREFACTORPlugin::setCtxMode);
 		delete m_runtime;
 		m_runtime = nullptr;
 	}
@@ -210,26 +216,13 @@ bool SWIOTREFACTORPlugin::onDisconnect()
 	}
 
 	ConnectionProvider::close(m_param);
+
+	if(m_switchCmd) {
+		m_switchCmd = false;
+		switchCtx();
+	}
+
 	return true;
-}
-
-void SWIOTREFACTORPlugin::startCtxSwitch()
-{
-	m_swiotController->stopPingTask();
-	m_swiotController->stopPowerSupplyTask();
-	//	if (m_isRuntime) {
-	//		m_swiotController->stopTemperatureTask();
-	//	}
-
-	m_swiotController->disconnectSwiot();
-	Q_EMIT disconnectDevice();
-	m_swiotController->startSwitchContextTask(m_isRuntime);
-}
-
-void SWIOTREFACTORPlugin::onCtxSwitched()
-{
-	m_swiotController->stopSwitchContextTask();
-	Q_EMIT connectDevice();
 }
 
 void SWIOTREFACTORPlugin::onIsRuntimeCtxChanged(bool isRuntimeCtx)
@@ -324,6 +317,27 @@ void SWIOTREFACTORPlugin::powerSupplyStatus(bool ps)
 	}
 }
 
+void SWIOTREFACTORPlugin::setCtxMode(QString mode)
+{
+	m_ctxMode = mode;
+	m_switchCmd = true;
+	Q_EMIT disconnectDevice();
+}
+
+void SWIOTREFACTORPlugin::onModeAttributeChanged(QString mode)
+{
+	if(m_ctxMode.contains(mode)) {
+		m_swiotController->disconnectSwiot();
+		Q_EMIT connectDevice();
+	}
+}
+
+void SWIOTREFACTORPlugin::switchCtx()
+{
+	m_swiotController->connectSwiot();
+	m_swiotController->writeModeAttribute(m_ctxMode);
+}
+
 void SWIOTREFACTORPlugin::createStatusContainer()
 {
 	m_statusContainer = new QWidget();
@@ -345,6 +359,7 @@ void SWIOTREFACTORPlugin::createStatusContainer()
 
 void SWIOTREFACTORPlugin::setupToolList()
 {
+	m_infoPage->enableTemperatureReadBtn(m_isRuntime);
 	m_swiotController->startTemperatureTask();
 
 	auto configTme = ToolMenuEntry::findToolMenuEntryById(m_toolList, CONFIG_TME_ID);
@@ -377,12 +392,8 @@ void SWIOTREFACTORPlugin::setupToolList()
 		configTme->setTool(new swiotrefactor::SwiotConfig(m_param));
 	}
 
-	connect(dynamic_cast<SwiotConfig *>(configTme->tool()), &SwiotConfig::writeModeAttribute, m_swiotController,
-		&SwiotController::writeModeAttribute);
-	connect(m_swiotController, &SwiotController::modeAttributeChanged,
-		dynamic_cast<SwiotConfig *>(configTme->tool()), &SwiotConfig::modeAttributeChanged);
-	connect(dynamic_cast<SwiotConfig *>(configTme->tool()), &SwiotConfig::configBtnPressed, this,
-		&SWIOTREFACTORPlugin::startCtxSwitch);
+	connect(dynamic_cast<SwiotConfig *>(configTme->tool()), &SwiotConfig::writeModeAttribute, this,
+		&SWIOTREFACTORPlugin::setCtxMode);
 
 	connect(dynamic_cast<Ad74413r *>(ad74413rTme->tool()), &Ad74413r::configBtnPressed, m_runtime,
 		&SwiotRuntime::onBackBtnPressed);
