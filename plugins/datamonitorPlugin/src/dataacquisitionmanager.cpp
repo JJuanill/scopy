@@ -18,6 +18,9 @@ void DataAcquisitionManager::addMonitor(DataMonitorModel *monitor)
 
 void DataAcquisitionManager::removeMonitor(QString monitorName)
 {
+	if(m_activeMonitorsMap->contains(monitorName)) {
+		m_activeMonitorsMap->remove(monitorName);
+	}
 	if(getDataMonitorMap()->contains(monitorName)) {
 		delete getDataMonitorMap()->value(monitorName);
 		getDataMonitorMap()->remove(monitorName);

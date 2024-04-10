@@ -3,12 +3,12 @@
 #include <QDateTime>
 #include <QDebug>
 #include <QFile>
+#include <QRandomGenerator>
 #include <QTextStream>
 #include <QwtDate>
 #include <datamonitorutils.hpp>
 #include <filemanager.h>
 #include <stylehelper.h>
-#include <QRandomGenerator>
 
 #include <pluginbase/preferences.h>
 
@@ -24,60 +24,65 @@ LogDataToFile::LogDataToFile(DataAcquisitionManager *dataAcquisitionManager, QOb
 
 void LogDataToFile::continuousLogData(QString path)
 {
-	QString dateTimeFormat = DataMonitorUtils::getLoggingDateTimeFormat();
+	if(!m_dataAcquisitionManager->getActiveMonitors().isEmpty()) {
+		QString dateTimeFormat = DataMonitorUtils::getLoggingDateTimeFormat();
 
-	QString fileHeader = "Time";
-	foreach(QString monitor, m_dataAcquisitionManager->getActiveMonitors()) {
-		fileHeader += "," + monitor;
-	}
-
-	// if a channels is added or removed we need to recreate the file using logData()
-	if(currentFileHeader != fileHeader) {
-		logData(path);
-
-		currentFileHeader = new QString(fileHeader);
-	} else {
-		QFile file(path);
-		QTextStream exportStream(&file);
-		if(!file.isOpen()) {
-			file.open(QIODevice::Append);
-
-			// get last time value
-			// the time of the last read value will be the same for all active monitors
-			auto lastReadValueTime = m_dataAcquisitionManager->getDataMonitorMap()
-							 ->value(m_dataAcquisitionManager->getActiveMonitors().first())
-							 ->getXdata()
-							 ->last();
-
-			QDateTime auxTime = QDateTime::fromMSecsSinceEpoch(lastReadValueTime);
-			QString time = QString(auxTime.toString(dateTimeFormat));
-
-			QString values = time;
-
-			auto monitors = currentFileHeader->split(",");
-			for(int i = 1; i < monitors.length(); i++) {
-				QString monitor = monitors[i];
-
-				auto auxVal =
-					m_dataAcquisitionManager->getDataMonitorMap()->value(monitor)->getValueAtTime(
-						lastReadValueTime);
-
-				QString val = ", ";
-				if(lastReadValueTime != -Q_INFINITY) {
-					val += QString::number(auxVal);
-				}
-
-				values += val;
+		QString fileHeader = "Time";
+		foreach(QString monitor, m_dataAcquisitionManager->getActiveMonitors()) {
+			if(!monitor.contains("Import:")) {
+				fileHeader += "," + monitor;
 			}
-
-			exportStream << time << values << "\n";
-
-		} else {
-			qDebug() << "File already opened! ";
 		}
 
-		if(file.isOpen())
-			file.close();
+		// if a channels is added or removed we need to recreate the file using logData()
+		if(currentFileHeader != fileHeader) {
+			logData(path);
+
+			currentFileHeader = new QString(fileHeader);
+		} else {
+			QFile file(path);
+			QTextStream exportStream(&file);
+			if(!file.isOpen()) {
+				file.open(QIODevice::Append);
+
+				auto monitors = currentFileHeader->split(",");
+
+				// get last time value
+				// the time of the last read value will be the same for all active monitors
+				auto lastReadValueTime = m_dataAcquisitionManager->getDataMonitorMap()
+								 ->value(monitors[1])
+								 ->getXdata()
+								 ->last();
+
+				QDateTime auxTime = QDateTime::fromMSecsSinceEpoch(lastReadValueTime);
+				QString time = QString(auxTime.toString(dateTimeFormat));
+
+				QString values = "";
+
+				for(int i = 1; i < monitors.length(); i++) {
+					QString monitor = monitors[i];
+
+					auto auxVal = m_dataAcquisitionManager->getDataMonitorMap()
+							      ->value(monitor)
+							      ->getValueAtTime(lastReadValueTime);
+
+					QString val = ", ";
+					if(lastReadValueTime != -Q_INFINITY) {
+						val += QString::number(auxVal);
+					}
+
+					values += val;
+				}
+
+				exportStream << time << values << "\n";
+
+			} else {
+				qDebug() << "File already opened! ";
+			}
+
+			if(file.isOpen())
+				file.close();
+		}
 	}
 }
 
@@ -99,10 +104,12 @@ void LogDataToFile::logData(QString path)
 		// use a QSet to avoid having duplicate time values
 		QSet<double> timeValues;
 		foreach(QString monitor, m_dataAcquisitionManager->getActiveMonitors()) {
-			tableHead += ", " + monitor;
-			auto xData = m_dataAcquisitionManager->getDataMonitorMap()->value(monitor)->getXdata();
-			for(int i = 0; i < xData->length(); i++) {
-				timeValues.insert(xData->at(i));
+			if(!m_dataAcquisitionManager->getDataMonitorMap()->value(monitor)->isDummyMonitor()) {
+				tableHead += ", " + monitor;
+				auto xData = m_dataAcquisitionManager->getDataMonitorMap()->value(monitor)->getXdata();
+				for(int i = 0; i < xData->length(); i++) {
+					timeValues.insert(xData->at(i));
+				}
 			}
 		}
 
@@ -112,21 +119,23 @@ void LogDataToFile::logData(QString path)
 			QString time = QString(auxTime.toString(dateTimeFormat));
 
 			foreach(QString monitor, m_dataAcquisitionManager->getActiveMonitors()) {
-				auto auxVal =
-					m_dataAcquisitionManager->getDataMonitorMap()->value(monitor)->getValueAtTime(
-						*i);
+				if(!m_dataAcquisitionManager->getDataMonitorMap()->value(monitor)->isDummyMonitor()) {
+					auto auxVal = m_dataAcquisitionManager->getDataMonitorMap()
+							      ->value(monitor)
+							      ->getValueAtTime(*i);
 
-				// verify if monitor has a value this time value if no value is found leave an empty
-				// space in the file
-				QString val = ", ";
-				if(auxVal != -Q_INFINITY) {
-					val += QString::number(auxVal);
-				}
+					// verify if monitor has a value this time value if no value is found leave an
+					// empty space in the file
+					QString val = ", ";
+					if(auxVal != -Q_INFINITY) {
+						val += QString::number(auxVal);
+					}
 
-				if(values.contains(time)) {
-					values[time] += val;
-				} else {
-					values.insert(time, val);
+					if(values.contains(time)) {
+						values[time] += val;
+					} else {
+						values.insert(time, val);
+					}
 				}
 			}
 		}
@@ -196,17 +205,27 @@ void LogDataToFile::loadData(QString path)
 		// we don't override data we create dummy monitors for all channels from file
 		for(it = valueMap.begin(); it != valueMap.end(); ++it) {
 			QString fileTitle("Import: " + file.fileName().splitRef("/").last());
-			DataMonitorModel *channelModel = new DataMonitorModel(
-				QString(fileTitle + ":" + it.key()),
-				StyleHelper::getColor("CH" +
-						      QString::number(QRandomGenerator::global()->bounded(0, 7))));
+			QString monitorName(fileTitle + ":" + it.key());
+			if(m_dataAcquisitionManager->getDataMonitorMap()->contains(monitorName)) {
 
-			channelModel->setShortName(it.key());
-			channelModel->setDeviceName(fileTitle);
-			channelModel->setXdata(timeVector);
-			channelModel->setYdata(*it.value());
-			channelModel->setIsDummyMonitor(true);
-			m_dataAcquisitionManager->addMonitor(channelModel);
+				m_dataAcquisitionManager->getDataMonitorMap()->value(monitorName)->setXdata(timeVector);
+				m_dataAcquisitionManager->getDataMonitorMap()
+					->value(monitorName)
+					->setYdata(*it.value());
+
+			} else {
+				DataMonitorModel *channelModel = new DataMonitorModel(
+					monitorName,
+					StyleHelper::getColor(
+						"CH" + QString::number(QRandomGenerator::global()->bounded(0, 7))));
+
+				channelModel->setShortName(it.key());
+				channelModel->setDeviceName(fileTitle);
+				channelModel->setXdata(timeVector);
+				channelModel->setYdata(*it.value());
+				channelModel->setIsDummyMonitor(true);
+				m_dataAcquisitionManager->addMonitor(channelModel);
+			}
 		}
 
 	} else {
