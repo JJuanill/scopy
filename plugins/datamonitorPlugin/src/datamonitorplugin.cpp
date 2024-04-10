@@ -14,6 +14,9 @@
 
 #include <pluginbase/preferences.h>
 #include <pluginbase/preferenceshelper.h>
+#include <pluginbase/scopyjs.h>
+
+#include <src/api/datamonitor_api.hpp>
 
 Q_LOGGING_CATEGORY(CAT_DATAMONITORPLUGIN, "DataMonitorPlugin")
 using namespace scopy::datamonitor;
@@ -114,6 +117,7 @@ bool DataMonitorPlugin::onConnect()
 	});
 
 	addNewTool();
+	initApi();
 
 	return true;
 }
@@ -174,6 +178,14 @@ void DataMonitorPlugin::toggleRunState(bool toggled)
 	for(int i = 0; i < m_toolList.length(); i++) {
 		m_toolList[i]->setRunning(toggled);
 	}
+}
+
+void DataMonitorPlugin::initApi()
+{
+	api = new DataMonitor_API(this);
+	ScopyJS *js = ScopyJS::GetInstance();
+	api->setObjectName("datamonitor");
+	js->registerApi(api);
 }
 
 void DataMonitorPlugin::initMetadata()

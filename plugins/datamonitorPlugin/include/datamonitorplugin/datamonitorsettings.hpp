@@ -28,6 +28,7 @@ namespace datamonitor {
 
 class SCOPY_DATAMONITORPLUGIN_EXPORT DataMonitorSettings : public QWidget
 {
+	friend class DataMonitorTool_API;
 	friend class DataMonitorStyleHelper;
 	Q_OBJECT
 public:

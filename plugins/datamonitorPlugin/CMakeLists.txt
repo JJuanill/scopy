@@ -28,6 +28,7 @@ file(
 	SRC_LIST
 	src/*.cpp
 	src/*.hpp
+	src/api/*.cpp
 	src/datamonitor/*.cpp
 	src/menus/*.cpp
 	src/datamonitor/*.hpp

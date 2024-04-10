@@ -10,6 +10,10 @@
 #include "datamonitorstylehelper.hpp"
 #include <iioutil/connection.h>
 
+#include <src/api/datamonitortool_api.h>
+
+#include <pluginbase/scopyjs.h>
+
 using namespace scopy::datamonitor;
 
 Q_LOGGING_CATEGORY(CAT_DATAMONITOR, "DataMonitorPlugin");
@@ -244,6 +248,8 @@ DatamonitorTool::DatamonitorTool(DataAcquisitionManager *dataAcquisitionManager,
 	connect(m_monitorSelectionMenu, &MonitorSelectionMenu::requestRemoveImportedDevice, m_dataAcquisitionManager,
 		&DataAcquisitionManager::removeDevice);
 
+	initApi();
+
 	DataMonitorStyleHelper::DataMonitorToolStyle(this);
 }
 
@@ -256,4 +262,12 @@ void DatamonitorTool::resetStartTime()
 	auto &&timeTracker = TimeManager::GetInstance();
 	timeTracker->setStartTime();
 	m_monitorPlot->setStartTime();
+}
+
+void DatamonitorTool::initApi()
+{
+	api = new DataMonitorTool_API(this);
+	ScopyJS *js = ScopyJS::GetInstance();
+	api->setObjectName("datamonitorTool");
+	js->registerApi(api);
 }

@@ -19,9 +19,12 @@ Q_DECLARE_LOGGING_CATEGORY(CAT_DATAMONITOR_TOOL);
 
 namespace scopy::datamonitor {
 
+class DataMonitorTool_API;
+
 class DataMonitorSettings;
 class SCOPY_DATAMONITORPLUGIN_EXPORT DatamonitorTool : public QWidget
 {
+	friend class DataMonitorTool_API;
 	friend class DataMonitorStyleHelper;
 	Q_OBJECT
 public:
@@ -55,6 +58,9 @@ private:
 	MonitorPlot *m_monitorPlot;
 	DataMonitorSettings *m_dataMonitorSettings;
 	MonitorSelectionMenu *m_monitorSelectionMenu;
+
+	void initApi();
+	DataMonitorTool_API *api;
 };
 } // namespace scopy::datamonitor
 #endif // DATAMONITORTOOL_H

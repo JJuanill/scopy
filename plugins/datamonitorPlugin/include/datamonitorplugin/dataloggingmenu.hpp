@@ -18,6 +18,7 @@ enum ProgressBarState
 
 class SCOPY_DATAMONITORPLUGIN_EXPORT DataLoggingMenu : public QWidget
 {
+	friend class DataMonitorTool_API;
 	friend class DataMonitorStyleHelper;
 	Q_OBJECT
 public:
