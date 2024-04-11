@@ -159,6 +159,8 @@ void DataMonitorPlugin::addNewTool()
 	connect(datamonitorTool, &DatamonitorTool::settingsTitleChanged, this,
 		[=, this](QString newTitle) { toolMenuEntry->setName(newTitle); });
 
+	datamonitorTool->getRunButton()->setChecked(isRunning);
+
 	// one for each
 	connect(m_toolList[i], &ToolMenuEntry::runToggled, this, [=, this](bool en) {
 		if(datamonitorTool->getRunButton()->isChecked() != en) {
@@ -178,6 +180,7 @@ void DataMonitorPlugin::toggleRunState(bool toggled)
 	for(int i = 0; i < m_toolList.length(); i++) {
 		m_toolList[i]->setRunning(toggled);
 	}
+	isRunning = toggled;
 }
 
 void DataMonitorPlugin::initApi()
