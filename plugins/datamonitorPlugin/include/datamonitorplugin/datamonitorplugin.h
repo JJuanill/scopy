@@ -13,8 +13,11 @@
 
 namespace scopy::datamonitor {
 
+class DataMonitor_API;
+
 class SCOPY_DATAMONITORPLUGIN_EXPORT DataMonitorPlugin : public QObject, public PluginBase
 {
+	friend class DataMonitor_API;
 	Q_OBJECT
 	SCOPY_PLUGIN;
 
@@ -38,7 +41,9 @@ public Q_SLOTS:
 
 private:
 	QList<DataMonitorModel *> dmmList;
-	DataAcquisitionManager *m_dataAcquisitionManager;
+	DataAcquisitionManager *m_dataAcquisitionManager = nullptr;
+	void initApi();
+	DataMonitor_API *api;
 	bool isRunning = false;
 };
 } // namespace scopy::datamonitor

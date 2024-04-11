@@ -7,6 +7,7 @@
 #include <menucollapsesection.h>
 #include <timemanager.hpp>
 #include <datamonitorutils.hpp>
+#include <datamonitor_api.hpp>
 
 #include <libm2k/analog/dmm.hpp>
 
@@ -15,8 +16,6 @@
 #include <pluginbase/preferences.h>
 #include <pluginbase/preferenceshelper.h>
 #include <pluginbase/scopyjs.h>
-
-#include <src/api/datamonitor_api.hpp>
 
 Q_LOGGING_CATEGORY(CAT_DATAMONITORPLUGIN, "DataMonitorPlugin")
 using namespace scopy::datamonitor;
