@@ -247,12 +247,12 @@ void SWIOTREFACTORPlugin::startTutorial()
 		QWidget *faultsTool = faultsTme->tool();
 		QWidget *parent = Util::findContainingWindow(ad74413rTool);
 
-		m_ad74413rTutorial =
-			new gui::TutorialBuilder(ad74413rTool, ":/swiot/tutorial_chapters.json", "ad74413r", parent);
-		m_max14906Tutorial =
-			new gui::TutorialBuilder(max14906Tool, ":/swiot/tutorial_chapters.json", "max14906", parent);
-		m_faultsTutorial =
-			new gui::TutorialBuilder(faultsTool, ":/swiot/tutorial_chapters.json", "faults", parent);
+		m_ad74413rTutorial = new gui::TutorialBuilder(ad74413rTool, ":/swiotrefactor/tutorial_chapters.json",
+							      "ad74413r", parent);
+		m_max14906Tutorial = new gui::TutorialBuilder(max14906Tool, ":/swiotrefactor/tutorial_chapters.json",
+							      "max14906", parent);
+		m_faultsTutorial = new gui::TutorialBuilder(faultsTool, ":/swiotrefactor/tutorial_chapters.json",
+							    "faults", parent);
 
 		connect(m_ad74413rTutorial, &gui::TutorialBuilder::finished, this,
 			&SWIOTREFACTORPlugin::startMax14906Tutorial);
@@ -267,7 +267,8 @@ void SWIOTREFACTORPlugin::startTutorial()
 
 		auto configTool = configTme->tool();
 		auto parent = Util::findContainingWindow(configTool);
-		auto tut = new gui::TutorialBuilder(configTool, ":/swiot/tutorial_chapters.json", "config", parent);
+		auto tut = new gui::TutorialBuilder(configTool, ":/swiotrefactor/tutorial_chapters.json", "config",
+						    parent);
 
 		tut->setTitle("CONFIG");
 		requestTool(configTme->id());
@@ -347,7 +348,7 @@ void SWIOTREFACTORPlugin::createStatusContainer()
 	m_statusContainer->layout()->setContentsMargins(0, 0, 0, 0);
 
 	auto exclamationIcon = new QPushButton(m_statusContainer);
-	StyleHelper::NoBackgroundIconButton(exclamationIcon, QIcon::fromTheme(":/swiot/warning.svg"));
+	StyleHelper::NoBackgroundIconButton(exclamationIcon, QIcon::fromTheme(":/swiotrefactor/warning.svg"));
 
 	auto statusLabel = new QLabel("AD-SWIOT1L-SL: The system is powered at limited capacity.");
 	statusLabel->setWordWrap(true);

@@ -122,20 +122,13 @@ void Ad74413r::setupConnections()
 
 void Ad74413r::onChannelBtnChecked(int chnlIdx, bool en)
 {
-	if(en) {
-		m_enabledChannels[chnlIdx] = true;
-		verifyChnlsChanges();
-	} else {
-		m_enabledChannels[chnlIdx] = false;
-		verifyChnlsChanges();
-	}
+	m_enabledChannels[chnlIdx] = en;
+	verifyChnlsChanges();
 
-	if(std::find(m_enabledChannels.begin(), m_enabledChannels.end(), true) == m_enabledChannels.end()) {
-		Q_EMIT activateRunBtns(false);
+	bool activateBtns =
+		std::find(m_enabledChannels.begin(), m_enabledChannels.end(), true) != m_enabledChannels.end();
 
-	} else {
-		Q_EMIT activateRunBtns(true);
-	}
+	Q_EMIT activateRunBtns(activateBtns);
 }
 
 void Ad74413r::onActivateRunBtns(bool enable)
@@ -383,13 +376,14 @@ void Ad74413r::setupChannelBtn(MenuControlButton *btn, PlotChannel *ch, QString 
 	btn->checkBox()->setChecked(false);
 
 	connect(btn, &MenuControlButton::toggled, this, [=, this](bool en) {
-		if(en) {
-			if(btn->checkBox()->isChecked()) {
-				m_plot->selectChannel(ch);
-				m_plot->replot();
-			}
-			m_channelStack->show(chnlId);
+		if(!en) {
+			return;
 		}
+		if(btn->checkBox()->isChecked()) {
+			m_plot->selectChannel(ch);
+			m_plot->replot();
+		}
+		m_channelStack->show(chnlId);
 	});
 
 	connect(
@@ -398,6 +392,9 @@ void Ad74413r::setupChannelBtn(MenuControlButton *btn, PlotChannel *ch, QString 
 			onChannelBtnChecked(chnlIdx, en);
 			ch->handle()->handle()->setVisible(en);
 			ch->setEnabled(en);
+			if(en && btn->isChecked()) {
+				m_plot->selectChannel(ch);
+			}
 			m_plot->replot();
 		},
 		Qt::DirectConnection);
