@@ -88,6 +88,7 @@ private Q_SLOTS:
 	void onChannelBtnChecked(int chnWidgetId, bool en);
 
 private:
+	bool eventFilter(QObject *watched, QEvent *event) override;
 	void updateXData(int dataSize);
 	void plotData(QVector<double> curveData, int chnlIdx);
 	void createDevicesMap(iio_context *ctx);
@@ -124,9 +125,9 @@ private:
 	ToolTemplate *m_tool;
 	RunBtn *m_runBtn;
 	SingleShotBtn *m_singleBtn;
-	PrintBtn *m_printBtn;
 	QPushButton *m_configBtn;
 	GearBtn *m_settingsBtn;
+	InfoBtn *m_infoBtn;
 
 	PlotWidget *m_plot;
 	TimePlotInfo *m_info;

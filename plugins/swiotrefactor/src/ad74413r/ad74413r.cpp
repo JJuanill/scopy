@@ -514,6 +514,8 @@ void Ad74413r::setupToolTemplate()
 	setupDeviceBtn();
 	m_tool->addWidgetToCentralContainerHelper(m_plot);
 
+	m_infoBtn = new InfoBtn(this);
+	m_infoBtn->installEventFilter(this);
 	m_settingsBtn = new GearBtn(this);
 	m_runBtn = new RunBtn(this);
 	m_runBtn->setEnabled(false);
@@ -521,7 +523,6 @@ void Ad74413r::setupToolTemplate()
 	m_singleBtn = new SingleShotBtn(this);
 	m_singleBtn->setEnabled(false);
 	m_singleBtn->setChecked(false);
-	m_printBtn = new PrintBtn(this);
 	m_configBtn = createConfigBtn();
 
 	MenuControlButton *chnlsMenuBtn = new MenuControlButton(this);
@@ -556,7 +557,8 @@ void Ad74413r::setupToolTemplate()
 
 	m_tool->addWidgetToTopContainerHelper(m_runBtn, TTA_RIGHT);
 	m_tool->addWidgetToTopContainerHelper(m_singleBtn, TTA_RIGHT);
-	m_tool->addWidgetToTopContainerHelper(m_printBtn, TTA_LEFT);
+
+	m_tool->addWidgetToTopContainerHelper(m_infoBtn, TTA_LEFT);
 	m_tool->addWidgetToTopContainerHelper(m_configBtn, TTA_LEFT);
 }
 
@@ -607,6 +609,25 @@ QWidget *Ad74413r::createSettingsMenu(QWidget *parent)
 	layout->addSpacerItem(new QSpacerItem(0, 0, QSizePolicy::Minimum, QSizePolicy::Expanding));
 
 	return widget;
+}
+
+bool Ad74413r::eventFilter(QObject *watched, QEvent *event)
+{
+	if(watched == (QObject *)m_infoBtn) {
+		if(event->type() == QEvent::Enter) {
+			auto enabledPlotsNo = std::count(m_enabledChannels.begin(), m_enabledChannels.end(), true);
+			m_infoBtn->setToolTip(
+				"sps = samples per second \n"
+				"sps = sampling_frequency / enabled_channels \n"
+				"Enabled channels = " +
+				QString::number(enabledPlotsNo) + "\n" +
+				"Samples per channel = " + QString::number(m_currentSamplingInfo.plotSize) + "\n" +
+				"Sampling frequency = " + QString::number(m_currentSamplingInfo.sampleRate));
+		}
+		return false;
+	} else {
+		return QWidget::eventFilter(watched, event);
+	}
 }
 
 void Ad74413r::initTutorialProperties()
