@@ -328,7 +328,6 @@ void ReaderThread::runBuffered(int requiredBuffersNumber)
 
 void ReaderThread::requestStop()
 {
-	requestInterruption();
 	if(isBuffered && m_running) {
 		m_running = false;
 		destroyIioBuffer();
@@ -363,7 +362,6 @@ void ReaderThread::singleDio() { this->runDio(); }
 
 void ReaderThread::forcedStop()
 {
-	requestInterruption();
 	if(isBuffered && m_running) {
 		m_running = false;
 		cancelIioBuffer();
@@ -371,8 +369,4 @@ void ReaderThread::forcedStop()
 	wait();
 }
 
-void ReaderThread::handleConnectionDestroyed()
-{
-	m_deinit = false;
-	requestInterruption();
-}
+void ReaderThread::handleConnectionDestroyed() { m_deinit = false; }

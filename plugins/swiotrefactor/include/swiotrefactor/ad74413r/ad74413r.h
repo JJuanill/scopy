@@ -144,6 +144,7 @@ private:
 	int m_currentChannelSelected = 0;
 	QVector<double> m_xTime;
 
+	QTimer *m_rstAcqTimer;
 	const QString channelsMenuId = "channels";
 };
 } // namespace swiotrefactor

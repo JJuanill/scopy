@@ -64,6 +64,7 @@ Ad74413r::Ad74413r(QString uri, ToolMenuEntry *tme, QWidget *parent)
 			m_readerThread = new ReaderThread(true, m_cmdQueue, this);
 			m_readerThread->addBufferedDevice(m_iioDevicesMap[AD_NAME]);
 			m_acqHandler = new BufferAcquisitionHandler(this);
+			m_rstAcqTimer = new QTimer(this);
 
 			setupConnections();
 			m_swiotAdLogic->initAd74413rChnlsFunctions();
@@ -118,6 +119,11 @@ void Ad74413r::setupConnections()
 
 	connect(m_timespanSpin, &PositionSpinButton::valueChanged, m_acqHandler,
 		&BufferAcquisitionHandler::onTimespanChanged);
+
+	connect(m_rstAcqTimer, &QTimer::timeout, this, [&]() {
+		m_rstAcqTimer->stop();
+		m_runBtn->setChecked(true);
+	});
 }
 
 void Ad74413r::onChannelBtnChecked(int chnlIdx, bool en)
@@ -241,20 +247,20 @@ void Ad74413r::onConfigBtnPressed()
 	Q_EMIT configBtnPressed();
 }
 
+// TBD - The value of 500 is set so that the device reaches a stable state before the new acquisition
+// It is possible that this problem can be solved in other way
 void Ad74413r::onReaderThreadFinished()
 {
 	bool singleCaptureOn = m_acqHandler->singleCapture();
 	if(singleCaptureOn) {
 		m_acqHandler->setSingleCapture(false);
 	}
-	int nbRequiredBuffers = 0;
-	if(m_runBtn->isChecked() || !m_singleBtn->isEnabled()) {
-		m_acqHandler->resetPlotParameters();
-		if(m_singleBtn->isChecked()) {
-			m_acqHandler->setSingleCapture(true);
-			nbRequiredBuffers = m_acqHandler->getRequiredBuffersNumber();
-		}
-		m_readerThread->startCapture(nbRequiredBuffers);
+	if(m_runBtn->isChecked()) {
+		onRunBtnPressed(false);
+		m_rstAcqTimer->start(500);
+	}
+	if(m_singleBtn->isChecked()) {
+		m_singleBtn->setChecked(false);
 	}
 }
 
