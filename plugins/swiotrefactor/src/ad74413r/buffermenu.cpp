@@ -36,7 +36,6 @@ BufferMenu::BufferMenu(QWidget *parent, QString chnlFunction, Connection *conn, 
 {
 
 	if(m_chnls.contains(INPUT_CHNL)) {
-		// channels sampling freq - input channel
 		m_samplingFreq =
 			IIOWidgetFactory::buildSingle(IIOWidgetFactory::CMDQAttrData | IIOWidgetFactory::ComboUi,
 						      {.connection = const_cast<Connection *>(m_connection),
@@ -44,13 +43,15 @@ BufferMenu::BufferMenu(QWidget *parent, QString chnlFunction, Connection *conn, 
 						       .data = "sampling_frequency",
 						       .iioDataOptions = "sampling_frequency_available"},
 						      this);
-		m_samplingFreq->getDataStrategy()->requestData();
 		addMenuWidget(m_samplingFreq);
-
 		connect(dynamic_cast<CmdQChannelAttrDataStrategy *>(m_samplingFreq->getDataStrategy()),
-			&CmdQChannelAttrDataStrategy::sendData, this, [=, this](QString data, QString dataOptions) {
-				Q_EMIT samplingFrequencyUpdated(data.toInt());
-			});
+			&CmdQChannelAttrDataStrategy::sendData, this, &BufferMenu::onSamplingFreqWrite);
+		connect(dynamic_cast<ComboAttrUi *>(m_samplingFreq->getUiStrategy()), &ComboAttrUi::emitData, this,
+			&BufferMenu::freqChangeStart);
+		connect(dynamic_cast<CmdQChannelAttrDataStrategy *>(m_samplingFreq->getDataStrategy()),
+			&CmdQChannelAttrDataStrategy::emitStatus, this, &BufferMenu::freqChangeEnd);
+
+		m_samplingFreq->getUiStrategy()->requestData();
 	}
 }
 
@@ -67,6 +68,13 @@ QString BufferMenu::getInfoMessage()
 void BufferMenu::addMenuWidget(QWidget *widget) { m_widgetsList.push_back(widget); }
 
 void BufferMenu::onBroadcastThreshold() {}
+
+void BufferMenu::onDiagSamplingChange(QString samplingFreq) {}
+
+void BufferMenu::onSamplingFreqWrite(QString data, QString dataOptions)
+{
+	Q_EMIT samplingFrequencyUpdated(data.toInt());
+}
 
 void BufferMenu::onRunBtnsPressed(bool en)
 {
@@ -321,6 +329,17 @@ DiagnosticMenu::DiagnosticMenu(QWidget *parent, QString chnlFunction, Connection
 }
 
 DiagnosticMenu::~DiagnosticMenu() {}
+
+// TBD - it is possible that there is a better option
+void DiagnosticMenu::onDiagSamplingChange(QString samplingFreq)
+{
+	QWidget *w = m_samplingFreq->getUiStrategy()->ui()->layout()->itemAt(0)->widget();
+	if(w) {
+		dynamic_cast<MenuCombo *>(w)->combo()->setCurrentText(samplingFreq);
+	}
+}
+
+void DiagnosticMenu::onSamplingFreqWrite(QString data, QString dataOptions) { Q_EMIT diagSamplingFreqChange(data); }
 
 WithoutAdvSettings::WithoutAdvSettings(QWidget *parent, QString chnlFunction, Connection *conn,
 				       QMap<QString, iio_channel *> chnls)

@@ -137,6 +137,13 @@ void Ad74413r::onChannelBtnChecked(int chnlIdx, bool en)
 	Q_EMIT activateRunBtns(activateBtns);
 }
 
+void Ad74413r::samplingFreqWritten(bool en)
+{
+	bool activateBtns =
+		std::find(m_enabledChannels.begin(), m_enabledChannels.end(), true) != m_enabledChannels.end();
+	Q_EMIT activateRunBtns(activateBtns && en);
+}
+
 void Ad74413r::onActivateRunBtns(bool enable)
 {
 	if(!enable) {
@@ -453,12 +460,18 @@ void Ad74413r::setupChannel(int chnlIdx, QString function)
 		connect(menu, &BufferMenuView::setYMax, chYAxis, &PlotAxis::setMax);
 		connect(chYAxis, &PlotAxis::maxChanged, this, [=, this]() { Q_EMIT menu->maxChanged(chYAxis->max()); });
 
-		connect(
-			menu, &BufferMenuView::samplingFrequencyUpdated, this,
-			[=, this](int sr) { onSamplingFrequencyUpdated(chnlIdx, sr); }, Qt::DirectConnection);
+		connect(menu, &BufferMenuView::samplingFrequencyUpdated, this,
+			[=, this](int sr) { onSamplingFrequencyUpdated(chnlIdx, sr); });
+
+		connect(menu, &BufferMenuView::diagSamplingFreqChange, this, [=, this](QString data) {
+			onSamplingFrequencyUpdated(chnlIdx, data.toInt());
+			Q_EMIT updateDiagSamplingFreq(data);
+		});
 		connect(menu, &BufferMenuView::diagnosticFunctionUpdated, this, &Ad74413r::onDiagnosticFunctionUpdated);
+		connect(menu, &BufferMenuView::samplingFreqWritten, this, &Ad74413r::samplingFreqWritten);
 		connect(menu, &BufferMenuView::broadcastThresholdForward, this, &Ad74413r::broadcastReadThreshold);
 		connect(this, &Ad74413r::broadcastReadThreshold, menu, &BufferMenuView::broadcastThresholdBackward);
+		connect(this, &Ad74413r::updateDiagSamplingFreq, menu, &BufferMenuView::updateDiagSamplingFreq);
 	}
 	m_currentChannelSelected++;
 	if(m_currentChannelSelected == 4) {

@@ -73,6 +73,7 @@ public Q_SLOTS:
 
 Q_SIGNALS:
 	void broadcastReadThreshold();
+	void updateDiagSamplingFreq(QString data);
 	void exportBtnClicked(QMap<int, bool> exportConfig);
 
 	void activateExportButton();
@@ -86,6 +87,7 @@ private Q_SLOTS:
 	void onSamplingFreqComputed(double freq);
 	void onBufferRefilled(QMap<int, QVector<double>> chnlData);
 	void onChannelBtnChecked(int chnWidgetId, bool en);
+	void samplingFreqWritten(bool en);
 
 private:
 	bool eventFilter(QObject *watched, QEvent *event) override;

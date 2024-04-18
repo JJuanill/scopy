@@ -46,12 +46,17 @@ public:
 
 public Q_SLOTS:
 	virtual void onBroadcastThreshold();
+	virtual void onDiagSamplingChange(QString samplingFreq);
+	virtual void onSamplingFreqWrite(QString data, QString dataOptions);
 	void onRunBtnsPressed(bool en);
 
 Q_SIGNALS:
 	void broadcastThreshold();
 	void diagnosticFunctionUpdated();
+	void diagSamplingFreqChange(QString data);
 	void samplingFrequencyUpdated(int sr);
+	void freqChangeStart();
+	void freqChangeEnd();
 
 protected:
 	IIOWidget *m_samplingFreq;
@@ -120,6 +125,10 @@ public:
 	explicit DiagnosticMenu(QWidget *parent = nullptr, QString chnlFunction = "", Connection *conn = nullptr,
 				QMap<QString, iio_channel *> chnls = {});
 	~DiagnosticMenu();
+
+public Q_SLOTS:
+	void onDiagSamplingChange(QString samplingFreq) override;
+	void onSamplingFreqWrite(QString data, QString dataOptions) override;
 };
 
 class DigitalInMenu : public BufferMenu

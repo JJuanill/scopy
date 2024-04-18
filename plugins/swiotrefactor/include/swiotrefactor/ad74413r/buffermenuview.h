@@ -48,9 +48,12 @@ Q_SIGNALS:
 	void maxChanged(double yMax);
 
 	void diagnosticFunctionUpdated();
-	void samplingFrequencyUpdated(int chnlId);
+	void samplingFrequencyUpdated(int val);
+	void diagSamplingFreqChange(QString data);
+	void updateDiagSamplingFreq(QString data);
 	void broadcastThresholdForward();
 	void broadcastThresholdBackward();
+	void samplingFreqWritten(bool en);
 
 	void runBtnsPressed(bool en);
 

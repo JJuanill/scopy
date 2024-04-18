@@ -22,7 +22,6 @@
 
 #include "ad74413r/chnlinfobuilder.h"
 #include "ad74413r/ad74413r.h"
-#include "swiot_logging_categories.h"
 
 #include <iioutil/iiocommand/iiochannelattributeread.h>
 #include <iioutil/iiocommand/iiochannelattributewrite.h>
