@@ -48,15 +48,16 @@ public Q_SLOTS:
 	virtual void onBroadcastThreshold();
 	virtual void onDiagSamplingChange(QString samplingFreq);
 	virtual void onSamplingFreqWrite(QString data, QString dataOptions);
-	void onRunBtnsPressed(bool en);
+	virtual void onRunBtnsPressed(bool en);
 
 Q_SIGNALS:
-	void broadcastThreshold();
 	void diagnosticFunctionUpdated();
 	void diagSamplingFreqChange(QString data);
 	void samplingFrequencyUpdated(int sr);
 	void freqChangeStart();
 	void freqChangeEnd();
+	void thresholdChangeStart();
+	void thresholdChangeEnd();
 
 protected:
 	IIOWidget *m_samplingFreq;
@@ -90,6 +91,7 @@ public:
 	QString getInfoMessage() override;
 public Q_SLOTS:
 	void onBroadcastThreshold() override;
+	void onRunBtnsPressed(bool en) override;
 	void onEmitStatus(int retCode);
 
 private:
@@ -141,6 +143,7 @@ public:
 
 public Q_SLOTS:
 	void onBroadcastThreshold() override;
+	void onRunBtnsPressed(bool en) override;
 	void onEmitStatus(int retCode);
 
 private:

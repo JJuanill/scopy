@@ -134,8 +134,9 @@ DigitalInLoopMenu::DigitalInLoopMenu(QWidget *parent, QString chnlFunction, Conn
 
 	CmdQChannelAttrDataStrategy *dataStrategy =
 		dynamic_cast<CmdQChannelAttrDataStrategy *>(m_threshold->getDataStrategy());
-	connect(dataStrategy, &CmdQChannelAttrDataStrategy::emitStatus, this,
-		[=, this](int retCode) { Q_EMIT broadcastThreshold(); });
+	connect(dynamic_cast<EditableGuiStrategy *>(m_threshold->getUiStrategy()), &EditableGuiStrategy::emitData, this,
+		&BufferMenu::thresholdChangeStart);
+	connect(dataStrategy, &CmdQChannelAttrDataStrategy::emitStatus, this, &DigitalInLoopMenu::onEmitStatus);
 	// dac code - output channel
 	IIOWidget *dacCode = IIOWidgetFactory::buildSingle(IIOWidgetFactory::CMDQAttrData | IIOWidgetFactory::RangeUi,
 							   {.connection = const_cast<Connection *>(m_connection),
@@ -175,13 +176,19 @@ void DigitalInLoopMenu::onBroadcastThreshold()
 	dataStrategy->requestData();
 }
 
+void DigitalInLoopMenu::onRunBtnsPressed(bool en)
+{
+	BufferMenu::onRunBtnsPressed(en);
+	m_threshold->getUiStrategy()->ui()->setEnabled(!en);
+}
+
 void DigitalInLoopMenu::onEmitStatus(int retCode)
 {
 	if(retCode != 0) {
 		qWarning(CAT_SWIOT_AD74413R) << "[" << m_chnlFunction << "] Treshold value cannot be written!";
 		return;
 	}
-	Q_EMIT broadcastThreshold();
+	Q_EMIT thresholdChangeEnd();
 }
 
 VoltageOutMenu::VoltageOutMenu(QWidget *parent, QString chnlFunction, Connection *conn,
@@ -366,6 +373,8 @@ DigitalInMenu::DigitalInMenu(QWidget *parent, QString chnlFunction, Connection *
 	addMenuWidget(m_threshold);
 	CmdQChannelAttrDataStrategy *dataStrategy =
 		dynamic_cast<CmdQChannelAttrDataStrategy *>(m_threshold->getDataStrategy());
+	connect(dynamic_cast<EditableGuiStrategy *>(m_threshold->getUiStrategy()), &EditableGuiStrategy::emitData, this,
+		&BufferMenu::thresholdChangeStart);
 	connect(dataStrategy, &CmdQChannelAttrDataStrategy::emitStatus, this, &DigitalInMenu::onEmitStatus);
 }
 
@@ -378,11 +387,17 @@ void DigitalInMenu::onBroadcastThreshold()
 	dataStrategy->requestData();
 }
 
+void DigitalInMenu::onRunBtnsPressed(bool en)
+{
+	BufferMenu::onRunBtnsPressed(en);
+	m_threshold->getUiStrategy()->ui()->setEnabled(!en);
+}
+
 void DigitalInMenu::onEmitStatus(int retCode)
 {
 	if(retCode != 0) {
 		qWarning(CAT_SWIOT_AD74413R) << "[" << m_chnlFunction << "] Treshold value cannot be written!";
 		return;
 	}
-	Q_EMIT broadcastThreshold();
+	Q_EMIT thresholdChangeEnd();
 }

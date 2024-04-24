@@ -76,8 +76,9 @@ void BufferMenuView::createConnections()
 	connect(m_swiotAdvMenu, &BufferMenu::diagnosticFunctionUpdated, this,
 		&BufferMenuView::diagnosticFunctionUpdated);
 	connect(m_swiotAdvMenu, &BufferMenu::samplingFrequencyUpdated, this, &BufferMenuView::samplingFrequencyUpdated);
-	connect(m_swiotAdvMenu, &BufferMenu::broadcastThreshold, this, &BufferMenuView::broadcastThresholdForward);
-	connect(this, &BufferMenuView::broadcastThresholdBackward, m_swiotAdvMenu, &BufferMenu::onBroadcastThreshold);
+	connect(m_swiotAdvMenu, &BufferMenu::thresholdChangeStart, this, [&]() { Q_EMIT thresholdWritten(false); });
+	connect(m_swiotAdvMenu, &BufferMenu::thresholdChangeEnd, this, [&]() { Q_EMIT thresholdWritten(true); });
+	connect(this, &BufferMenuView::broadcastThreshold, m_swiotAdvMenu, &BufferMenu::onBroadcastThreshold);
 	connect(m_swiotAdvMenu, &BufferMenu::diagSamplingFreqChange, this, &BufferMenuView::diagSamplingFreqChange);
 	connect(this, &BufferMenuView::updateDiagSamplingFreq, m_swiotAdvMenu, &BufferMenu::onDiagSamplingChange);
 	connect(m_swiotAdvMenu, &BufferMenu::freqChangeStart, this, [&]() { Q_EMIT samplingFreqWritten(false); });

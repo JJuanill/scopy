@@ -137,11 +137,21 @@ void Ad74413r::onChannelBtnChecked(int chnlIdx, bool en)
 	Q_EMIT activateRunBtns(activateBtns);
 }
 
-void Ad74413r::samplingFreqWritten(bool en)
+void Ad74413r::samplingFreqWritten(bool written)
 {
 	bool activateBtns =
 		std::find(m_enabledChannels.begin(), m_enabledChannels.end(), true) != m_enabledChannels.end();
-	Q_EMIT activateRunBtns(activateBtns && en);
+	Q_EMIT activateRunBtns(activateBtns && written);
+}
+
+void Ad74413r::onThresholdWritten(bool written)
+{
+	bool activateBtns =
+		std::find(m_enabledChannels.begin(), m_enabledChannels.end(), true) != m_enabledChannels.end();
+	if(written) {
+		Q_EMIT broadcastThreshold();
+	}
+	Q_EMIT activateRunBtns(activateBtns && written);
 }
 
 void Ad74413r::onActivateRunBtns(bool enable)
@@ -190,7 +200,6 @@ void Ad74413r::onSingleBtnPressed(bool toggled)
 {
 	bool runBtnChecked = m_runBtn->isChecked();
 	if(toggled) {
-		Q_EMIT activateExportButton();
 		verifyChnlsChanges();
 		if(runBtnChecked) {
 			m_runBtn->setChecked(false);
@@ -469,8 +478,8 @@ void Ad74413r::setupChannel(int chnlIdx, QString function)
 		});
 		connect(menu, &BufferMenuView::diagnosticFunctionUpdated, this, &Ad74413r::onDiagnosticFunctionUpdated);
 		connect(menu, &BufferMenuView::samplingFreqWritten, this, &Ad74413r::samplingFreqWritten);
-		connect(menu, &BufferMenuView::broadcastThresholdForward, this, &Ad74413r::broadcastReadThreshold);
-		connect(this, &Ad74413r::broadcastReadThreshold, menu, &BufferMenuView::broadcastThresholdBackward);
+		connect(menu, &BufferMenuView::thresholdWritten, this, &Ad74413r::onThresholdWritten);
+		connect(this, &Ad74413r::broadcastThreshold, menu, &BufferMenuView::broadcastThreshold);
 		connect(this, &Ad74413r::updateDiagSamplingFreq, menu, &BufferMenuView::updateDiagSamplingFreq);
 	}
 	m_currentChannelSelected++;

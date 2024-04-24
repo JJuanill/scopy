@@ -51,9 +51,9 @@ Q_SIGNALS:
 	void samplingFrequencyUpdated(int val);
 	void diagSamplingFreqChange(QString data);
 	void updateDiagSamplingFreq(QString data);
-	void broadcastThresholdForward();
-	void broadcastThresholdBackward();
-	void samplingFreqWritten(bool en);
+	void thresholdWritten(bool written);
+	void broadcastThreshold();
+	void samplingFreqWritten(bool written);
 
 	void runBtnsPressed(bool en);
 
