@@ -57,8 +57,11 @@ void BufferLogic::createChannels()
 		for(int i = 0; i < chnlsNumber; i++) {
 			struct iio_channel *iioChnl = iio_device_get_channel(m_iioDevicesMap[AD_NAME], i);
 			QString chnlId(iio_channel_get_id(iioChnl));
-			QString chnlName(iio_channel_get_name(iioChnl));
-			ChnlInfo *channelInfo = ChnlInfoBuilder::build(iioChnl, chnlId[0].toLower(), m_commandQueue);
+			QString chnlInfoId = chnlId[0].toLower();
+			if(iio_channel_find_attr(iioChnl, "threshold")) {
+				chnlInfoId = "d";
+			}
+			ChnlInfo *channelInfo = ChnlInfoBuilder::build(iioChnl, chnlInfoId, m_commandQueue);
 			const auto &&parts = chnlId.split(rx);
 			chnlIdx = -1;
 			plotChnlsNo = (!channelInfo->isOutput() && channelInfo->isScanElement()) ? (plotChnlsNo + 1)
@@ -71,8 +74,6 @@ void BufferLogic::createChannels()
 				chnlIdx = (channelInfo->isOutput()) ? (chnlIdx + MAX_INPUT_CHNLS_NO) : chnlIdx;
 			}
 			m_chnlsInfo[chnlIdx] = channelInfo;
-			connect(channelInfo, &ChnlInfo::instantValueChanged, this,
-				[=, this](double value) { Q_EMIT instantValueChanged(chnlIdx, value); });
 		}
 		m_plotChnlsNo = plotChnlsNo;
 	}

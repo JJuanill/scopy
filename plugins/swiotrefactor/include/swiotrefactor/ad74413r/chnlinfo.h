@@ -44,9 +44,6 @@ private Q_SLOTS:
 	void readScaleCommandFinished(scopy::Command *cmd);
 	void readOffsetCommandFinished(scopy::Command *cmd);
 
-Q_SIGNALS:
-	void instantValueChanged(double value);
-
 protected:
 	bool m_isOutput;
 	bool m_isEnabled;

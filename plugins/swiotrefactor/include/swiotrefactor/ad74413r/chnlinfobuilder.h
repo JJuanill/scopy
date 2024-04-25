@@ -11,7 +11,8 @@ public:
 	{
 		VOLTAGE = 0,
 		CURRENT = 1,
-		RESISTANCE = 2
+		RESISTANCE = 2,
+		DIGITAL = 3
 	};
 
 	static int decodeId(QString function)
@@ -22,6 +23,8 @@ public:
 			return CURRENT;
 		} else if(function.compare("r") == 0) {
 			return RESISTANCE;
+		} else if(function.compare("d") == 0) {
+			return DIGITAL;
 		} else {
 			return -1;
 		}
