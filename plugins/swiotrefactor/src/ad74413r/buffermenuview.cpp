@@ -22,6 +22,7 @@
 
 #include <QList>
 
+#include <cfloat>
 #include <gui/widgets/menuheader.h>
 #include <gui/widgets/menusectionwidget.h>
 #include <gui/widgets/menucollapsesection.h>
@@ -134,18 +135,25 @@ QWidget *BufferMenuView::createVerticalSettingsMenu(QString unit, double yMin, d
 
 	MenuCollapseSection *verticalSettings =
 		new MenuCollapseSection("Y-AXIS", MenuCollapseSection::MHCW_NONE, verticalContainer);
+
 	auto m_yMin = new PositionSpinButton(
 		{
-			{unit, 1e0},
+			{"" + unit, 1e0},
+			{"k" + unit, 1e3},
+			{"M" + unit, 1e6},
+			{"G" + unit, 1e9},
 		},
-		"YMin", yMin, yMax, false, false, verticalContainer);
+		"YMin", -DBL_MAX, DBL_MAX, false, false, verticalContainer);
 	m_yMin->setValue(yMin);
 
 	auto m_yMax = new PositionSpinButton(
 		{
-			{unit, 1e0},
+			{"" + unit, 1e0},
+			{"k" + unit, 1e3},
+			{"M" + unit, 1e6},
+			{"G" + unit, 1e9},
 		},
-		"YMax", yMin, yMax, false, false, verticalContainer);
+		"YMax", -DBL_MAX, DBL_MAX, false, false, verticalContainer);
 	m_yMax->setValue(yMax);
 
 	layout->addWidget(m_yMin);

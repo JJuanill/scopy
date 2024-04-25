@@ -24,6 +24,7 @@
 #include "swiot_logging_categories.h"
 
 #include <iio.h>
+#include <measurementlabel.h>
 #include <plotinfo.h>
 
 #include <gui/widgets/menucollapsesection.h>
@@ -130,7 +131,6 @@ void Ad74413r::onChannelBtnChecked(int chnlIdx, bool en)
 {
 	m_enabledChannels[chnlIdx] = en;
 	verifyChnlsChanges();
-
 	bool activateBtns =
 		std::find(m_enabledChannels.begin(), m_enabledChannels.end(), true) != m_enabledChannels.end();
 
@@ -313,6 +313,7 @@ void Ad74413r::plotData(QVector<double> chnlData, int chnlIdx)
 	m_plotChnls[chnlIdx]->curve()->setSamples(m_xTime.data(), chnlData.data(), dataSize);
 	m_currentSamplingInfo.plotSize = dataSize;
 	m_info->update(m_currentSamplingInfo);
+	m_plot->replot();
 }
 
 void Ad74413r::onBufferRefilled(QMap<int, QVector<double>> bufferData)
@@ -324,9 +325,9 @@ void Ad74413r::onBufferRefilled(QMap<int, QVector<double>> bufferData)
 			continue;
 		}
 		plotData(bufferData[dataIdx], chnlIdx);
+		m_labels[chnlIdx].last()->setValue(bufferData[dataIdx].last());
 		dataIdx++;
 	}
-	m_plot->replot();
 }
 
 void Ad74413r::onSamplingFreqComputed(double freq)
@@ -365,16 +366,6 @@ void Ad74413r::showPlotLabels(bool b)
 	m_plot->showAxisLabels();
 }
 
-PlotAxis *Ad74413r::createXChnlAxis(QPen pen, int xMin, int xMax)
-{
-	PlotAxis *chXAxis = new PlotAxis(QwtAxis::XBottom, m_plot, pen);
-	chXAxis->setVisible(false);
-	chXAxis->setInterval(xMin, xMax);
-	chXAxis->scaleDraw()->setFormatter(new MetricPrefixFormatter());
-	chXAxis->scaleDraw()->setFloatPrecision(2);
-	return chXAxis;
-}
-
 PlotAxis *Ad74413r::createYChnlAxis(QPen pen, QString unitType, int yMin, int yMax)
 {
 	PlotAxis *chYAxis = new PlotAxis(QwtAxis::YRight, m_plot, pen);
@@ -405,6 +396,7 @@ void Ad74413r::setupChannelBtn(MenuControlButton *btn, PlotChannel *ch, QString 
 			m_plot->selectChannel(ch);
 			m_plot->replot();
 		}
+		m_chnlsMenuBtn->button()->setChecked(en);
 		m_channelStack->show(chnlId);
 	});
 
@@ -431,7 +423,6 @@ void Ad74413r::setupChannel(int chnlIdx, QString function)
 		QString unit = m_swiotAdLogic->getPlotChnlUnitOfMeasure(chnlIdx);
 		auto yRange = m_swiotAdLogic->getPlotChnlRangeValues(chnlIdx);
 
-		//		PlotAxis *chXAxis = createXChnlAxis(chPen);
 		PlotAxis *chYAxis = createYChnlAxis(chPen, unit, yRange.first, yRange.second);
 		PlotChannel *plotCh = new PlotChannel(chnlId, chPen, m_plot->xAxis(), chYAxis, this);
 		m_plot->addPlotChannel(plotCh);
@@ -451,6 +442,11 @@ void Ad74413r::setupChannel(int chnlIdx, QString function)
 		m_plot->addPlotAxisHandle(chHandle);
 		m_plotChnls.insert(chnlIdx, plotCh);
 
+		QString unitPerDivLabel = unit + "/div";
+		QString valueLabel = "Value(" + unit + ")";
+		createMeasurementsLabel(chnlIdx, chPen, {unitPerDivLabel, valueLabel});
+		updateMeasurements(chYAxis, chnlIdx);
+
 		QMap<QString, iio_channel *> chnlsMap = m_swiotAdLogic->getIioChnl(chnlIdx);
 		BufferMenuView *menu = new BufferMenuView(chnlsMap, m_conn, this);
 		menu->init(chnlId, function, chPen, unit, yRange.first, yRange.second);
@@ -465,9 +461,15 @@ void Ad74413r::setupChannel(int chnlIdx, QString function)
 		connect(m_singleBtn, &QPushButton::toggled, menu, &BufferMenuView::runBtnsPressed);
 
 		connect(menu, &BufferMenuView::setYMin, chYAxis, &PlotAxis::setMin);
-		connect(chYAxis, &PlotAxis::minChanged, this, [=, this]() { Q_EMIT menu->minChanged(chYAxis->min()); });
+		connect(chYAxis, &PlotAxis::minChanged, this, [=, this]() {
+			updateMeasurements(chYAxis, chnlIdx);
+			Q_EMIT menu->minChanged(chYAxis->min());
+		});
 		connect(menu, &BufferMenuView::setYMax, chYAxis, &PlotAxis::setMax);
-		connect(chYAxis, &PlotAxis::maxChanged, this, [=, this]() { Q_EMIT menu->maxChanged(chYAxis->max()); });
+		connect(chYAxis, &PlotAxis::maxChanged, this, [=, this]() {
+			updateMeasurements(chYAxis, chnlIdx);
+			Q_EMIT menu->maxChanged(chYAxis->max());
+		});
 
 		connect(menu, &BufferMenuView::samplingFrequencyUpdated, this,
 			[=, this](int sr) { onSamplingFrequencyUpdated(chnlIdx, sr); });
@@ -494,7 +496,26 @@ void Ad74413r::setupChannelsMenuControlBtn(MenuControlButton *btn, QString name)
 	btn->setOpenMenuChecksThis(true);
 	btn->setDoubleClickToOpenMenu(true);
 	btn->checkBox()->setVisible(false);
+	btn->button()->setChecked(true);
 	btn->setChecked(true);
+}
+
+void Ad74413r::updateMeasurements(PlotAxis *axis, int chnlIdx)
+{
+	double numOfDivs = axis->divs();
+	double unitsPerDivs = abs(axis->max() - axis->min()) / numOfDivs;
+	m_labels[chnlIdx].first()->setValue(unitsPerDivs);
+}
+
+void Ad74413r::createMeasurementsLabel(int chnlIdx, QPen chPen, QStringList labels)
+{
+	for(const QString &label : labels) {
+		MeasurementLabel *ml = new MeasurementLabel(this);
+		ml->setColor(chPen.color());
+		ml->setName(label);
+		m_labels[chnlIdx].append(ml);
+		m_measurePanel->addMeasurement(ml);
+	}
 }
 
 void Ad74413r::setupDeviceBtn()
@@ -509,6 +530,14 @@ void Ad74413r::setupDeviceBtn()
 	m_chnlsBtnGroup = new QButtonGroup(this);
 }
 
+void Ad74413r::setupMeasureButtonHelper(MenuControlButton *btn)
+{
+	btn->setName("Measure");
+	btn->checkBox()->setVisible(false);
+	btn->button()->setVisible(false);
+	btn->setChecked(true);
+}
+
 void Ad74413r::setupToolTemplate()
 {
 	setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
@@ -519,11 +548,13 @@ void Ad74413r::setupToolTemplate()
 	m_tool = new ToolTemplate(this);
 	m_tool->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
 	m_tool->topContainer()->setVisible(true);
+	m_tool->topCentral()->setVisible(true);
 	m_tool->centralContainer()->setVisible(true);
 	m_tool->bottomContainer()->setVisible(true);
 	m_tool->leftContainer()->setVisible(true);
 	m_tool->rightContainer()->setVisible(true);
 
+	m_tool->setTopContainerHeight(100);
 	m_tool->setLeftContainerWidth(200);
 	m_tool->setRightContainerWidth(300);
 
@@ -547,19 +578,31 @@ void Ad74413r::setupToolTemplate()
 	m_singleBtn->setChecked(false);
 	m_configBtn = createConfigBtn();
 
-	MenuControlButton *chnlsMenuBtn = new MenuControlButton(this);
-	setupChannelsMenuControlBtn(chnlsMenuBtn, "Channels");
-	connect(chnlsMenuBtn->button(), &QAbstractButton::toggled, this, [=, this](bool b) {
-		if(b)
-			m_tool->requestMenu(channelsMenuId);
+	MenuControlButton *measure = new MenuControlButton(this);
+	setupMeasureButtonHelper(measure);
+	m_measurePanel = new MeasurementsPanel(this);
+	m_tool->topStack()->add("measure", m_measurePanel);
+	connect(measure, &MenuControlButton::toggled, this, [&](bool en) {
+		if(en)
+			m_tool->requestMenu("measure");
+		m_tool->openTopContainerHelper(en);
 	});
-	connect(chnlsMenuBtn, &QPushButton::toggled, dynamic_cast<MenuHAnim *>(m_tool->leftContainer()),
+
+	m_chnlsMenuBtn = new MenuControlButton(this);
+	setupChannelsMenuControlBtn(m_chnlsMenuBtn, "Channels");
+	connect(m_chnlsMenuBtn->button(), &QAbstractButton::toggled, this, [=, this](bool b) {
+		if(b) {
+			m_settingsBtn->setChecked(!b);
+			m_tool->requestMenu(channelsMenuId);
+		}
+	});
+	connect(m_chnlsMenuBtn, &QPushButton::toggled, dynamic_cast<MenuHAnim *>(m_tool->leftContainer()),
 		&MenuHAnim::toggleMenu);
 
 	QPushButton *openLastMenuBtn =
 		new OpenLastMenuBtn(dynamic_cast<MenuHAnim *>(m_tool->rightContainer()), true, this);
 	m_rightMenuBtnGrp = dynamic_cast<OpenLastMenuBtn *>(openLastMenuBtn)->getButtonGroup();
-	m_rightMenuBtnGrp->addButton(chnlsMenuBtn->button());
+	m_rightMenuBtnGrp->addButton(m_chnlsMenuBtn->button());
 
 	m_channelStack = new MapStackedWidget(this);
 	m_tool->rightStack()->add(channelsMenuId, m_channelStack);
@@ -572,7 +615,8 @@ void Ad74413r::setupToolTemplate()
 	});
 	m_rightMenuBtnGrp->addButton(m_settingsBtn);
 
-	m_tool->addWidgetToBottomContainerHelper(chnlsMenuBtn, TTA_LEFT);
+	m_tool->addWidgetToBottomContainerHelper(m_chnlsMenuBtn, TTA_LEFT);
+	m_tool->addWidgetToBottomContainerHelper(measure, TTA_RIGHT);
 
 	m_tool->addWidgetToTopContainerMenuControlHelper(openLastMenuBtn, TTA_RIGHT);
 	m_tool->addWidgetToTopContainerMenuControlHelper(m_settingsBtn, TTA_LEFT);

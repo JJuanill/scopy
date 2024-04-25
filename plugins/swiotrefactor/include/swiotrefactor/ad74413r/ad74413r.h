@@ -36,6 +36,7 @@
 
 #include <QVector>
 #include <QWidget>
+#include <measurementpanel.h>
 #include <plotinfo.h>
 #include <spinbox_a.hpp>
 
@@ -102,10 +103,12 @@ private:
 	void initPlot();
 	void setupDeviceBtn();
 	void setupChannelBtn(MenuControlButton *btn, PlotChannel *ch, QString chnlId, int chnlIdx);
+	void setupMeasureButtonHelper(MenuControlButton *btn);
 	void setupChannelsMenuControlBtn(MenuControlButton *btn, QString name);
+	void updateMeasurements(PlotAxis *axis, int chnlIdx);
+	void createMeasurementsLabel(int chnlIdx, QPen chPen, QStringList labels);
 	QPushButton *createConfigBtn();
 	QWidget *createSettingsMenu(QWidget *parent);
-	PlotAxis *createXChnlAxis(QPen pen, int xMin = -1, int xMax = 0);
 	PlotAxis *createYChnlAxis(QPen pen, QString unitType = "V", int yMin = -1, int yMax = 1);
 
 private:
@@ -120,6 +123,7 @@ private:
 	ReaderThread *m_readerThread;
 	BufferAcquisitionHandler *m_acqHandler;
 	CommandQueue *m_cmdQueue;
+	MeasurementsPanel *m_measurePanel;
 
 	struct iio_context *m_ctx;
 	Connection *m_conn;
@@ -138,6 +142,7 @@ private:
 
 	QMap<QString, iio_device *> m_iioDevicesMap;
 	CollapsableMenuControlButton *m_devBtn;
+	MenuControlButton *m_chnlsMenuBtn;
 	QButtonGroup *m_rightMenuBtnGrp;
 	QButtonGroup *m_chnlsBtnGroup;
 
@@ -146,6 +151,7 @@ private:
 	bool m_fullyFilled = false;
 	int m_currentChannelSelected = 0;
 	QVector<double> m_xTime;
+	QMap<int, QList<MeasurementLabel *>> m_labels;
 
 	QTimer *m_rstAcqTimer;
 	const QString channelsMenuId = "channels";
