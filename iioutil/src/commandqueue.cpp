@@ -42,6 +42,10 @@ void CommandQueue::start()
 
 void CommandQueue::resolveNext(scopy::Command *cmd)
 {
+	if(m_commandQueue.empty()) {
+		m_running = false;
+		return;
+	}
 	m_commandQueue.pop_front(); // also delete/disconnect
 	qDebug(CAT_COMMANDQUEUE) << "delete " << cmd;
 	disconnect(cmd, &Command::finished, this, &CommandQueue::resolveNext);
@@ -57,6 +61,10 @@ void CommandQueue::resolveNext(scopy::Command *cmd)
 void CommandQueue::runCmd()
 {
 	std::lock_guard<std::mutex> lock(m_commandMutex);
+	if(m_commandQueue.empty()) {
+		m_running = false;
+		return;
+	}
 	qDebug(CAT_COMMANDQUEUE) << "run cmd " << m_commandQueue.at(0);
 	if(m_running) {
 		connect(m_commandQueue.at(0), &Command::finished, this, &CommandQueue::resolveNext);
