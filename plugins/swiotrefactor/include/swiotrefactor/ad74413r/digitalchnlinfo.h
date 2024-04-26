@@ -2,7 +2,7 @@
 #define DIGITALCHNLINFO_H
 
 #include "chnlinfo.h"
-#define MIN_DIGITAL_VALUE -1
+#define MIN_DIGITAL_VALUE -2
 #define MAX_DIGITAL_VALUE 2
 namespace scopy::swiotrefactor {
 class DigitalChnlInfo : public ChnlInfo

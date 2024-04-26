@@ -2,7 +2,7 @@
 #define CURRENTCHNLINFO_H
 
 #include "chnlinfo.h"
-#define MIN_CURRENT_VALUE 0
+#define MIN_CURRENT_VALUE -25
 #define MAX_CURRENT_VALUE 25
 namespace scopy::swiotrefactor {
 class CurrentChnlInfo : public ChnlInfo
