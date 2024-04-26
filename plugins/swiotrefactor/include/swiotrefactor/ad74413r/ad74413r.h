@@ -75,11 +75,9 @@ public Q_SLOTS:
 Q_SIGNALS:
 	void broadcastThreshold();
 	void updateDiagSamplingFreq(QString data);
-	void exportBtnClicked(QMap<int, bool> exportConfig);
-
 	void activateRunBtns(bool activate);
-
 	void configBtnPressed();
+
 private Q_SLOTS:
 	void onConfigBtnPressed();
 	void showPlotLabels(bool b);
@@ -91,6 +89,7 @@ private Q_SLOTS:
 	void onThresholdWritten(bool written);
 
 private:
+	void init();
 	bool eventFilter(QObject *watched, QEvent *event) override;
 	void updateXData(int dataSize);
 	void plotData(QVector<double> curveData, int chnlIdx);
@@ -99,8 +98,8 @@ private:
 	void verifyChnlsChanges();
 	void initTutorialProperties();
 	void initPlotData();
-	void setupToolTemplate();
 	void initPlot();
+	void setupToolTemplate();
 	void setupDeviceBtn();
 	void setupChannelBtn(MenuControlButton *btn, PlotChannel *ch, QString chnlId, int chnlIdx);
 	void setupMeasureButtonHelper(MenuControlButton *btn);
@@ -148,13 +147,13 @@ private:
 
 	MapStackedWidget *m_channelStack;
 
-	bool m_fullyFilled = false;
 	int m_currentChannelSelected = 0;
 	QVector<double> m_xTime;
 	QMap<int, QList<MeasurementLabel *>> m_labels;
 
 	QTimer *m_rstAcqTimer;
 	const QString channelsMenuId = "channels";
+	const QString measureMenuId = "measure";
 };
 } // namespace swiotrefactor
 } // namespace scopy

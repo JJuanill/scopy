@@ -50,11 +50,37 @@ Ad74413r::Ad74413r(QString uri, ToolMenuEntry *tme, QWidget *parent)
 	initPlotData();
 	setupToolTemplate();
 	m_conn = ConnectionProvider::open(m_uri);
-	connect(m_conn, &Connection::aboutToBeDestroyed, this, &Ad74413r::handleConnectionDestroyed);
-	m_ctx = m_conn->context();
-	m_cmdQueue = m_conn->commandQueue();
+	if(m_conn) {
+		connect(m_conn, &Connection::aboutToBeDestroyed, this, &Ad74413r::handleConnectionDestroyed);
+		m_ctx = m_conn->context();
+		m_cmdQueue = m_conn->commandQueue();
+		createDevicesMap(m_ctx);
+		init();
+	}
+	initTutorialProperties();
+}
 
-	createDevicesMap(m_ctx);
+Ad74413r::~Ad74413r()
+{
+	if(m_readerThread) {
+		m_readerThread->forcedStop();
+		delete m_readerThread;
+	}
+	if(m_conn) {
+		ConnectionProvider::close(m_uri);
+	}
+}
+
+void Ad74413r::handleConnectionDestroyed()
+{
+	qDebug(CAT_SWIOT_AD74413R) << "Ad74413R connection destroyed slot";
+	m_ctx = nullptr;
+	m_cmdQueue = nullptr;
+	m_conn = nullptr;
+}
+
+void Ad74413r::init()
+{
 	if(m_iioDevicesMap.contains(AD_NAME) && m_iioDevicesMap.contains(SWIOT_DEVICE_NAME)) {
 		char mode[64];
 		ssize_t result = iio_device_attr_read(m_iioDevicesMap[SWIOT_DEVICE_NAME], "mode", mode, 64);
@@ -71,24 +97,6 @@ Ad74413r::Ad74413r(QString uri, ToolMenuEntry *tme, QWidget *parent)
 			m_swiotAdLogic->initAd74413rChnlsFunctions();
 		}
 	}
-	initTutorialProperties();
-}
-
-Ad74413r::~Ad74413r()
-{
-	if(m_readerThread) {
-		m_readerThread->forcedStop();
-		delete m_readerThread;
-	}
-	ConnectionProvider::close(m_uri);
-}
-
-void Ad74413r::handleConnectionDestroyed()
-{
-	qDebug(CAT_SWIOT_AD74413R) << "Ad74413R connection destroyed slot";
-	m_ctx = nullptr;
-	m_cmdQueue = nullptr;
-	m_conn = nullptr;
 }
 
 void Ad74413r::setupConnections()
@@ -586,10 +594,10 @@ void Ad74413r::setupToolTemplate()
 	MenuControlButton *measure = new MenuControlButton(this);
 	setupMeasureButtonHelper(measure);
 	m_measurePanel = new MeasurementsPanel(this);
-	m_tool->topStack()->add("measure", m_measurePanel);
+	m_tool->topStack()->add(measureMenuId, m_measurePanel);
 	connect(measure, &MenuControlButton::toggled, this, [&](bool en) {
 		if(en)
-			m_tool->requestMenu("measure");
+			m_tool->requestMenu(measureMenuId);
 		m_tool->openTopContainerHelper(en);
 	});
 
