@@ -60,6 +60,7 @@ public:
 	QVector<QString> getPlotChnlsUnitOfMeasure();
 	std::pair<int, int> getPlotChnlRangeValues(int channel);
 	QVector<std::pair<int, int>> getPlotChnlsRangeValues();
+	std::pair<double, double> getChnlOffsetScale(int channel);
 	QMap<int, QString> getPlotChnlsId();
 	void initAd74413rChnlsFunctions();
 	void initDiagnosticChannels();

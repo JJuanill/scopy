@@ -181,6 +181,16 @@ QVector<std::pair<int, int>> BufferLogic::getPlotChnlsRangeValues()
 	return chnlsRangeValues;
 }
 
+std::pair<double, double> BufferLogic::getChnlOffsetScale(int channel)
+{
+	std::pair<double, double> offsetScale = {0, 1};
+	ChnlInfo *chnlInfo = m_chnlsInfo.contains(channel) ? m_chnlsInfo[channel] : nullptr;
+	if(chnlInfo) {
+		offsetScale = chnlInfo->offsetScalePair();
+	}
+	return offsetScale;
+}
+
 QMap<int, QString> BufferLogic::getPlotChnlsId()
 {
 	QMap<int, QString> chnlsId;

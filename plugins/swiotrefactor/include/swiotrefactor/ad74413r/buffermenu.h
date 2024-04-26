@@ -44,6 +44,9 @@ public:
 	QList<QWidget *> getWidgetsList();
 	void addMenuWidget(QWidget *widget);
 
+	void setOffsetScalePair(const std::pair<double, double> &newOffsetScalePair);
+	double convertFromRaw(double rawValue);
+
 public Q_SLOTS:
 	virtual void onBroadcastThreshold();
 	virtual void onDiagSamplingChange(QString samplingFreq);
@@ -64,6 +67,7 @@ protected:
 	QString m_chnlFunction;
 	Connection *m_connection;
 	QMap<QString, iio_channel *> m_chnls;
+	std::pair<double, double> m_offsetScalePair = {0, 1};
 
 private:
 	QList<QWidget *> m_widgetsList;
@@ -78,6 +82,12 @@ public:
 	~CurrentInLoopMenu();
 
 	QString getInfoMessage() override;
+
+private Q_SLOTS:
+	void updateCnvtLabel(QString data);
+
+private:
+	QLabel *m_cnvtLabel;
 };
 
 class DigitalInLoopMenu : public BufferMenu
@@ -94,8 +104,12 @@ public Q_SLOTS:
 	void onRunBtnsPressed(bool en) override;
 	void onEmitStatus(int retCode);
 
+private Q_SLOTS:
+	void updateCnvtLabel(QString data);
+
 private:
 	IIOWidget *m_threshold;
+	QLabel *m_cnvtLabel;
 };
 
 class VoltageOutMenu : public BufferMenu
@@ -107,6 +121,12 @@ public:
 	~VoltageOutMenu();
 
 	QString getInfoMessage() override;
+
+private Q_SLOTS:
+	void updateCnvtLabel(QString data);
+
+private:
+	QLabel *m_cnvtLabel;
 };
 
 class CurrentOutMenu : public BufferMenu
@@ -118,6 +138,12 @@ public:
 	~CurrentOutMenu();
 
 	QString getInfoMessage() override;
+
+private Q_SLOTS:
+	void updateCnvtLabel(QString data);
+
+private:
+	QLabel *m_cnvtLabel;
 };
 
 class DiagnosticMenu : public BufferMenu

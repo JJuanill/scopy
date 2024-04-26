@@ -26,6 +26,7 @@
 #include <iio-widgets/datastrategy/cmdqchannelattrdatastrategy.h>
 #include <iio-widgets/guistrategy/editableguistrategy.h>
 #include <guistrategy/comboguistrategy.h>
+#include <guistrategy/rangeguistrategy.h>
 
 using namespace scopy::swiotrefactor;
 BufferMenu::BufferMenu(QWidget *parent, QString chnlFunction, Connection *conn, QMap<QString, iio_channel *> chnls)
@@ -81,6 +82,16 @@ void BufferMenu::onRunBtnsPressed(bool en)
 	dynamic_cast<ComboAttrUi *>(m_samplingFreq->getUiStrategy())->ui()->setEnabled(!en);
 }
 
+void BufferMenu::setOffsetScalePair(const std::pair<double, double> &newOffsetScalePair)
+{
+	m_offsetScalePair = newOffsetScalePair;
+}
+
+double BufferMenu::convertFromRaw(double rawValue)
+{
+	return (rawValue + m_offsetScalePair.first) * m_offsetScalePair.second;
+}
+
 QList<QWidget *> BufferMenu::getWidgetsList() { return m_widgetsList; }
 
 CurrentInLoopMenu::CurrentInLoopMenu(QWidget *parent, QString chnlFunction, Connection *conn,
@@ -106,6 +117,21 @@ CurrentInLoopMenu::CurrentInLoopMenu(QWidget *parent, QString chnlFunction, Conn
 		dacSpin->comboBox()->setEnabled(false);
 	}
 	addMenuWidget(dacCode);
+
+	QWidget *cnvtWidget = new QWidget(this);
+	QHBoxLayout *cnvtLayout = new QHBoxLayout(cnvtWidget);
+	cnvtWidget->setLayout(cnvtLayout);
+	cnvtLayout->setMargin(0);
+
+	m_cnvtLabel = new QLabel(cnvtWidget);
+	cnvtLayout->addItem(new QSpacerItem(20, 0, QSizePolicy::Expanding, QSizePolicy::Fixed));
+	cnvtLayout->addWidget(m_cnvtLabel);
+	addMenuWidget(cnvtWidget);
+
+	connect(dynamic_cast<RangeAttrUi *>(dacCode->getUiStrategy()), &RangeAttrUi::emitData, this,
+		&CurrentInLoopMenu::updateCnvtLabel);
+	connect(dynamic_cast<CmdQChannelAttrDataStrategy *>(dacCode->getDataStrategy()),
+		&CmdQChannelAttrDataStrategy::sendData, this, &CurrentInLoopMenu::updateCnvtLabel);
 }
 
 CurrentInLoopMenu::~CurrentInLoopMenu() {}
@@ -117,6 +143,12 @@ QString CurrentInLoopMenu::getInfoMessage()
 		"(current_in) which is related to the plot and the other one is an output channel (current_out) whose "
 		"attributes can be changed from this menu.";
 	return infoMessage;
+}
+
+void CurrentInLoopMenu::updateCnvtLabel(QString data)
+{
+	double convertedData = convertFromRaw(data.toDouble());
+	m_cnvtLabel->setText(QString::number(convertedData) + " mA");
 }
 
 DigitalInLoopMenu::DigitalInLoopMenu(QWidget *parent, QString chnlFunction, Connection *conn,
@@ -156,6 +188,21 @@ DigitalInLoopMenu::DigitalInLoopMenu(QWidget *parent, QString chnlFunction, Conn
 		dacSpin->comboBox()->setEnabled(false);
 	}
 	addMenuWidget(dacCode);
+
+	QWidget *cnvtWidget = new QWidget(this);
+	QHBoxLayout *cnvtLayout = new QHBoxLayout(cnvtWidget);
+	cnvtWidget->setLayout(cnvtLayout);
+	cnvtLayout->setMargin(0);
+
+	m_cnvtLabel = new QLabel(cnvtWidget);
+	cnvtLayout->addItem(new QSpacerItem(20, 0, QSizePolicy::Expanding, QSizePolicy::Fixed));
+	cnvtLayout->addWidget(m_cnvtLabel);
+	addMenuWidget(cnvtWidget);
+
+	connect(dynamic_cast<RangeAttrUi *>(dacCode->getUiStrategy()), &RangeAttrUi::emitData, this,
+		&DigitalInLoopMenu::updateCnvtLabel);
+	connect(dynamic_cast<CmdQChannelAttrDataStrategy *>(dacCode->getDataStrategy()),
+		&CmdQChannelAttrDataStrategy::sendData, this, &DigitalInLoopMenu::updateCnvtLabel);
 }
 
 DigitalInLoopMenu::~DigitalInLoopMenu() {}
@@ -167,6 +214,12 @@ QString DigitalInLoopMenu::getInfoMessage()
 		"(voltage_in) which is related to the plot and the other one is an output channel (current_out). The "
 		"threshold is set for the input channel and the DAC Code for the output channel.";
 	return infoMessage;
+}
+
+void DigitalInLoopMenu::updateCnvtLabel(QString data)
+{
+	double convertedData = convertFromRaw(data.toDouble());
+	m_cnvtLabel->setText(QString::number(convertedData) + " mA");
 }
 
 void DigitalInLoopMenu::onBroadcastThreshold()
@@ -215,6 +268,21 @@ VoltageOutMenu::VoltageOutMenu(QWidget *parent, QString chnlFunction, Connection
 	}
 	addMenuWidget(dacCode);
 
+	QWidget *cnvtWidget = new QWidget(this);
+	QHBoxLayout *cnvtLayout = new QHBoxLayout(cnvtWidget);
+	cnvtWidget->setLayout(cnvtLayout);
+	cnvtLayout->setMargin(0);
+
+	m_cnvtLabel = new QLabel(cnvtWidget);
+	cnvtLayout->addItem(new QSpacerItem(20, 0, QSizePolicy::Expanding, QSizePolicy::Fixed));
+	cnvtLayout->addWidget(m_cnvtLabel);
+	addMenuWidget(cnvtWidget);
+
+	connect(dynamic_cast<RangeAttrUi *>(dacCode->getUiStrategy()), &RangeAttrUi::emitData, this,
+		&VoltageOutMenu::updateCnvtLabel);
+	connect(dynamic_cast<CmdQChannelAttrDataStrategy *>(dacCode->getDataStrategy()),
+		&CmdQChannelAttrDataStrategy::sendData, this, &VoltageOutMenu::updateCnvtLabel);
+
 	// slew - output channel
 	IIOWidget *slewOptions =
 		IIOWidgetFactory::buildSingle(IIOWidgetFactory::CMDQAttrData | IIOWidgetFactory::ComboUi,
@@ -254,6 +322,12 @@ QString VoltageOutMenu::getInfoMessage()
 	return infoMessage;
 }
 
+void VoltageOutMenu::updateCnvtLabel(QString data)
+{
+	double convertedData = convertFromRaw(data.toDouble()) * 0.001;
+	m_cnvtLabel->setText(QString::number(convertedData) + " V");
+}
+
 CurrentOutMenu::CurrentOutMenu(QWidget *parent, QString chnlFunction, Connection *conn,
 			       QMap<QString, iio_channel *> chnls)
 	: BufferMenu(parent, chnlFunction, conn, chnls)
@@ -277,6 +351,22 @@ CurrentOutMenu::CurrentOutMenu(QWidget *parent, QString chnlFunction, Connection
 		dacSpin->comboBox()->setEnabled(false);
 	}
 	addMenuWidget(dacCode);
+
+	QWidget *cnvtWidget = new QWidget(this);
+	QHBoxLayout *cnvtLayout = new QHBoxLayout(cnvtWidget);
+	cnvtWidget->setLayout(cnvtLayout);
+	cnvtLayout->setMargin(0);
+
+	m_cnvtLabel = new QLabel(cnvtWidget);
+	cnvtLayout->addItem(new QSpacerItem(20, 0, QSizePolicy::Expanding, QSizePolicy::Fixed));
+	cnvtLayout->addWidget(m_cnvtLabel);
+	addMenuWidget(cnvtWidget);
+
+	connect(dynamic_cast<RangeAttrUi *>(dacCode->getUiStrategy()), &RangeAttrUi::emitData, this,
+		&CurrentOutMenu::updateCnvtLabel);
+	connect(dynamic_cast<CmdQChannelAttrDataStrategy *>(dacCode->getDataStrategy()),
+		&CmdQChannelAttrDataStrategy::sendData, this, &CurrentOutMenu::updateCnvtLabel);
+
 	// slew - output channel
 	IIOWidget *slewOptions =
 		IIOWidgetFactory::buildSingle(IIOWidgetFactory::CMDQAttrData | IIOWidgetFactory::ComboUi,
@@ -314,6 +404,12 @@ QString CurrentOutMenu::getInfoMessage()
 		"(voltage_in) which is related to the plot and the other one is an output channel whose attributes can "
 		"be changed from this menu.";
 	return infoMessage;
+}
+
+void CurrentOutMenu::updateCnvtLabel(QString data)
+{
+	double convertedData = convertFromRaw(data.toDouble());
+	m_cnvtLabel->setText(QString::number(convertedData) + " mA");
 }
 
 DiagnosticMenu::DiagnosticMenu(QWidget *parent, QString chnlFunction, Connection *conn,
