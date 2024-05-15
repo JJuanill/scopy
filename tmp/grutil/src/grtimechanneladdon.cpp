@@ -3,7 +3,7 @@
 #include <iio-widgets/iiowidget.h>
 #include <iio-widgets/iiowidgetfactory.h>
 #include "grdeviceaddon.h"
-#include "errorbox.h"
+#include "plottracker.hpp"
 
 #include <QComboBox>
 #include <QDebug>

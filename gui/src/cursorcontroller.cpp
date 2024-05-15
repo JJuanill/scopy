@@ -32,11 +32,12 @@ void CursorController::initUI()
 
 	plotCursorReadouts = new PlotCursorReadouts(m_plot);
 	PlotChannel *ch = m_plot->selectedChannel();
-	plotCursorReadouts->setXFromatter(ch->xAxis()->getFromatter());
-	plotCursorReadouts->setYFromatter(ch->yAxis()->getFromatter());
-	plotCursorReadouts->setXUnits(ch->xAxis()->getUnits());
-	plotCursorReadouts->setYUnits(ch->yAxis()->getUnits());
-
+	if(ch != nullptr) {
+		plotCursorReadouts->setXFromatter(ch->xAxis()->getFromatter());
+		plotCursorReadouts->setYFromatter(ch->yAxis()->getFromatter());
+		plotCursorReadouts->setXUnits(ch->xAxis()->getUnits());
+		plotCursorReadouts->setYUnits(ch->yAxis()->getUnits());
+	}
 	hoverReadouts = new HoverWidget(plotCursorReadouts, m_plot->plot()->canvas(), m_plot);
 	hoverReadouts->setAnchorPos(HoverPosition::HP_TOPLEFT);
 	hoverReadouts->setContentPos(HoverPosition::HP_BOTTOMRIGHT);
