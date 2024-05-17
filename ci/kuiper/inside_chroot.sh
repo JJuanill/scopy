@@ -45,6 +45,7 @@ apt -y install build-essential gcc g++ gdb-multiarch cmake autoconf automake bis
 	libxcb-screensaver0-dev libxcb-util0-dev libxcb-xf86dri0-dev libxcb-xtest0-dev
 apt -y install libunwind-dev libsndfile1-dev mesa-utils* mesa-common-dev libglu1-mesa-dev freeglut3-dev mesa-common-dev python2 libopenal-dev || true
 apt -y install '^libxcb.*-dev' libx11-xcb-dev libglu1-mesa-dev libxrender-dev libxi-dev libxkbcommon-dev libxkbcommon-x11-dev || true
+apt -y install wget libgpgme-dev libgcrypt20-dev gpg gnupg patchelf cimg-dev nlohmann-json3-dev squashfs-tools desktop-file-utils zsync appstream || true
 
 wget https://raw.githubusercontent.com/abhiTronix/raspberry-pi-cross-compilers/master/utils/SSymlinker
 sed -i 's/sudo//g' SSymlinker
