@@ -92,3 +92,4 @@ target_link_libraries(
 )
 
 set(PLUGIN_NAME ${PROJECT_NAME} PARENT_SCOPE)
+set(PLUGIN_DESCRIPTION " AD-SWIOT1L-SL plugin" PARENT_SCOPE)
