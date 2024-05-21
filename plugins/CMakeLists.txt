@@ -57,7 +57,7 @@ endif()
 
 if(ENABLE_PLUGIN_REGMAP)
 	add_subdirectory(regmap)
-	list(APPEND PLUGINS ${PLUGIN_NAME})
+	list(APPEND PLUGINS ${LIBRARY_NAME})
 endif()
 
 if(ENABLE_PLUGIN_DEBUGGER)
