@@ -4,14 +4,14 @@
 #define SCOPY_PLUGIN_NAME TestPluginIp
 
 #include "pluginbase/pluginbase.h"
-#include "scopy-testplugin2_export.h"
+#include "scopy-test2_export.h"
 
 #include <QObject>
 
 #include <pluginbase/plugin.h>
 
 namespace scopy {
-class SCOPY_TESTPLUGIN2_EXPORT TestPluginIp : public QObject, public PluginBase
+class SCOPY_TEST2_EXPORT TestPluginIp : public QObject, public PluginBase
 {
 	Q_OBJECT
 	SCOPY_PLUGIN
