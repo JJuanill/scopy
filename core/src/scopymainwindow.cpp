@@ -53,9 +53,9 @@ ScopyMainWindow::ScopyMainWindow(QWidget *parent)
 	ui->setupUi(this);
 
 	ScopyTitleManager::setMainWindow(this);
-	ScopyTitleManager::setApplicationName("Scopy");
-	ScopyTitleManager::setScopyVersion("v" + QString(scopy::config::version()));
-	ScopyTitleManager::setGitHash(QString(SCOPY_VERSION_GIT));
+	ScopyTitleManager::setApplicationName("SSET  BINDEA CRISTIAN");
+	ScopyTitleManager::setScopyVersion("");
+	ScopyTitleManager::setGitHash("");
 
 	StyleHelper::GetInstance()->initColorMap();
 	setAttribute(Qt::WA_QuitOnClose, true);
