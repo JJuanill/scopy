@@ -191,7 +191,7 @@ void DebuggerInstrument::updateValueWidget(QString attribute)
 		ui->valueLineEdit->clear();
 	}
 
-	on_ReadButton_clicked();
+4	on_ReadButton_clicked();
 }
 
 void DebuggerInstrument::updateReadValue(QString value)

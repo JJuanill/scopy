@@ -40,15 +40,18 @@ file(
 	src/old/*.c
 	src/old/*.h
 )
-file(GLOB HEADER_LIST include/${SCOPY_MODULE}/*.h include/${SCOPY_MODULE}/*.hpp)
-file(GLOB UI_LIST ui/*.ui ui/patterns/*.ui)
+
+file(GLOB SCOPY_GUI_FILES src/m2k-gui/*.c src/m2k-gui/*.cc src/m2k-gui/*.cpp)
+
+file(GLOB HEADER_LIST include/${SCOPY_MODULE}/*.h include/${SCOPY_MODULE}/*.hpp include/${SCOPY_MODULE}/m2k-gui/*.h include/${SCOPY_MODULE}/m2k-gui/*.hpp)
+file(GLOB UI_LIST ui/*.ui ui/patterns/*.ui ui/gui/*.ui)
 
 set(ENABLE_TESTING ON)
 if(ENABLE_TESTING)
 	add_subdirectory(test)
 endif()
 
-set(PROJECT_SOURCES ${SRC_LIST} ${OLD_SCOPY_FILES} ${HEADER_LIST} ${UI_LIST})
+set(PROJECT_SOURCES ${SRC_LIST} ${OLD_SCOPY_FILES} ${SCOPY_GUI_FILES} ${HEADER_LIST} ${UI_LIST})
 
 set(CMAKE_PREFIX_PATH ${CMAKE_PREFIX_PATH};/usr/local/lib/cmake)
 
@@ -87,7 +90,20 @@ generate_export_header(
 	${PROJECT_NAME} EXPORT_FILE_NAME ${CMAKE_CURRENT_SOURCE_DIR}/include/${SCOPY_MODULE}/${PROJECT_NAME}_export.h
 )
 
-target_include_directories(${PROJECT_NAME} INTERFACE ${CMAKE_CURRENT_SOURCE_DIR}/include)
+option(SCOPY_ENABLE_GR_GUI "Build gnuradio addons for scopy-gui" ON)
+option(SCOPY_ENABLE_SIGROK_GUI "Build sigrok addons for scopy-gui" ON)
+if(SCOPY_ENABLE_GR_GUI)
+	add_subdirectory(gr-gui)
+	set(SCOPY_HAVE_GR_GUI ON)
+endif()
+if(SCOPY_ENABLE_SIGROK_GUI)
+	add_subdirectory(sigrok-gui)
+	set(SCOPY_HAVE_SIGROK_GUI ON)
+endif()
+
+target_include_directories(${PROJECT_NAME} INTERFACE ${CMAKE_CURRENT_SOURCE_DIR}/include
+						     ${CMAKE_CURRENT_SOURCE_DIR}/include/${SCOPY_MODULE}/m2k-gui)
+
 target_include_directories(
 	${PROJECT_NAME}
 	PRIVATE Qt::Widgets
@@ -95,7 +111,9 @@ target_include_directories(
 		scopy-gui
 		scopy-pluginbase
 		scopy-common
+		scopy-sigrok-gui
 		${CMAKE_CURRENT_SOURCE_DIR}/include/${SCOPY_MODULE}
+		${CMAKE_CURRENT_SOURCE_DIR}/include/${SCOPY_MODULE}/m2k-gui
 		${CMAKE_CURRENT_SOURCE_DIR}/src/old
 )
 target_include_directories(${PROJECT_NAME} PUBLIC scopy-pluginbase ${QWT_INCLUDE_DIRS})

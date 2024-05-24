@@ -1,5 +1,6 @@
 #include "plottracker.hpp"
 #include "plotaxis.h"
+#include <QSet>
 
 using namespace scopy;
 
@@ -84,3 +85,9 @@ void PlotTracker::onChannelSelected(PlotChannel *ch)
 }
 
 #include "moc_plottracker.cpp"
+
+#include <QSet>
+#include <QSet>
+#include <QSet>
+#include <QSet>
+#include <qset.h>

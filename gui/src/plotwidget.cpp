@@ -1,6 +1,6 @@
 #include "plotwidget.h"
 
-#include "DisplayPlot.h"
+#include "edgelessplot.h"
 #include "plotaxis.h"
 
 #include <QDebug>
@@ -14,9 +14,10 @@
 #include <QwtPlotSeriesItem>
 #include <plotnavigator.hpp>
 #include <plottracker.hpp>
+#include <QwtPlotCanvas>
+#include <qwt_scale_widget.h>
 
-#include <DisplayPlot.h>
-#include <customqwtscaledraw.hpp>
+//#include <customqwtscaledraw.hpp>
 #include <osc_scale_engine.h>
 #include <pluginbase/preferences.h>
 

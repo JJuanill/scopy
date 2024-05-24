@@ -95,7 +95,7 @@ void PlotBufferPreviewer::updateBufferPreviewer()
 
 	// Time interval that represents the captured data
 	QwtInterval dataInterval(std::min(m_bufferDataLimitMin, m_bufferDataLimitMax),
-				 std::fmax(m_bufferDataLimitMin, m_bufferDataLimitMax));
+				 std::max(m_bufferDataLimitMin, m_bufferDataLimitMax));
 
 	// Use the two intervals to determine the width and position of the
 	// waveform and of the highlighted area

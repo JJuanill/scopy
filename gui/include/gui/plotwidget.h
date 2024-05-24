@@ -1,6 +1,6 @@
 #ifndef PLOT_H
 #define PLOT_H
-#include "handles_area.hpp"
+
 #include "plotchannel.h"
 #include "scopy-gui_export.h"
 

@@ -23,7 +23,7 @@
 
 #include <iio.h>
 
-#include <gui/tool_view.hpp>
+#include "tool_view.hpp"
 
 /* Qt includes */
 #include <QFile>
