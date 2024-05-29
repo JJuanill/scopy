@@ -1,5 +1,6 @@
 #include "plottracker.hpp"
 #include "plotaxis.h"
+#include <QSet>
 
 using namespace scopy;
 
@@ -41,12 +42,15 @@ void PlotTracker::addChannel(PlotChannel *ch) { m_trackers->insert(createTracker
 
 void PlotTracker::removeChannel(PlotChannel *ch)
 {
-	for(ChannelTracker *chTracker : *m_trackers) {
+	ChannelTracker *toRemove;
+	for(ChannelTracker *chTracker : qAsConst(*m_trackers)) {
 		if(chTracker->channel == ch) {
-			m_trackers->remove(chTracker);
-			delete chTracker;
+			toRemove = chTracker;
+			break;
 		}
 	}
+	m_trackers->remove(toRemove);
+	delete toRemove;
 }
 
 ChannelTracker *PlotTracker::createTracker(PlotChannel *ch)
@@ -63,8 +67,8 @@ ChannelTracker *PlotTracker::createTracker(PlotChannel *ch)
 	tracker->setEnabled(m_en && m_plot->selectedChannel() == ch);
 	tracker->setXAxisUnit(ch->xAxis()->getUnits());
 	tracker->setYAxisUnit(ch->yAxis()->getUnits());
-	tracker->setXFormatter(ch->xAxis()->getFromatter());
-	tracker->setYFormatter(ch->yAxis()->getFromatter());
+	tracker->setXFormatter(ch->xAxis()->getFormatter());
+	tracker->setYFormatter(ch->yAxis()->getFormatter());
 
 	connect(ch->xAxis(), &PlotAxis::formatterChanged, tracker, &BasicTracker::setXFormatter);
 	connect(ch->yAxis(), &PlotAxis::formatterChanged, tracker, &BasicTracker::setYFormatter);
@@ -77,7 +81,7 @@ ChannelTracker *PlotTracker::createTracker(PlotChannel *ch)
 void PlotTracker::onChannelSelected(PlotChannel *ch)
 {
 	if(m_en) {
-		for(ChannelTracker *chTracker : *m_trackers) {
+		for(ChannelTracker *chTracker : qAsConst(*m_trackers)) {
 			chTracker->tracker->setEnabled(chTracker->channel == ch);
 		}
 	}

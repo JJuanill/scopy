@@ -38,7 +38,7 @@
 #include <QWidget>
 #include <measurementpanel.h>
 #include <plotinfo.h>
-#include <spinbox_a.hpp>
+#include <gui/widgets/menuspinbox.h>
 
 #include <iioutil/connection.h>
 #define MAX_CURVES_NUMBER 8
@@ -88,6 +88,7 @@ private Q_SLOTS:
 	void onChannelBtnChecked(int chnWidgetId, bool en);
 	void samplingFreqWritten(bool written);
 	void onThresholdWritten(bool written);
+	void startTutorial();
 
 private:
 	void init();
@@ -113,7 +114,7 @@ private:
 
 private:
 	ToolMenuEntry *m_tme;
-	PositionSpinButton *m_timespanSpin;
+	scopy::gui::MenuSpinbox *m_timespanSpin;
 
 	QVector<bool> m_enabledChannels;
 
@@ -137,7 +138,7 @@ private:
 
 	PlotWidget *m_plot;
 	PlotInfo *m_info;
-	PlotSamplingInfo m_currentSamplingInfo;
+	SamplingInfo m_currentSamplingInfo;
 	QMap<int, PlotChannel *> m_plotChnls;
 
 	QMap<QString, iio_device *> m_iioDevicesMap;
@@ -155,6 +156,8 @@ private:
 	QTimer *m_rstAcqTimer;
 	const QString channelsMenuId = "channels";
 	const QString measureMenuId = "measure";
+
+	void showEvent(QShowEvent *event) override;
 };
 } // namespace swiot
 } // namespace scopy

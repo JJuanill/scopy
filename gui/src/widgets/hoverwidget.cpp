@@ -1,13 +1,10 @@
 #include "widgets/hoverwidget.h"
 
-#include "stylehelper.h"
-
 #include <QDebug>
-#include <QLoggingCategory>
-
+#include <style.h>
 #include <stylehelper.h>
+
 using namespace scopy;
-Q_LOGGING_CATEGORY(CAT_HOVERWIDGET, "HoverWidget")
 
 HoverWidget::HoverWidget(QWidget *content, QWidget *anchor, QWidget *parent)
 	: QWidget(parent)
@@ -21,7 +18,7 @@ HoverWidget::HoverWidget(QWidget *content, QWidget *anchor, QWidget *parent)
 	, m_relative(false)
 	, m_relativeOffset(nullptr)
 {
-	StyleHelper::TransparentWidget(this, "hoverWidget");
+	Style::setBackgroundColor(this, json::theme::background_primary);
 	m_lay = new QHBoxLayout(this);
 	m_lay->setSizeConstraint(QLayout::SetFixedSize);
 	m_lay->setContentsMargins(0, 0, 0, 0);
@@ -302,9 +299,9 @@ void HoverWidget::moveToAnchor()
 		break;
 	}
 
-	qDebug(CAT_HOVERWIDGET) << "moveAnchor"
-				<< "mapped" << mappedPoint << "contentPosition" << contentPosition << "anchorPosition"
-				<< anchorPosition << "offset" << m_anchorOffset;
+	qDebug() << "moveAnchor"
+		 << "mapped" << mappedPoint << "contentPosition" << contentPosition << "anchorPosition"
+		 << anchorPosition << "offset" << m_anchorOffset;
 	move(mappedPoint + contentPosition + anchorPosition + m_anchorOffset);
 }
 

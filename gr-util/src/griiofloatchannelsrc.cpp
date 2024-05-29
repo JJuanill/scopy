@@ -1,10 +1,10 @@
 #include "griiofloatchannelsrc.h"
 
-#include "gnuradio/blocks/char_to_float.h"
 #include "gnuradio/blocks/copy.h"
 #include "gnuradio/blocks/int_to_float.h"
 #include "gnuradio/blocks/short_to_float.h"
 #include "grlog.h"
+#include "grtopblock.h"
 
 using namespace scopy::grutil;
 GRIIOFloatChannelSrc::GRIIOFloatChannelSrc(GRIIODeviceSource *dev, QString channelName, QObject *parent)
@@ -21,12 +21,22 @@ GRIIOFloatChannelSrc::GRIIOFloatChannelSrc(GRIIODeviceSource *dev, QString chann
 			"sampling_frequency",
 		},
 		m_iioCh);
+
+	m_scaleAttribute = findAttribute(
+		{
+			"scale",
+		},
+		m_iioCh);
+
+	iio_chan_type type = iio_channel_get_type(m_iioCh);
+	m_unit = IIOUnitsManager::iioChannelTypes().value(type, {"Adimensional", ".", 1});
 }
 
 void GRIIOFloatChannelSrc::build_blks(GRTopBlock *top)
 {
+	m_top = top;
 	qDebug(SCOPY_GR_UTIL) << "Building GRIIOFloatChannelSrc";
-	dev->addChannel(this);
+	m_dev->addChannel(this);
 	switch(fmt->length) {
 	case 16:
 		x2f = gr::blocks::short_to_float::make();
@@ -39,19 +49,23 @@ void GRIIOFloatChannelSrc::build_blks(GRTopBlock *top)
 		x2f = gr::blocks::copy::make(fmt->length / 8);
 		break;
 	}
-	end_blk = x2f;
+
+	s2v = gr::blocks::stream_to_vector::make(sizeof(float), top->vlen());
+	top->connect(x2f, 0, s2v, 0);
+	end_blk = s2v;
 	start_blk.append(x2f);
 }
 
 void GRIIOFloatChannelSrc::destroy_blks(GRTopBlock *top)
 {
-	dev->removeChannel(this);
+	m_dev->removeChannel(this);
+	s2v = nullptr;
 	x2f = nullptr;
 	end_blk = nullptr;
 	start_blk.clear();
 }
 
-bool GRIIOFloatChannelSrc::sampleRateAvailable()
+bool GRIIOFloatChannelSrc::samplerateAttributeAvailable()
 {
 	if(m_sampleRateAttribute.isEmpty())
 		return false;
@@ -63,7 +77,7 @@ double GRIIOFloatChannelSrc::readSampleRate()
 	char buffer[20];
 	bool ok = false;
 	double sr;
-	if(!sampleRateAvailable())
+	if(!samplerateAttributeAvailable())
 		return -1;
 
 	iio_channel_attr_read(m_iioCh, m_sampleRateAttribute.toStdString().c_str(), buffer, 20);
@@ -76,6 +90,39 @@ double GRIIOFloatChannelSrc::readSampleRate()
 	}
 }
 
+bool GRIIOFloatChannelSrc::scaleAttributeAvailable()
+{
+	if(m_scaleAttribute.isEmpty())
+		return false;
+	return true;
+}
+
+double GRIIOFloatChannelSrc::readScale()
+{
+	char buffer[20];
+	bool ok = false;
+	double sc;
+	if(!scaleAttributeAvailable())
+		return -1;
+
+	iio_channel_attr_read(m_iioCh, m_scaleAttribute.toStdString().c_str(), buffer, 20);
+	QString str(buffer);
+	sc = str.toDouble(&ok);
+	if(ok) {
+		return sc;
+	} else {
+		return -1;
+	}
+}
+
+scopy::IIOUnit GRIIOFloatChannelSrc::unit() { return m_unit; }
+
 const iio_data_format *GRIIOFloatChannelSrc::getFmt() const { return fmt; }
 
 struct iio_channel *GRIIOFloatChannelSrc::channel() const { return m_iioCh; }
+
+struct iio_device *GRIIOFloatChannelSrc::dev() const { return m_dev->iioDev(); }
+
+struct iio_context *GRIIOFloatChannelSrc::ctx() const { return m_dev->ctx(); }
+
+const QString &GRIIOFloatChannelSrc::scaleAttribute() const { return m_scaleAttribute; }

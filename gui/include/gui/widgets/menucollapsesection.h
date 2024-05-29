@@ -6,12 +6,14 @@
 #include <QLabel>
 #include <QVBoxLayout>
 #include <QWidget>
+#include <baseheader.h>
 
 #include <scopy-gui_export.h>
 #include <stylehelper.h>
 #include <utils.h>
 
 namespace scopy {
+class MenuCollapseHeader;
 
 class SCOPY_GUI_EXPORT MenuCollapseSection : public QWidget
 {
@@ -31,11 +33,14 @@ public:
 
 	QAbstractButton *header();
 	QVBoxLayout *contentLayout() const;
+	QString title();
+	void setTitle(QString s);
 
 private:
+	QString m_title;
 	QVBoxLayout *m_lay;
 	QWidget *m_container;
-	QAbstractButton *m_header;
+	MenuCollapseHeader *m_header;
 	QVBoxLayout *m_contLayout;
 };
 
@@ -46,10 +51,13 @@ class SCOPY_GUI_EXPORT MenuCollapseHeader : public QAbstractButton
 public:
 	MenuCollapseHeader(QString title, MenuCollapseSection::MenuHeaderCollapseStyle style, QWidget *parent);
 	~MenuCollapseHeader();
+	QString title();
+
+	QWidget *headerWidget() const;
 
 private:
 	QAbstractButton *m_ctrl;
-	QLabel *m_label;
+	QWidget *m_headerWidget;
 	QHBoxLayout *lay;
 };
 

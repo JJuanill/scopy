@@ -23,8 +23,20 @@ set(CMAKE_VISIBILITY_INLINES_HIDDEN TRUE)
 
 set(SCOPY_QT_COMPONENTS Core Widgets Concurrent Network)
 
-file(GLOB SRC_LIST src/*.cpp src/*.cc)
-file(GLOB HEADER_LIST include/${SCOPY_MODULE}/*.h include/${SCOPY_MODULE}/*.hpp)
+file(
+	GLOB
+	SRC_LIST
+	src/*.cpp
+	src/*.cc
+	src/browsemenu/*.cpp
+)
+file(
+	GLOB
+	HEADER_LIST
+	include/${SCOPY_MODULE}/*.h
+	include/${SCOPY_MODULE}/*.hpp
+	include/${SCOPY_MODULE}/browsemenu/*.h
+)
 file(GLOB UI_LIST ui/*.ui)
 
 if(ENABLE_TESTING)
@@ -34,12 +46,24 @@ endif()
 option(WITH_PYTHON "Enable Python" ON)
 if(${WITH_PYTHON})
 	set(Python_ADDITIONAL_VERSIONS 3)
+	if(PYTHON_EXECUTABLE)
+		message(STATUS "Using custom Python EXECUTABLE: ${PYTHON_EXECUTABLE}")
+		set(Python3_EXECUTABLE ${PYTHON_EXECUTABLE})
+	else()
+		message(STATUS "Using default Python EXECUTABLE")
+	endif()
+
 	if(CMAKE_SYSTEM_PROCESSOR MATCHES arm)
-		find_package(Python3 REQUIRED COMPONENTS Interpreter)
+		find_package(Python3 3.9 EXACT REQUIRED COMPONENTS Interpreter)
+		message(STATUS "Host Python Interpreter " ${Python3_EXECUTABLE})
+		set(Python3_EXECUTABLE ${CMAKE_SYSROOT}/bin/python3.9)
+		message(STATUS "Target Python Interpreter " ${Python3_EXECUTABLE})
 	else()
 		find_package(Python3 REQUIRED COMPONENTS Interpreter Development)
+		message(STATUS "Python Interpreter " ${Python3_EXECUTABLE})
+		message(STATUS "Python Libraries " ${Python3_LIBRARIES})
 	endif()
-	set(PYTHON_VERSION python${Python3_VERSION_MAJOR}.${Python3_VERSION_MINOR})
+	set(PYTHON_VERSION python${Python3_VERSION_MAJOR}.${Python3_VERSION_MINOR} CACHE STRING "PYTHON_USED")
 	set(PYTHON_VERSION ${PYTHON_VERSION} PARENT_SCOPE)
 	if(NOT Python3_FOUND)
 		set(WITH_PYTHON OFF)
@@ -107,3 +131,9 @@ target_link_libraries(
 )
 
 install(TARGETS ${PROJECT_NAME} LIBRARY DESTINATION ${SCOPY_DLL_PATH} RUNTIME DESTINATION ${SCOPY_DLL_PATH})
+
+add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E copy
+    $<TARGET_FILE:${PROJECT_NAME}>
+    ${SCOPY_CURRENT_BINARY_PATH}
+)

@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.9)
 
-set(SCOPY_MODULE m2kplugin)
+set(SCOPY_MODULE m2k)
 
 message(STATUS "building plugin: " ${SCOPY_MODULE})
 
@@ -40,6 +40,7 @@ file(
 	src/old/*.c
 	src/old/*.h
 )
+
 file(GLOB HEADER_LIST include/${SCOPY_MODULE}/*.h include/${SCOPY_MODULE}/*.hpp)
 file(GLOB UI_LIST ui/*.ui ui/patterns/*.ui)
 
@@ -47,6 +48,7 @@ set(ENABLE_TESTING ON)
 if(ENABLE_TESTING)
 	add_subdirectory(test)
 endif()
+add_subdirectory(m2k-gui)
 
 set(PROJECT_SOURCES ${SRC_LIST} ${OLD_SCOPY_FILES} ${HEADER_LIST} ${UI_LIST})
 
@@ -71,14 +73,6 @@ find_package(
 find_package(gnuradio-scopy REQUIRED PATH_SUFFIXES scopy)
 find_package(gnuradio-m2k REQUIRED PATH_SUFFIXES m2k)
 
-if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
-	set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${SCOPY_PLUGIN_BUILD_PATH})
-elseif(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
-	set(CMAKE_LIBRARY_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/Scopy.app/Contents/MacOS/plugins/plugins")
-else()
-	set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${SCOPY_PLUGIN_BUILD_PATH})
-endif()
-
 qt_add_resources(PROJECT_RESOURCES res/resources.qrc)
 
 add_library(${PROJECT_NAME} SHARED ${PROJECT_SOURCES} ${PROJECT_RESOURCES})
@@ -88,11 +82,12 @@ generate_export_header(
 )
 
 target_include_directories(${PROJECT_NAME} INTERFACE ${CMAKE_CURRENT_SOURCE_DIR}/include)
+
 target_include_directories(
 	${PROJECT_NAME}
 	PRIVATE Qt::Widgets
 		Qt::Core
-		scopy-gui
+		scopy-m2k-gui
 		scopy-pluginbase
 		scopy-common
 		${CMAKE_CURRENT_SOURCE_DIR}/include/${SCOPY_MODULE}
@@ -112,6 +107,7 @@ target_link_libraries(
 	       scopy-pluginbase
 	       scopy-iioutil
 	       scopy-gui
+	       scopy-m2k-gui
 	       scopy-gr-gui
 	       scopy-sigrok-gui
 	       libm2k::libm2k

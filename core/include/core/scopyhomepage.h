@@ -23,12 +23,11 @@ public:
 	~ScopyHomePage();
 	QPushButton *scanControlBtn();
 Q_SIGNALS:
-
-	void requestAddDevice(QString cat, QString id);
-	void requestRemoveDevice(QString id);
 	void requestDevice(QString id);
 	void deviceAddedToUi(QString id);
 	void newDeviceAvailable(DeviceImpl *d);
+
+	void displayNameChanged(QString id, QString newName);
 
 public Q_SLOTS:
 	void addDevice(QString id, Device *);

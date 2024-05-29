@@ -2,6 +2,7 @@
 #define PLUGINBASE_H
 #include "apiobject.h"
 #include "plugin.h"
+#include "iioutil/pingtask.h"
 #include "scopy-pluginbase_export.h"
 
 #include <QObject>
@@ -57,11 +58,16 @@ public:
 	virtual void loadMetadata(QString data);
 	virtual void cloneExtra(Plugin *) override;
 
+	virtual PingTask *pingTask() override;
+
 public Q_SLOTS:
 	virtual void showPageCallback() override;
 	virtual void hidePageCallback() override;
 	virtual void messageCallback(QString topic, QString message) override;
 	virtual void requestTool(QString);
+	virtual void startPingTask() override;
+	virtual void stopPingTask() override;
+	virtual void onPausePingTask(bool) override;
 
 protected:
 	QString m_param;
@@ -76,6 +82,8 @@ protected:
 	QList<QAbstractButton *> m_extraButtons;
 	QJsonObject m_metadata;
 	bool m_enabled;
+	PingTask *m_pingTask = nullptr;
+	CyclicalTask *m_cyclicalTask = nullptr;
 };
 } // namespace scopy
 
@@ -105,12 +113,13 @@ Q_SIGNALS:                                                                      
 	void restartDevice() override;                                                                                 \
 	void toolListChanged() override;                                                                               \
 	void requestToolByUuid(QString) override;                                                                      \
+	void pausePingTask(bool) override;                                                                             \
                                                                                                                        \
 private:
 
 #define SCOPY_PLUGIN_ICON(x)                                                                                           \
 	m_icon = new QLabel("");                                                                                       \
 	m_icon->setStyleSheet("border-image: url(" x ");")
-#define SCOPY_NEW_TOOLMENUENTRY(id, name, icon) new ToolMenuEntry(id, name, icon, this->m_name, this)
+#define SCOPY_NEW_TOOLMENUENTRY(id, name, icon) new ToolMenuEntry(id, name, icon, this->m_name, this->m_param, this)
 
 #endif // PLUGINBASE_H

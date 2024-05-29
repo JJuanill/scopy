@@ -24,7 +24,7 @@ private Q_SLOTS:
 };
 
 #define PLUGIN_LOCATION "../../plugins"
-#define FILENAME PLUGIN_LOCATION "/libscopy-adcplugin.so"
+#define FILENAME PLUGIN_LOCATION "/libscopy-adc.so"
 
 void TST_ADCPlugin::fileExists()
 {
@@ -49,6 +49,7 @@ void TST_ADCPlugin::loaded()
 {
 	QPluginLoader qp(FILENAME, this);
 	qp.load();
+	qDebug() << qp.errorString();
 	QVERIFY(qp.isLoaded());
 }
 

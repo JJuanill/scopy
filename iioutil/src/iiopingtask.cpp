@@ -4,17 +4,15 @@
 
 using namespace scopy;
 IIOPingTask::IIOPingTask(iio_context *c, QObject *parent)
-	: QThread(parent)
-	, c(c)
+	: PingTask(parent)
+	, m_ctx(c)
 {}
 
 IIOPingTask::~IIOPingTask() {}
 
 void IIOPingTask::run()
 {
-
-	enabled = true;
-	bool ret = ping(c);
+	bool ret = ping();
 
 	if(isInterruptionRequested())
 		return;
@@ -24,7 +22,9 @@ void IIOPingTask::run()
 		Q_EMIT pingFailed();
 }
 
-bool IIOPingTask::ping(iio_context *ctx)
+bool IIOPingTask::ping() { return pingCtx(m_ctx); }
+
+bool IIOPingTask::pingCtx(iio_context *ctx)
 {
 	auto dev = iio_context_get_device(ctx, 0);
 	const iio_device *test_device = nullptr;

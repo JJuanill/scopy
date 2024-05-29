@@ -19,32 +19,10 @@ M2kController::M2kController(QString uri, QObject *parent)
 	, uri(uri)
 {
 	identifyTask = nullptr;
-	pingTask = nullptr;
 	m_m2k = nullptr;
 }
 
 M2kController::~M2kController() {}
-
-void M2kController::startPingTask()
-{
-	pingTask = new IIOPingTask(m_iioctx);
-	pingTimer = new CyclicalTask(pingTask, this);
-	connect(pingTask, SIGNAL(pingSuccess()), this, SIGNAL(pingSuccess()));
-	connect(pingTask, SIGNAL(pingFailed()), this, SIGNAL(pingFailed()));
-	pingTimer->start();
-}
-
-void M2kController::stopPingTask()
-{
-	if(!pingTask) {
-		return;
-	}
-	pingTask->requestInterruption();
-	pingTimer->deleteLater();
-	pingTimer = nullptr;
-	pingTask->deleteLater();
-	pingTask = nullptr;
-}
 
 void M2kController::startTemperatureTask()
 {
@@ -61,10 +39,9 @@ void M2kController::stopTemperatureTask()
 	disconnect(tempTask, SIGNAL(newTemperature(double)), this, SIGNAL(newTemperature(double)));
 }
 
-void M2kController::connectM2k(iio_context *ctx)
+void M2kController::connectM2k(libm2k::context::M2k *m2k)
 {
-	m_iioctx = ctx;
-	m_m2k = m2kOpen(ctx, "");
+	m_m2k = m2k;
 	identify();
 }
 
@@ -77,11 +54,9 @@ void M2kController::disconnectM2k()
 		if(identifyTask && identifyTask->isRunning()) {
 			identifyTask->requestInterruption();
 		}
-		contextCloseAll();
 	} catch(std::exception &ex) {
 		qDebug(CAT_M2KPLUGIN) << ex.what();
 	}
-	m_iioctx = nullptr;
 	m_m2k = nullptr;
 }
 

@@ -630,15 +630,26 @@ void StyleHelper::MenuEditTextHeaderWidget(QWidget *w, QString objectName)
 
 void StyleHelper::MenuSpinComboBox(QComboBox *w, QString objectName)
 {
-	MenuComboBox(w, objectName);
 	QString style = QString(R"css(
-	QComboBox {
-	font-size: 12px;
-	}
-	QComboBox QAbstractItemView {
-	 background-color: &&ScopyBackground&&;
-	 selection-background-color: &&UIElementBackground&&;
-	}
+QComboBox {
+ height: 20px;
+ font-size: 12px;
+ font-weight: normal;
+ border-bottom: 0px;
+ padding-bottom: 0px;
+}
+QComboBox::drop-down {
+ subcontrol-position: center right;
+ width: 10px;
+ height: 6px;
+ border-image: url(:/gui/icons/scopy-default/icons/sba_cmb_box_arrow.svg);
+}
+QComboBox::drop-down:disabled {
+ subcontrol-position: center right;
+ width: 0px;
+ height: 0px;
+ border-image: url(:/gui/icons/scopy-default/icons/sba_cmb_box_arrow.svg);
+}
 	)css");
 
 	style.replace("&&ScopyBackground&&", StyleHelper::getColor("ScopyBackground"));
@@ -741,6 +752,10 @@ QLineEdit {
  border: 0px solid gray;
  border-bottom: 1px solid rgba(255, 255, 255, 102);
  padding: 2px;
+ padding-bottom: 4px;
+}
+QLineEdit:disabled {
+color: gray;
 }
 	)css");
 	style.replace("&&UIElementBackground&&", StyleHelper::getColor("UIElementBackground"));
@@ -793,6 +808,23 @@ QWidget {
 	w->setStyleSheet(style);
 }
 
+void StyleHelper::MenuSpinboxLine(QFrame *w, QString objectName)
+{
+	if(!objectName.isEmpty())
+		w->setObjectName(objectName);
+
+	QString style = QString(R"css(
+QFrame {
+height: 1px;
+background-color: transparent;
+color: &&ScopyBlue&&;
+}
+	)css");
+	style.replace("&&UIElementBackground&&", StyleHelper::getColor("UIElementBackground"));
+	style.replace("&&ScopyBlue&&", StyleHelper::getColor("ScopyBlue"));
+	w->setStyleSheet(style);
+}
+/*
 void StyleHelper::MenuSpinBox(SpinBoxA *w, QString objectName)
 {
 	if(!objectName.isEmpty())
@@ -860,7 +892,7 @@ scopy--SpinBoxA QDial#SBA_CompletionCircle {
 	style.replace("&&ScopyBlue&&", StyleHelper::getColor("ScopyBlue"));
 	w->setStyleSheet(style);
 	MenuSpinComboBox(w->ui->SBA_Combobox, ""); // Should this be refactored ?
-}
+}*/
 
 void StyleHelper::MenuSectionWidget(QWidget *w, QString objectName)
 {
@@ -868,7 +900,8 @@ void StyleHelper::MenuSectionWidget(QWidget *w, QString objectName)
 		w->setObjectName(objectName);
 	w->layout()->setContentsMargins(10, 10, 10, 10);
 	QString style = QString(R"css(
-			scopy--MenuSectionWidget {background-color: &&UIElementBackground&&;
+			QWidget{ background-color: &&UIElementBackground&&;}
+			scopy--MenuSectionWidget {
 			border-radius: 4px;
 			margin-bottom: 3px;
 			}
@@ -991,6 +1024,35 @@ void StyleHelper::MenuCollapseHeaderLabel(QLabel *w, QString objectName)
 	StyleHelper::MenuMediumLabel(w, objectName);
 }
 
+void StyleHelper::MenuCollapseHeaderLineEdit(QLineEdit *w, QString objectName)
+{
+	if(!objectName.isEmpty())
+		w->setObjectName(objectName);
+	w->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
+	w->setMinimumWidth(50);
+	//	lbl->setMaximumWidth(80);
+	QString style = QString(R"css(
+				QLineEdit {
+					color: white;
+					background-color: rgba(255,255,255,0);
+					font-weight: 500;
+					font-family: Open Sans;
+					font-size: 14px;
+					font-style: normal;
+					border: 0px solid gray;
+					border-bottom: 1px solid rgba(255, 255, 255, 102);
+padding-left: -2px;
+					}
+				QLineEdit:disabled {
+				 border: 0px solid gray;
+				 border-bottom: 0px solid rgba(255, 255, 255, 102);
+padding-left: -2px;
+				}
+
+				)css");
+	w->setStyleSheet(style);
+}
+
 void StyleHelper::MenuOnOffSwitchButton(SmallOnOffSwitch *w, QString objectName)
 {
 	if(!objectName.isEmpty())
@@ -1060,19 +1122,24 @@ void StyleHelper::HoverWidget(QWidget *w, bool draggable, QString objectName)
 	w->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Preferred);
 	QString style;
 
-	if(draggable) {
-		style = QString(R"css(
-				.QWidget {
-					background-color: transparent;
+	style = QString(R"css(
+				QWidget {
+					background-color: &&Background&&;
 					border-radius: 4px;
 				}
 				QWidget:hover {
-					background-color: &&UIElementBackground&&;
+					background-color: &&HoverBackground&&;
 					border-radius: 4px;
 				}
 				)css");
+
+	if(draggable) {
+		style.replace("&&Background&&", StyleHelper::getColor("UIElementBackground"));
+		style.replace("&&HoverBackground&&", StyleHelper::getColor("UIElementHighlight"));
+	} else {
+		style.replace("&&Background&&", "transparent");
+		style.replace("&&HoverBackground&&", "transparent");
 	}
-	style.replace("&&UIElementBackground&&", StyleHelper::getColor("UIElementBackground"));
 	w->setStyleSheet(style);
 }
 
@@ -1323,6 +1390,39 @@ void StyleHelper::BrowseButton(QPushButton *btn, QString objectName)
 	btn->setText("...");
 }
 
+void StyleHelper::MenuSpinboxLabel(QLabel *w, QString objectName)
+{
+	if(!objectName.isEmpty())
+		w->setObjectName(objectName);
+
+	QString style = QString(R"css(
+QLabel {
+ color: rgba(255, 255, 255, 102);
+ font-size: 14px;
+ background-color: transparent;
+}
+)css");
+
+	w->setStyleSheet(style);
+}
+void StyleHelper::MenuSpinboxLineEdit(QLineEdit *w, QString objectName)
+{
+	if(!objectName.isEmpty())
+		w->setObjectName(objectName);
+
+	QString style = QString(R"css(
+QLineEdit {
+ height: 20px;
+ width: 75px;
+ font-size: 18px;
+ border: 0px;
+ bottom: 10px;
+ background-color: transparent;
+})css");
+
+	w->setStyleSheet(style);
+}
+
 void StyleHelper::SpinBoxUpButton(QPushButton *w, QString objectName)
 {
 	if(!objectName.isEmpty())
@@ -1411,7 +1511,7 @@ void StyleHelper::TableWidgetDebugger(QTableWidget *w, QString objectName)
 void StyleHelper::SplitterStyle(QSplitter *w, QString objectName)
 {
 	if(!objectName.isEmpty()) {
-		w->setStyleSheet(objectName);
+		w->setObjectName(objectName);
 	}
 
 	QString style = QString(R"css(
@@ -1428,7 +1528,7 @@ void StyleHelper::SplitterStyle(QSplitter *w, QString objectName)
 void StyleHelper::TreeViewDebugger(QTreeView *w, QString objectName)
 {
 	if(!objectName.isEmpty()) {
-		w->setStyleSheet(objectName);
+		w->setObjectName(objectName);
 	}
 
 	QString style = R"css(
@@ -1488,6 +1588,27 @@ void StyleHelper::FaultsExplanation(QWidget *w, QString objectName)
 			QWidget{color:&&defaultColor&&;}
 			)css");
 	style.replace("&&defaultColor&&", StyleHelper::getColor("GrayText"));
+	w->setStyleSheet(style);
+}
+
+void StyleHelper::IIOCompactLabel(QLabel *w, QString objectName)
+{
+	if(!objectName.isEmpty())
+		w->setObjectName(objectName);
+	w->setText(w->text().toUpper());
+	w->setSizePolicy(QSizePolicy::Maximum, QSizePolicy::Maximum);
+	QString style = R"css(
+			QLabel {
+				color: white;
+				background-color: rgba(255,255,255,0);
+				font-weight: 500;
+				font-family: Open Sans;
+				font-size: 12px;
+				font-style: normal;
+			}
+				QLabel:disabled {
+					color: grey;
+			})css";
 	w->setStyleSheet(style);
 }
 

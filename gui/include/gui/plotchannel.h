@@ -41,8 +41,24 @@ public:
 	void clearMarkers();
 	void removeMarker(QwtPlotMarker *m);
 	void addMarker(QwtPlotMarker *m);
+	void setSamples(const float *xData, const float *yData, size_t size, bool copy = true);
 
 	QString name() const;
+
+	void init();
+	void deinit();
+	int thickness() const;
+	void setThickness(int newThickness);
+
+	int style() const;
+	void setStyle(int newStyle);
+
+	void setYAxis(PlotAxis *newYAxis);
+
+	void setXAxis(PlotAxis *newXAxis);
+	double getValueAt(double pos);
+
+	bool isEnabled() const;
 
 public Q_SLOTS:
 	void raise();
@@ -52,15 +68,22 @@ public Q_SLOTS:
 	void enable();
 	void disable();
 
-	void setThickness(int);
-	void setStyle(int);
+private:
+	void setThicknessInternal(int);
+	void setStyleInternal(int);
 
 Q_SIGNALS:
 	void attachCurve(QwtPlotCurve *curve);
 	void doReplot();
+	void newData(const float *xData, const float *yData, size_t size, bool);
+
+	void thicknessChanged();
+
+	void styleChanged();
 
 private:
-	PlotAxis *m_xAxis, *m_yAxis;
+	PlotAxis *m_xAxis;
+	PlotAxis *m_yAxis;
 	PlotAxisHandle *m_handle;
 	QwtPlotCurve *m_curve;
 	QList<QwtPlotMarker *> m_markers;
@@ -68,6 +91,14 @@ private:
 	QPen m_pen;
 	float *m_data;
 	QString m_name;
+
+	int m_thickness;
+	int m_style;
+
+	bool m_isEnabled;
+
+	Q_PROPERTY(int thickness READ thickness WRITE setThickness NOTIFY thicknessChanged);
+	Q_PROPERTY(int style READ style WRITE setStyle NOTIFY styleChanged);
 };
 } // namespace scopy
 

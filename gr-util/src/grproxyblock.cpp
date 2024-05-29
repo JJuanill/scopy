@@ -17,6 +17,7 @@ void GRProxyBlock::destroy_blks(GRTopBlock *top) { start_blk.clear(); }
 
 void GRProxyBlock::connect_blk(GRTopBlock *top, GRProxyBlock *src)
 {
+	qInfo() << "created grfftfloatproc";
 	if(src == nullptr) // block is a source
 		return;
 	int nrOfOutputs = src->getGrEndPoint()->output_signature()->min_streams();
@@ -47,9 +48,6 @@ void GRProxyBlock::setEnabled(bool v)
 		return;
 
 	m_enabled = v;
-	blockSignals(false); // make sure request rebuild is sent
-	Q_EMIT requestRebuild();
-	blockSignals(!v); // to prevent rebuilding from non-enabled blocks - maybe
 }
 
 bool GRProxyBlock::enabled() { return m_enabled; }

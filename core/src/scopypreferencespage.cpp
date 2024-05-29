@@ -9,7 +9,7 @@
 #include <QCoreApplication>
 #include <QScrollArea>
 #include <stylehelper.h>
-#include "pluginbase/preferenceshelper.h"
+#include "gui/preferenceshelper.h"
 #include "application_restarter.h"
 #include <QDir>
 #include <QDebug>
@@ -204,6 +204,14 @@ QWidget *ScopyPreferencesPage::buildGeneralPreferencesPage()
 	generalSection->contentLayout()->addWidget(PreferencesHelper::addPreferenceCheckBox(
 		p, "general_show_status_bar", "Enable the status bar for displaying important messages.",
 		generalSection));
+	generalSection->contentLayout()->addWidget(
+		PreferencesHelper::addPreferenceCheckBox(p, "show_grid", "Show Grid", generalSection));
+	generalSection->contentLayout()->addWidget(
+		PreferencesHelper::addPreferenceCheckBox(p, "show_graticule", "Show Graticule", generalSection));
+	generalSection->contentLayout()->addWidget(PreferencesHelper::addPreferenceCheckBox(
+		p, "iiowidgets_use_lazy_loading", "Use Lazy Loading", generalSection));
+	generalSection->contentLayout()->addWidget(PreferencesHelper::addPreferenceCheckBox(
+		p, "plugins_use_debugger_v2", "Use Debugger V2 plugin", generalSection));
 	generalSection->contentLayout()->addWidget(PreferencesHelper::addPreferenceCombo(
 		p, "general_theme", "Theme", {"default", "light"}, generalSection));
 	generalSection->contentLayout()->addWidget(PreferencesHelper::addPreferenceCombo(

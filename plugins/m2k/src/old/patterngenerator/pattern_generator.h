@@ -22,7 +22,7 @@
 #define PATTERNGENERATOR_H
 
 #include "buffer_previewer.hpp"
-#include "gui/genericlogicplotcurve.h"
+#include "m2k-gui/genericlogicplotcurve.h"
 #include "gui/spinbox_a.hpp"
 #include "m2ktool.hpp"
 #include "mousewheelwidgetguard.h"
@@ -67,7 +67,7 @@ class PatternGenerator : public M2kTool
 	friend class PatternGenerator_API;
 
 public:
-	explicit PatternGenerator(struct iio_context *ctx, Filter *filt, ToolMenuEntry *tme, QJSEngine *engine,
+	explicit PatternGenerator(libm2k::context::M2k *m2k, Filter *filt, ToolMenuEntry *tme, QJSEngine *engine,
 				  DIOManager *diom, QWidget *parent);
 	~PatternGenerator();
 	void setNativeDialogs(bool nativeDialogs) override;

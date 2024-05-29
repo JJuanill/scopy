@@ -14,7 +14,7 @@
 #include <iioutil/connectionprovider.h>
 
 #include <pluginbase/preferences.h>
-#include <pluginbase/preferenceshelper.h>
+#include <gui/preferenceshelper.h>
 
 #include <pluginbase/scopyjs.h>
 
@@ -39,36 +39,7 @@ bool DataLoggerPlugin::compatible(QString m_param, QString category)
 	return true;
 }
 
-bool DataLoggerPlugin::loadPage()
-{
-	// Here you must write the code for the plugin info page
-	// Below is an example for an iio device
-	/*m_page = new QWidget();
-	m_page->setLayout(new QVBoxLayout(m_page));
-	m_page->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
-	m_infoPage = new InfoPage(m_page);
-	m_infoPage->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Fixed);
-	m_page->layout()->addWidget(m_infoPage);
-	m_page->layout()->addItem(new QSpacerItem(0, 0, QSizePolicy::Preferred, QSizePolicy::Expanding));
-
-	auto cp = ContextProvider::GetInstance();
-	struct iio_context *context = cp->open(m_param);
-	ssize_t attributeCount = iio_context_get_attrs_count(context);
-	for(int i = 0; i < attributeCount; ++i) {
-		const char *name;
-		const char *value;
-		int ret = iio_context_get_attr(context, i, &name, &value);
-		if(ret < 0) {
-			qWarning(CAT_DATALOGGERLUGIN) << "Could not read attribute with index:" << i;
-			continue;
-		}
-
-		m_infoPage->update(name, value);
-	}
-	cp->close(m_param);
-	m_page->ensurePolished();*/
-	return true;
-}
+bool DataLoggerPlugin::loadPage() { return false; }
 
 bool DataLoggerPlugin::loadIcon()
 {
@@ -78,8 +49,8 @@ bool DataLoggerPlugin::loadIcon()
 
 void DataLoggerPlugin::loadToolList()
 {
-	m_toolList.append(SCOPY_NEW_TOOLMENUENTRY("DataMonitorPreview", "DataLogger",
-						  ":/gui/icons/scopy-default/icons/gear_wheel.svg"));
+	m_toolList.append(SCOPY_NEW_TOOLMENUENTRY("DataMonitorPreview", "Data Logger",
+						  ":/gui/icons/scopy-default/icons/tool_debugger.svg"));
 }
 
 void DataLoggerPlugin::unload()
@@ -133,9 +104,23 @@ bool DataLoggerPlugin::onConnect()
 
 bool DataLoggerPlugin::onDisconnect()
 {
+	auto count = dmmList.count();
+	for(int i = 0; i < count; i++) {
+		delete dmmList.takeLast();
+	}
+
+	if(m_dataAcquisitionManager) {
+		delete m_dataAcquisitionManager;
+		m_dataAcquisitionManager = nullptr;
+	}
+
+	ConnectionProvider *cp = ConnectionProvider::GetInstance();
+	cp->close(m_param);
+
 	// This method is called when the disconnect button is pressed
 	// It must remove all connections that were established on the connection
-	for(auto &tool : m_toolList) {
+	while(!m_toolList.isEmpty()) {
+		ToolMenuEntry *tool = m_toolList.first();
 		tool->setEnabled(false);
 		tool->setRunning(false);
 		tool->setRunBtnVisible(false);
@@ -143,20 +128,24 @@ bool DataLoggerPlugin::onDisconnect()
 	}
 
 	// add proxy tool to represent the plugin
-	m_toolList.append(SCOPY_NEW_TOOLMENUENTRY("DataMonitorPreview", "DataLogger",
-						  ":/gui/icons/scopy-default/icons/gear_wheel.svg"));
+	m_toolList.append(SCOPY_NEW_TOOLMENUENTRY("DataMonitorPreview", "Data Logger",
+						  ":/gui/icons/scopy-default/icons/tool_debugger.svg"));
 
 	Q_EMIT toolListChanged();
+
+	toolIndex = 0;
 	return true;
 }
 
 void DataLoggerPlugin::addNewTool()
 {
-	static int i = 0;
-	QString tool_name = (QString("DataLogger ") + QString::number(i));
+	QString tool_name = QString("Data Logger ");
+	if(toolIndex != 0) {
+		tool_name += QString::number(toolIndex);
+	}
 
 	ToolMenuEntry *toolMenuEntry =
-		SCOPY_NEW_TOOLMENUENTRY(tool_name, tool_name, ":/gui/icons/scopy-default/icons/gear_wheel.svg");
+		SCOPY_NEW_TOOLMENUENTRY(tool_name, tool_name, ":/gui/icons/scopy-default/icons/tool_debugger.svg");
 	m_toolList.append(toolMenuEntry);
 	m_toolList.last()->setEnabled(true);
 	m_toolList.last()->setRunBtnVisible(true);
@@ -186,13 +175,15 @@ void DataLoggerPlugin::addNewTool()
 		}
 	});
 
+	toolMenuEntry->setDetachable(false);
+
 	Q_EMIT toolListChanged();
 	m_toolList.last()->setTool(datamonitorTool);
 	if(m_toolList.length() > 1) {
 		requestTool(tool_name);
 	}
 
-	i++;
+	toolIndex++;
 }
 
 void DataLoggerPlugin::removeTool(QString toolId)
@@ -201,13 +192,13 @@ void DataLoggerPlugin::removeTool(QString toolId)
 	auto *tool = ToolMenuEntry::findToolMenuEntryById(m_toolList, toolId);
 	m_toolList.removeOne(tool);
 	QWidget *datamonitorTool = tool->tool();
+	tool->setTool(nullptr);
 	if(datamonitorTool) {
 		delete datamonitorTool;
 	}
 
 	Q_EMIT toolListChanged();
-
-	delete tool;
+	tool->deleteLater();
 }
 
 void DataLoggerPlugin::toggleRunState(bool toggled)
@@ -278,3 +269,5 @@ bool DataLoggerPlugin::loadPreferencesPage()
 }
 
 QString DataLoggerPlugin::description() { return "Use IIO raw and scale attributes to plot and save data"; }
+
+#include "moc_dataloggerplugin.cpp"

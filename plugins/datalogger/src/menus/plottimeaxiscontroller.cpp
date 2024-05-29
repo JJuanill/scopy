@@ -6,6 +6,7 @@
 #include <menuonoffswitch.h>
 #include <menusectionwidget.h>
 #include <timemanager.hpp>
+#include <cfloat>
 
 using namespace scopy;
 using namespace datamonitor;
@@ -37,13 +38,10 @@ PlotTimeAxisController::PlotTimeAxisController(MonitorPlot *m_plot, QWidget *par
 	timeEdit->setDisplayFormat("hh:mm:ss");
 	timeEdit->setVisible(false);
 
-	m_xdelta = new PositionSpinButton(
-		{
-			{"s", 1},
-			{"min", 60},
-			{"hour", 3600},
-		},
-		"Delta", (double)((long)(-1 << 31)), (double)((long)1 << 31), false, false, xAxisContainer);
+	m_xdelta = new gui::MenuSpinbox("Delta", DataMonitorUtils::getAxisDefaultMaxValue(), "s", 0, DBL_MAX, false,
+					false, xAxisContainer);
+	m_xdelta->setScaleRange(1, 1);
+	m_xdelta->setIncrementMode(gui::MenuSpinbox::IS_FIXED);
 	m_xdelta->setValue(DataMonitorUtils::getAxisDefaultMaxValue());
 
 	auto &&timeTracker = TimeManager::GetInstance();
@@ -67,7 +65,7 @@ PlotTimeAxisController::PlotTimeAxisController(MonitorPlot *m_plot, QWidget *par
 	connect(dateEdit, &QDateEdit::dateChanged, this, &PlotTimeAxisController::updatePlotStartPoint);
 	connect(timeEdit, &QTimeEdit::timeChanged, this, &PlotTimeAxisController::updatePlotStartPoint);
 
-	connect(m_xdelta, &PositionSpinButton::valueChanged, this,
+	connect(m_xdelta, &gui::MenuSpinbox::valueChanged, this,
 		[=, this](double value) { m_plot->updateXAxisIntervalMax(value); });
 
 	xAxisSection->contentLayout()->addWidget(realTimeToggle);
@@ -93,3 +91,5 @@ void PlotTimeAxisController::updatePlotStartPoint()
 
 	m_plot->updatePlotStartingPoint(time, delta);
 }
+
+#include "moc_plottimeaxiscontroller.cpp"

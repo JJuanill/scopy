@@ -21,7 +21,6 @@
 #ifndef FAULTS_H
 #define FAULTS_H
 
-#include "scopy-swiot_export.h"
 #include "faultspage.h"
 #include <pluginbase/toolmenuentry.h>
 
@@ -30,7 +29,7 @@
 #include <gui/tooltemplate.h>
 
 namespace scopy::swiot {
-class SCOPY_SWIOT_EXPORT Faults : public QWidget
+class Faults : public QWidget
 {
 	Q_OBJECT
 public:
@@ -47,6 +46,7 @@ public Q_SLOTS:
 	void singleButtonClicked();
 
 private Q_SLOTS:
+	void startTutorial();
 	void onBackBtnPressed();
 
 private:
@@ -65,6 +65,7 @@ private:
 	FaultsPage *m_faultsPage;
 
 	ToolMenuEntry *m_tme;
+	void showEvent(QShowEvent *event) override;
 };
 } // namespace scopy::swiot
 #endif // FAULTS_H

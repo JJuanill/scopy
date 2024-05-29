@@ -1,6 +1,6 @@
 #include "menus/channelattributesmenu.hpp"
 
-#include <iiowidgetfactory.h>
+#include <iiowidgetbuilder.h>
 #include <menuheader.h>
 
 using namespace scopy;
@@ -23,8 +23,6 @@ ChannelAttributesMenu::ChannelAttributesMenu(DataMonitorModel *model, QWidget *p
 	layout->setSpacing(10);
 	settingsBody->setLayout(layout);
 
-	mainLayout->addLayout(layout);
-
 	QScrollArea *scrollArea = new QScrollArea(this);
 	scrollArea->setWidgetResizable(true);
 	scrollArea->setWidget(settingsBody);
@@ -40,8 +38,8 @@ ChannelAttributesMenu::ChannelAttributesMenu(DataMonitorModel *model, QWidget *p
 	attrLayout->setContentsMargins(0, 0, 0, 10); // bottom margin
 
 	if(qobject_cast<DmmDataMonitorModel *>(model)) {
-		QList<IIOWidget *> attrWidgets = IIOWidgetFactory::buildAllAttrsForChannel(
-			dynamic_cast<DmmDataMonitorModel *>(model)->iioChannel());
+		QList<IIOWidget *> attrWidgets =
+			IIOWidgetBuilder().channel(dynamic_cast<DmmDataMonitorModel *>(model)->iioChannel()).buildAll();
 
 		for(auto w : attrWidgets) {
 			attrLayout->addWidget(w);
@@ -59,3 +57,5 @@ ChannelAttributesMenu::ChannelAttributesMenu(DataMonitorModel *model, QWidget *p
 	QSpacerItem *spacer = new QSpacerItem(10, 10, QSizePolicy::Preferred, QSizePolicy::Expanding);
 	layout->addItem(spacer);
 }
+
+#include "moc_channelattributesmenu.cpp"

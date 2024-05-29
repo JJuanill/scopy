@@ -9,6 +9,7 @@
 #include <plotinfo.h>
 #include <timemanager.hpp>
 #include <plotnavigator.hpp>
+#include <style.h>
 #include <pluginbase/preferences.h>
 
 using namespace scopy;
@@ -58,6 +59,9 @@ MonitorPlot::MonitorPlot(QWidget *parent)
 	layout->addWidget(m_plot);
 
 	m_monitorCurves = new QMap<QString, MonitorPlotCurve *>();
+
+	QString plotStyle("color: " + Style::getAttribute(json::theme::interactive_subtle_idle));
+	m_plot->setStyleSheet(plotStyle);
 }
 
 PlotWidget *MonitorPlot::plot() const { return m_plot; }
@@ -242,6 +246,7 @@ void MonitorPlot::generateBufferPreviewer()
 
 	AnalogBufferPreviewer *bufferPreviewer = new AnalogBufferPreviewer(this);
 	m_bufferPreviewer = new PlotBufferPreviewer(m_plot, bufferPreviewer, this);
+	m_bufferPreviewer->setManualDataLimits(true);
 
 	connect(m_plot->navigator(), &PlotNavigator::rectChanged, this, [=, this]() {
 		double time = QwtDate::toDouble(QDateTime::currentDateTime());
@@ -251,3 +256,5 @@ void MonitorPlot::generateBufferPreviewer()
 	layout->addWidget(m_bufferPreviewer);
 	m_plot->navigator()->setResetOnNewBase(false);
 }
+
+#include "moc_monitorplot.cpp"

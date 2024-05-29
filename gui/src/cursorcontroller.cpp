@@ -12,6 +12,7 @@ CursorController::CursorController(PlotWidget *plot, QObject *parent)
 	, yEn(true)
 	, yLock(false)
 	, readoutDragsEn(false)
+	, m_visible(false)
 {
 	initUI();
 
@@ -20,33 +21,32 @@ CursorController::CursorController(PlotWidget *plot, QObject *parent)
 	x1Cursor = plotCursors->getX1Cursor();
 	x2Cursor = plotCursors->getX2Cursor();
 
-	connectSignals();
+	// connectSignals();
 }
 
 CursorController::~CursorController() {}
 
 void CursorController::initUI()
 {
-	plotCursors = new PlotCursors(m_plot);
+	plotCursors = new PlotCursors(m_plot, this);
 	plotCursors->setVisible(false);
 
 	plotCursorReadouts = new PlotCursorReadouts(m_plot);
 	PlotChannel *ch = m_plot->selectedChannel();
-	plotCursorReadouts->setXFromatter(ch->xAxis()->getFromatter());
-	plotCursorReadouts->setYFromatter(ch->yAxis()->getFromatter());
-	plotCursorReadouts->setXUnits(ch->xAxis()->getUnits());
-	plotCursorReadouts->setYUnits(ch->yAxis()->getUnits());
-
+	if(ch != nullptr) {
+		plotCursorReadouts->setXFormatter(ch->xAxis()->getFormatter());
+		plotCursorReadouts->setYFormatter(ch->yAxis()->getFormatter());
+		plotCursorReadouts->setXUnits(ch->xAxis()->getUnits());
+		plotCursorReadouts->setYUnits(ch->yAxis()->getUnits());
+	}
 	hoverReadouts = new HoverWidget(plotCursorReadouts, m_plot->plot()->canvas(), m_plot);
-	hoverReadouts->setAnchorPos(HoverPosition::HP_TOPLEFT);
-	hoverReadouts->setContentPos(HoverPosition::HP_BOTTOMRIGHT);
-	hoverReadouts->setAnchorOffset(QPoint(10, 10));
+	hoverReadouts->setAnchorPos(HoverPosition::HP_BOTTOMRIGHT);
+	hoverReadouts->setContentPos(HoverPosition::HP_TOPLEFT);
+	hoverReadouts->setAnchorOffset(QPoint(-10, -10));
 	hoverReadouts->setRelative(true);
-
-	cursorSettings = new CursorSettings(m_plot);
 }
 
-void CursorController::connectSignals()
+void CursorController::connectSignals(CursorSettings *cursorSettings)
 {
 	// x controls
 	connect(cursorSettings->getXEn(), &QAbstractButton::toggled, this, &CursorController::xEnToggled);
@@ -61,7 +61,9 @@ void CursorController::connectSignals()
 	connect(cursorSettings->getReadoutsDrag(), &QAbstractButton::toggled, this,
 		&CursorController::readoutsDragToggled);
 
-	initSession();
+	//  update session in case the settings are conncted to multiple controllers
+	connect(cursorSettings, &CursorSettings::sessionUpdated, this, [=]() { setVisible(isVisible()); });
+	cursorSettings->updateSession();
 
 	// cursor movement
 	connect(y1Cursor, &PlotAxisHandle::scalePosChanged, this, [=](double pos) {
@@ -99,23 +101,18 @@ void CursorController::connectSignals()
 	connect(m_plot, &PlotWidget::addedChannel, this, &CursorController::onAddedChannel);
 	connect(m_plot, &PlotWidget::removedChannel, this, &CursorController::onRemovedChannel);
 	connect(m_plot, &PlotWidget::channelSelected, this, [=](PlotChannel *ch) {
-		plotCursorReadouts->setXFromatter(ch->xAxis()->getFromatter());
-		plotCursorReadouts->setYFromatter(ch->yAxis()->getFromatter());
-		plotCursorReadouts->setXUnits(ch->xAxis()->getUnits());
-		plotCursorReadouts->setYUnits(ch->yAxis()->getUnits());
+		PlotAxis *xAxis = m_plot->xAxis();
+		PlotAxis *yAxis = m_plot->yAxis();
+		if(ch != nullptr) {
+			xAxis = ch->xAxis();
+			yAxis = ch->yAxis();
+		}
+
+		plotCursorReadouts->setXFormatter(xAxis->getFormatter());
+		plotCursorReadouts->setYFormatter(yAxis->getFormatter());
+		plotCursorReadouts->setXUnits(xAxis->getUnits());
+		plotCursorReadouts->setYUnits(yAxis->getUnits());
 	});
-}
-
-void CursorController::initSession()
-{
-	cursorSettings->getXEn()->toggled(xEn);
-	cursorSettings->getXLock()->toggled(xLock);
-	cursorSettings->getXTrack()->toggled(xTrack);
-	cursorSettings->getYEn()->toggled(yEn);
-	cursorSettings->getYLock()->toggled(yLock);
-	cursorSettings->getReadoutsDrag()->toggled(readoutDragsEn);
-
-	setVisible(false);
 }
 
 void CursorController::xEnToggled(bool toggled)
@@ -160,8 +157,8 @@ void CursorController::readoutsDragToggled(bool toggled)
 
 void CursorController::onAddedChannel(PlotChannel *ch)
 {
-	connect(ch->xAxis(), &PlotAxis::formatterChanged, plotCursorReadouts, &PlotCursorReadouts::setXFromatter);
-	connect(ch->yAxis(), &PlotAxis::formatterChanged, plotCursorReadouts, &PlotCursorReadouts::setYFromatter);
+	connect(ch->xAxis(), &PlotAxis::formatterChanged, plotCursorReadouts, &PlotCursorReadouts::setXFormatter);
+	connect(ch->yAxis(), &PlotAxis::formatterChanged, plotCursorReadouts, &PlotCursorReadouts::setYFormatter);
 	connect(ch->xAxis(), &PlotAxis::unitsChanged, plotCursorReadouts, &PlotCursorReadouts::setXUnits);
 	connect(ch->yAxis(), &PlotAxis::unitsChanged, plotCursorReadouts, &PlotCursorReadouts::setYUnits);
 }
@@ -172,10 +169,64 @@ void CursorController::onRemovedChannel(PlotChannel *ch)
 	disconnect(ch->yAxis(), &PlotAxis::formatterChanged, plotCursorReadouts, nullptr);
 }
 
+void CursorController::updateTracking()
+{
+	if(plotCursors->tracking()) {
+		plotCursors->displayIntersection();
+	}
+}
+
+void CursorController::syncXCursorControllers(CursorController *ctrl1, CursorController *ctrl2)
+{
+	ctrl2->setVisible(ctrl1->isVisible());
+	ctrl2->x1Cursor->setPosition(ctrl1->x1Cursor->getPosition());
+	ctrl2->x2Cursor->setPosition(ctrl1->x2Cursor->getPosition());
+
+	// connect ctrl1 to ctrl2
+	connect(ctrl1->x1Cursor, &PlotAxisHandle::scalePosChanged, ctrl2->x1Cursor, [=](double pos) {
+		ctrl1->x1Cursor->blockSignals(true);
+		ctrl2->x1Cursor->setPosition(pos);
+		ctrl1->x1Cursor->blockSignals(false);
+		ctrl2->m_plot->repaint();
+	});
+	connect(ctrl1->x2Cursor, &PlotAxisHandle::scalePosChanged, ctrl2->x2Cursor, [=](double pos) {
+		ctrl1->x2Cursor->blockSignals(true);
+		ctrl2->x2Cursor->setPosition(pos);
+		ctrl1->x2Cursor->blockSignals(false);
+		ctrl2->m_plot->repaint();
+	});
+
+	// connect ctrl2 to ctrl1
+	connect(ctrl2->x1Cursor, &PlotAxisHandle::scalePosChanged, ctrl1->x1Cursor, [=](double pos) {
+		ctrl2->x1Cursor->blockSignals(true);
+		ctrl1->x1Cursor->setPosition(pos);
+		ctrl2->x1Cursor->blockSignals(false);
+		ctrl1->m_plot->repaint();
+	});
+	connect(ctrl2->x2Cursor, &PlotAxisHandle::scalePosChanged, ctrl1->x2Cursor, [=](double pos) {
+		ctrl2->x2Cursor->blockSignals(true);
+		ctrl1->x2Cursor->setPosition(pos);
+		ctrl2->x2Cursor->blockSignals(false);
+		ctrl1->m_plot->repaint();
+	});
+}
+
+void CursorController::unsyncXCursorControllers(CursorController *ctrl1, CursorController *ctrl2)
+{
+	disconnect(ctrl1->x1Cursor, &PlotAxisHandle::scalePosChanged, ctrl2->x1Cursor, nullptr);
+	disconnect(ctrl1->x2Cursor, &PlotAxisHandle::scalePosChanged, ctrl2->x2Cursor, nullptr);
+	disconnect(ctrl2->x1Cursor, &PlotAxisHandle::scalePosChanged, ctrl1->x1Cursor, nullptr);
+	disconnect(ctrl2->x2Cursor, &PlotAxisHandle::scalePosChanged, ctrl1->x2Cursor, nullptr);
+}
+
+bool CursorController::isVisible() { return m_visible; }
+
 void CursorController::setVisible(bool visible)
 {
+	m_visible = visible;
 	readoutsSetVisible(visible);
 	cursorsSetVisible(visible);
+	Q_EMIT visibilityChanged(visible);
 }
 
 void CursorController::readoutsSetVisible(bool visible) { hoverReadouts->setVisible(visible && (xEn || yEn)); }
@@ -185,8 +236,6 @@ void CursorController::cursorsSetVisible(bool visible)
 	plotCursors->setXVisible(visible && xEn);
 	plotCursors->setYVisible(visible && yEn);
 }
-
-CursorSettings *CursorController::getCursorSettings() { return cursorSettings; }
 
 PlotCursors *CursorController::getPlotCursors() { return plotCursors; }
 

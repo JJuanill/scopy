@@ -8,19 +8,23 @@
 #include "scopy-iio-widgets_export.h"
 
 namespace scopy {
-class SCOPY_IIO_WIDGETS_EXPORT CmdQDeviceAttrDataStrategy : public QWidget, public DataStrategyInterface
+class SCOPY_IIO_WIDGETS_EXPORT CmdQDeviceAttrDataStrategy : public QObject, public DataStrategyInterface
 {
 	Q_OBJECT
 	Q_INTERFACES(scopy::DataStrategyInterface)
 public:
-	explicit CmdQDeviceAttrDataStrategy(IIOWidgetFactoryRecipe recipe, QWidget *parent = nullptr);
+	explicit CmdQDeviceAttrDataStrategy(IIOWidgetFactoryRecipe recipe, QObject *parent = nullptr);
+	CmdQDeviceAttrDataStrategy();
 
 	QString data() override;
 	QString optionalData() override;
 
 public Q_SLOTS:
-	void save(QString data) override;
-	void requestData() override;
+	int write(QString data) override;
+	QPair<QString, QString> read() override;
+
+	void writeAsync(QString data) override;
+	void readAsync() override;
 
 Q_SIGNALS:
 	void sendData(QString data, QString dataOptions) override;

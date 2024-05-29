@@ -21,12 +21,11 @@
 #ifndef DIOSETTINGSTAB_H
 #define DIOSETTINGSTAB_H
 
-#include "scopy-swiot_export.h"
 #include <QWidget>
-#include <gui/spinbox_a.hpp>
+#include <gui/widgets/menuspinbox.h>
 
 namespace scopy::swiot {
-class SCOPY_SWIOT_EXPORT DioSettingsTab : public QWidget
+class DioSettingsTab : public QWidget
 {
 	Q_OBJECT
 public:
@@ -39,7 +38,7 @@ Q_SIGNALS:
 	void timeValueChanged(double value);
 
 private:
-	PositionSpinButton *m_maxSpinButton;
+	gui::MenuSpinbox *m_maxSpinButton;
 };
 } // namespace scopy::swiot
 #endif // DIOSETTINGSTAB_H

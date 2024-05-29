@@ -10,6 +10,7 @@
 #include <QDateTimeEdit>
 #include <QScrollArea>
 #include <QTime>
+#include <style.h>
 
 Q_LOGGING_CATEGORY(CAT_PQM_SETTINGS, "pqm_settings");
 using namespace scopy::pqm;
@@ -56,6 +57,12 @@ void SettingsInstrument::onReadBtnPressed(bool en)
 	animBtn->startAnimation();
 	m_readEnabled = true;
 	Q_EMIT enableTool(true);
+}
+
+void SettingsInstrument::setDateTimeAttr(QDateTime dateTime, QString attrName)
+{
+	QString systemTimeValue = dateTime.toString("yyyyMMddhhmmsszzz");
+	m_pqmAttr[DEVICE_NAME][attrName] = systemTimeValue;
 }
 
 void SettingsInstrument::updateCbValues(QComboBox *cb, QString attr)
@@ -182,14 +189,21 @@ void SettingsInstrument::initSystemTimeSection(QWidget *parent)
 	MenuCollapseSection *systemTimeSection =
 		new MenuCollapseSection("System time", MenuCollapseSection::MHCW_ARROW, parent);
 	systemTimeSection->contentLayout()->setSpacing(6);
-	QDateEdit *dateEdit = new QDateEdit(systemTimeSection);
-	dateEdit->setDateTime(QDateTime::currentDateTime());
+	QDateTimeEdit *systemTimeEdit = new QDateTimeEdit(systemTimeSection);
+	systemTimeEdit->setDateTime(QDateTime::currentDateTime());
+	systemTimeEdit->setDisplayFormat("dd:MM:yyyy hh:mm:ss.zzz");
+	systemTimeEdit->setStyleSheet("background-color:" + Style::getAttribute(json::theme::background_primary));
 	QPushButton *systemTimeBtn = new QPushButton("Set", systemTimeSection);
 	systemTimeBtn->setFixedWidth(88);
 	StyleHelper::BlueButton(systemTimeBtn, "systemTimeBtn");
 
-	systemTimeSection->contentLayout()->addWidget(dateEdit);
+	systemTimeSection->contentLayout()->addWidget(systemTimeEdit);
 	systemTimeSection->contentLayout()->addWidget(systemTimeBtn);
+
+	connect(systemTimeBtn, &QPushButton::clicked, this, [this, systemTimeEdit]() {
+		setDateTimeAttr(systemTimeEdit->dateTime(), SYSTEM_TIME_ATTR);
+		onSetBtnPressed();
+	});
 
 	parent->layout()->addWidget(systemTimeSection);
 }
@@ -197,36 +211,61 @@ void SettingsInstrument::initSystemTimeSection(QWidget *parent)
 void SettingsInstrument::initTimestampSection(QWidget *parent)
 {
 	MenuCollapseSection *timestampSection =
-		new MenuCollapseSection("Timestamp", MenuCollapseSection::MHCW_ARROW, parent);
+		new MenuCollapseSection("Logging", MenuCollapseSection::MHCW_ARROW, parent);
 	timestampSection->contentLayout()->setSpacing(6);
+
+	QPushButton *startLogBtn = new QPushButton("Start", timestampSection);
+	startLogBtn->setFixedWidth(88);
+	StyleHelper::BlueButton(startLogBtn, "startLogBtn");
+	startLogBtn->setCheckable(true);
+	connect(startLogBtn, &QPushButton::clicked, this, [this, startLogBtn](bool checked) {
+		m_pqmAttr[DEVICE_NAME]["start_logging"] = QString::number(checked);
+		if(checked) {
+			startLogBtn->setText("Stop");
+		} else {
+			startLogBtn->setText("Start");
+		}
+		onSetBtnPressed();
+	});
 
 	QWidget *timestampWidget = new QWidget(timestampSection);
 	timestampWidget->setLayout(new QHBoxLayout());
 	timestampWidget->layout()->setContentsMargins(0, 0, 0, 0);
 	timestampWidget->layout()->setSpacing(10);
 
-	QTimeEdit *timestampEdit1 = new QTimeEdit(timestampSection);
-	timestampEdit1->setTime(QTime::currentTime());
-	timestampEdit1->setDisplayFormat("hh:mm:ss.zzz");
+	QDateTimeEdit *timestampEdit1 = new QDateTimeEdit(timestampSection);
+	timestampEdit1->setDateTime(QDateTime::currentDateTime());
+	timestampEdit1->setDisplayFormat("dd:MM:yyyy hh:mm:ss.zzz");
+	timestampEdit1->setStyleSheet("background-color:" + Style::getAttribute(json::theme::background_primary));
 
-	QTimeEdit *timestampEdit2 = new QTimeEdit(timestampSection);
-	timestampEdit2->setTime(QTime::currentTime());
-	timestampEdit2->setDisplayFormat("hh:mm:ss.zzz");
+	QDateTimeEdit *timestampEdit2 = new QDateTimeEdit(timestampSection);
+	timestampEdit2->setDateTime(QDateTime::currentDateTime());
+	timestampEdit2->setDisplayFormat("dd:MM:yyyy hh:mm:ss.zzz");
+	timestampEdit2->setStyleSheet("background-color:" + Style::getAttribute(json::theme::background_primary));
 
-	connect(timestampEdit1, &QTimeEdit::userTimeChanged, this, [=](QTime time) {
-		if(time > timestampEdit2->time()) {
-			timestampEdit1->setTime(timestampEdit2->time());
+	qInfo() << "Date time: " << timestampEdit2->dateTime().toString("yyyyMMddhhmmsszzz");
+
+	connect(timestampEdit1, &QDateTimeEdit::dateTimeChanged, this, [=](QDateTime dateTime) {
+		if(dateTime > timestampEdit2->dateTime()) {
+			timestampEdit1->setDateTime(timestampEdit2->dateTime());
 		}
+	});
+
+	QPushButton *timestampBtn = new QPushButton("Set interval", timestampSection);
+	timestampBtn->setFixedWidth(88);
+	StyleHelper::BlueButton(timestampBtn, "timestampBtn");
+	connect(timestampBtn, &QPushButton::clicked, this, [this, timestampEdit1, timestampEdit2]() {
+		setDateTimeAttr(timestampEdit1->dateTime(), LOG_START_ATTR);
+		setDateTimeAttr(timestampEdit2->dateTime(), LOG_STOP_ATTR);
+		onSetBtnPressed();
 	});
 
 	timestampWidget->layout()->addWidget(timestampEdit1);
 	timestampWidget->layout()->addWidget(timestampEdit2);
+	timestampWidget->layout()->addWidget(timestampBtn);
 
-	QPushButton *timestampBtn = new QPushButton("Set", timestampSection);
-	timestampBtn->setFixedWidth(88);
-	StyleHelper::BlueButton(timestampBtn, "timestampBtn");
+	timestampSection->contentLayout()->addWidget(startLogBtn);
 	timestampSection->contentLayout()->addWidget(timestampWidget);
-	timestampSection->contentLayout()->addWidget(timestampBtn);
 
 	parent->layout()->addWidget(timestampSection);
 }
@@ -248,3 +287,5 @@ void SettingsInstrument::initCalibSection(QWidget *parent)
 
 	parent->layout()->addWidget(calibrateSection);
 }
+
+#include "moc_settingsinstrument.cpp"

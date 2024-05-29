@@ -1,5 +1,6 @@
 #ifndef PLOT_H
 #define PLOT_H
+#include "plotbuttonmanager.h"
 #include "plotchannel.h"
 #include "scopy-gui_export.h"
 
@@ -10,10 +11,10 @@
 #include <plotinfo.h>
 
 #include <buffer_previewer.hpp>
-#include <graticule.h>
-#include <symbol_controller.h>
 
 namespace scopy {
+
+class PlotScales;
 
 class PlotAxis;
 class PlotAxisHandle;
@@ -22,17 +23,14 @@ class PlotTracker;
 
 typedef struct _PlotSamplingInfo
 {
-	_PlotSamplingInfo()
-	{
-		startingPoint = 0;
-		freqOffset = 0;
-	}
 	uint32_t bufferSize = 0;
 	uint32_t plotSize = 0;
 	double sampleRate = 0;
 	double startingPoint = 0;
 	double freqOffset = 0;
-} PlotSamplingInfo;
+	bool complexMode = 0;
+	bool rollingMode = 0;
+} SamplingInfo;
 
 class SCOPY_GUI_EXPORT PlotWidget : public QWidget
 {
@@ -52,8 +50,6 @@ public:
 	void addPlotAxis(PlotAxis *ax);
 	// void removePlotAxis(PlotAxis *ax);  - not supported by Qwt
 
-	bool getDisplayGraticule() const;
-	void setDisplayGraticule(bool newDisplayGraticule);
 	bool eventFilter(QObject *object, QEvent *event) override;
 
 	QwtPlot *plot() const;
@@ -76,8 +72,15 @@ public:
 
 	PlotNavigator *navigator() const;
 	PlotTracker *tracker() const;
+	PlotScales *scales() const;
 
 	void setUnitsVisible(bool visible);
+
+	void printPlot(QPainter *painter, bool useSymbols = false);
+	void plotChannelChangeYAxis(PlotChannel *c, PlotAxis *y);
+	void plotChannelChangeXAxis(PlotChannel *c, PlotAxis *x);
+
+	PlotButtonManager *plotButtonManager() const;
 
 public Q_SLOTS:
 	void replot();
@@ -104,7 +107,6 @@ private:
 	QGridLayout *m_layout;
 
 	QList<PlotChannel *> m_plotChannels;
-	QList<QwtPlotScaleItem *> m_scaleItems;
 
 	QList<PlotAxis *> m_plotAxis[QwtAxis::AxisPositions];
 	QList<PlotAxisHandle *> m_plotAxisHandles[QwtAxis::AxisPositions];
@@ -118,23 +120,22 @@ private:
 	int m_xPosition;
 	int m_yPosition;
 
-	bool displayGraticule;
-	Graticule *graticule;
-
 	bool m_showXAxisLabels;
 	bool m_showYAxisLabels;
 
 	PlotChannel *m_selectedChannel;
 
-	BufferPreviewer *m_bufferPreviewer;
 	PlotInfo *m_plotInfo;
+	PlotScales *m_plotScales;
+	PlotButtonManager *m_plotButtonManager;
 
-	void setAxisScalesVisible(bool visible);
-	void setupAxisScales();
 	void setupOpenGLCanvas();
 	void setupNavigator();
-	void hideDefaultAxis();
 	void setupPlotInfo();
+	void setupPlotScales();
+	void setupAxes();
+	void setupPlotButtonManager();
+	QwtSymbol::Style getCurveStyle(int i);
 };
 
 } // namespace scopy

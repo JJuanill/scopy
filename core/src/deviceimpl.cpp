@@ -13,9 +13,12 @@
 #include <QLoggingCategory>
 #include <QTextBrowser>
 #include <QThread>
+#include <QtConcurrent/QtConcurrent>
 
 #include <common/scopyconfig.h>
-#include <widgets/hoverwidget.h>
+#include <gui/widgets/hoverwidget.h>
+#include <gui/widgets/connectionloadingbar.h>
+#include <pluginbase/statusbarmanager.h>
 
 Q_LOGGING_CATEGORY(CAT_DEVICEIMPL, "Device")
 
@@ -167,7 +170,11 @@ void DeviceImpl::loadPages()
 	m_buttonLayout->addWidget(discbtn);
 	discbtn->setVisible(false);
 
-	connect(connbtn, &QPushButton::clicked, this, &DeviceImpl::connectDev);
+	connect(connbtn, &QPushButton::clicked, this, [this]() {
+		Q_EMIT connectionStarted();
+		connectDev();
+		Q_EMIT connectionFinished();
+	});
 	connect(discbtn, &QPushButton::clicked, this, &DeviceImpl::disconnectDev);
 	connect(this, &DeviceImpl::connectionFailed, this, &DeviceImpl::onConnectionFailed);
 
@@ -185,6 +192,7 @@ void DeviceImpl::loadPages()
 	for(auto &&p : plugins()) {
 		if(p->loadPage()) {
 			m_scrollAreaLayout->addWidget(p->page());
+			break; // Only display the page from the plugin with the highest priority
 		}
 	}
 }
@@ -221,6 +229,40 @@ void DeviceImpl::loadBadges()
 	warningHover->raise();
 	connect(this, &DeviceImpl::connectionFailed, warningHover, &HoverWidget::show);
 	connect(this, &DeviceImpl::connected, warningHover, &HoverWidget::hide);
+}
+
+void DeviceImpl::setPingPlugin(Plugin *plugin)
+{
+	if(!m_pingPlugin && plugin->pingTask()) {
+		m_pingPlugin = plugin;
+	}
+}
+
+void DeviceImpl::bindPing()
+{
+	if(!m_pingPlugin) {
+		return;
+	}
+	for(auto &&p : m_connectedPlugins) {
+		connect(dynamic_cast<QObject *>(p), SIGNAL(pausePingTask(bool)), dynamic_cast<QObject *>(m_pingPlugin),
+			SLOT(onPausePingTask(bool)));
+	}
+	connect(m_pingPlugin->pingTask(), &PingTask::pingFailed, this, &DeviceImpl::disconnectDev);
+	m_pingPlugin->startPingTask();
+}
+
+void DeviceImpl::unbindPing()
+{
+	if(!m_pingPlugin) {
+		return;
+	}
+	for(auto &&p : m_connectedPlugins) {
+		disconnect(dynamic_cast<QObject *>(p), SIGNAL(pausePingTask(bool)),
+			   dynamic_cast<QObject *>(m_pingPlugin), SLOT(onPausePingTask(bool)));
+	}
+	m_pingPlugin->stopPingTask();
+	disconnect(m_pingPlugin->pingTask(), &PingTask::pingFailed, this, &DeviceImpl::disconnectDev);
+	m_pingPlugin = nullptr;
 }
 
 void DeviceImpl::onConnectionFailed() { disconnectDev(); }
@@ -266,22 +308,41 @@ void DeviceImpl::connectDev()
 {
 	QElapsedTimer pluginTimer;
 	QElapsedTimer timer;
+	ConnectionLoadingBar *connectionLoadingBar = new ConnectionLoadingBar();
+	connectionLoadingBar->setProgressBarMaximum(m_plugins.size());
+	StatusBarManager::pushUrgentWidget(connectionLoadingBar, "Connection Loading Bar");
 	timer.start();
 	Preferences *pref = Preferences::GetInstance();
 	bool disconnectDevice = false;
-	for(auto &&p : m_plugins) {
+	connbtn->hide();
+	discbtn->show();
+	discbtn->setEnabled(false);
+	QCoreApplication::processEvents();
+	for(int i = 0; i < m_plugins.size(); ++i) {
 		pluginTimer.start();
-		bool pluginConnectionSucceeded = p->onConnect();
-		qInfo(CAT_BENCHMARK) << p->name() << " connection took: " << pluginTimer.elapsed() << "ms";
+		connectionLoadingBar->setCurrentPlugin(m_plugins[i]->name());
+		QCoreApplication::processEvents();
+		bool pluginConnectionSucceeded = m_plugins[i]->onConnect();
+		qInfo(CAT_BENCHMARK) << m_plugins[i]->name() << " connection took: " << pluginTimer.elapsed() << "ms";
+		connectionLoadingBar->addProgress(1); // TODO: might change to better reflect the time
+		QCoreApplication::processEvents();
 		if(pluginConnectionSucceeded) {
 			if(pref->get("general_save_session").toBool()) {
-				QSettings s = QSettings(scopy::config::settingsFolderPath() + "/" + p->name() + ".ini",
+				QSettings s = QSettings(scopy::config::settingsFolderPath() + "/" +
+								m_plugins[i]->name() + ".ini",
 							QSettings::IniFormat);
-				p->loadSettings(s);
+				m_plugins[i]->loadSettings(s);
 			}
-			m_connectedPlugins.push_back(p);
+			m_connectedPlugins.push_back(m_plugins[i]);
+			setPingPlugin(m_plugins[i]);
 		} else {
-			disconnectDevice = p->metadata().value("disconnectDevOnConnectFailure").toBool();
+			QJsonValue obj = m_plugins[i]->metadata().value("disconnectDevOnConnectFailure");
+			if(obj != QJsonValue::Undefined) {
+				disconnectDevice = obj.toBool();
+			} else {
+				qWarning(CAT_DEVICEIMPL) << "Undefined json value";
+			}
+
 			if(disconnectDevice) {
 				break;
 			}
@@ -290,11 +351,12 @@ void DeviceImpl::connectDev()
 	if(disconnectDevice || m_connectedPlugins.isEmpty()) {
 		Q_EMIT connectionFailed();
 	} else {
-		connbtn->hide();
-		discbtn->show();
+		discbtn->setEnabled(true);
 		discbtn->setFocus();
+		bindPing();
 		Q_EMIT connected();
 	}
+	delete connectionLoadingBar;
 	qInfo(CAT_BENCHMARK) << this->displayName() << " device connection took: " << timer.elapsed() << "ms";
 }
 
@@ -303,6 +365,7 @@ void DeviceImpl::disconnectDev()
 	QElapsedTimer pluginTimer;
 	QElapsedTimer timer;
 	timer.start();
+	unbindPing();
 	connbtn->show();
 	discbtn->hide();
 	Preferences *pref = Preferences::GetInstance();

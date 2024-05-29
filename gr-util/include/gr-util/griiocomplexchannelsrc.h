@@ -7,6 +7,7 @@
 
 #include <gnuradio/blocks/float_to_complex.h>
 #include <gnuradio/blocks/short_to_float.h>
+#include <gnuradio/blocks/stream_to_vector.h>
 
 namespace scopy::grutil {
 
@@ -22,11 +23,16 @@ public:
 	const QString &getChannelNameI() const;
 	const QString &getChannelNameQ() const;
 
+	const iio_data_format *getFmt() const;
+
 protected:
 	QString channelNameI;
 	QString channelNameQ;
+
+	const iio_data_format *fmt;
 	gr::blocks::short_to_float::sptr s2f[2];
 	gr::blocks::float_to_complex::sptr f2c;
+	gr::blocks::stream_to_vector::sptr s2v;
 };
 } // namespace scopy::grutil
 #endif // GRIIOCOMPLEXCHANNELSRC_H

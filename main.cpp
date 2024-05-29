@@ -54,7 +54,9 @@ void initLogging()
 						 "CyclicalTask.debug=false\n"
 						 "SWIOTPlugin.debug=true\n"
 						 "AD74413R.debug=true\n"
-						 "ScopyTranslations.debug=true\n");
+						 "ScopyTranslations.debug=true\n"
+						 "GRTimeSinkComponent.debug=true\n"
+						 "GRManager.debug=true\n");
 	}
 	if(!getenv("QT_MESSAGE_PATTERN")) {
 		SetScopyQDebugMessagePattern();
@@ -88,6 +90,7 @@ int main(int argc, char *argv[])
 	parser.addVersionOption();
 	parser.addOptions({
 		{{"s", "script"}, "Run given script.", "script"},
+		{{"S", "script-list"}, "Run given script list.", "script-list"},
 		{{"r", "keep-running"}, "Keep the application session after running a certain script."},
 		{{"a", "accept-license"}, "Accept the license in advance."},
 		{{"l", "logfile"}, "Saves all the logging messages into a file.", "filename"},

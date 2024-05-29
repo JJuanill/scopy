@@ -48,6 +48,9 @@ public:
 	void removeChannel(PlotChannel *channel);
 
 	bool isZoomed();
+	void forcePan(QwtAxisId axisId, double factor);
+	void forceMagnify(QwtAxisId axisId, double factor, QPointF cursorPos);
+	void forceZoom(QwtAxisId axisId, const QRectF &rect);
 
 	void setZoomerXAxesEn(bool en);
 	void setZoomerYAxesEn(bool en);
@@ -95,12 +98,14 @@ public:
 	Qt::KeyboardModifier getZoomerXYModifier();
 
 	static void syncPlotNavigators(PlotNavigator *pNav1, PlotNavigator *pNav2, QSet<QwtAxisId> *axes);
+	static void syncPlotNavigators(PlotNavigator *pNav1, PlotNavigator *pNav2);
 	void setResetButtonEn(bool en);
 
 Q_SIGNALS:
 	void reset();
 	void undo();
 	void rectChanged(const QRectF &rect, navigationType type);
+	void addedNavigator(Navigator *nav);
 
 protected:
 	virtual bool eventFilter(QObject *object, QEvent *event) QWT_OVERRIDE;
@@ -115,11 +120,13 @@ private:
 	PlotMagnifier *createMagnifier(QwtAxisId axisId);
 	PlotZoomer *createZoomer(QwtAxisId axisId);
 	void addNavigators(QwtAxisId axisId);
-	void removeNavigators(QwtAxisId axisId);
+	void removeNavigators(QwtAxisId axisId, PlotChannel *channel);
 	void addRectToHistory(Navigator *nav, const QRectF &rect, navigationType type);
 	void onUndo();
 	void onReset();
 	static void syncNavigators(PlotNavigator *pNav1, Navigator *nav1, PlotNavigator *pNav2, Navigator *nav2);
+	static void syncPlotNavigatorSignals(PlotNavigator *pNav1, PlotNavigator *pNav2);
+	static void syncPlotNavigatorAxes(PlotNavigator *pNav1, PlotNavigator *pNav2, QSet<QwtAxisId> *axes);
 
 private:
 	bool m_en;

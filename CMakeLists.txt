@@ -9,6 +9,14 @@ if(NOT CMAKE_BUILD_TYPE)
 	set(CMAKE_BUILD_TYPE "RelWithDebInfo" CACHE STRING "Default build type: RelWithDebInfo" FORCE)
 endif()
 
+find_program(CCACHE_FOUND ccache)
+if(NOT DEFINED ENV{BUILD_HOST} AND CCACHE_FOUND)
+	message(STATUS "Using ccache.")
+	set_property(GLOBAL PROPERTY RULE_LAUNCH_COMPILE ccache)
+else()
+	message(STATUS "Not using ccache.")
+endif()
+
 # Make sure our local CMake Modules path comes first
 list(INSERT CMAKE_MODULE_PATH 0 ${PROJECT_SOURCE_DIR}/cmake/Modules)
 
@@ -55,6 +63,10 @@ include(ScopyTranslation)
 if(ENABLE_TRANSLATION)
 	generate_translations()
 	qt_add_resources(SCOPY_RESOURCES ${CMAKE_BINARY_DIR}/translations.qrc)
+endif()
+
+if(DEFINED ENV{APPIMAGE})
+	add_compile_definitions(__appimage__)
 endif()
 
 qt_add_resources(SCOPY_RESOURCES ${SCOPY_RESOURCE_FILES})
@@ -110,6 +122,7 @@ set(SCOPY_PLUGIN_BUILD_PATH ${CMAKE_CURRENT_BINARY_DIR}/plugins/plugins)
 set(SCOPY_PLUGIN_INSTALL_PATH ${CMAKE_INSTALL_FULL_DATADIR}/scopy-plugins)
 set(SCOPY_TRANSLATION_BUILD_PATH ${CMAKE_CURRENT_BINARY_DIR}/translations)
 set(SCOPY_TRANSLATION_INSTALL_PATH ${CMAKE_INSTALL_FULL_DATADIR}/translations)
+set(SCOPY_CURRENT_BINARY_PATH ${CMAKE_CURRENT_BINARY_DIR})
 
 add_subdirectory(common)
 add_subdirectory(iioutil)
@@ -209,33 +222,3 @@ install(TARGETS ${PROJECT_NAME} BUNDLE DESTINATION .)
 if(QT_VERSION_MAJOR EQUAL 6)
 	qt_finalize_executable(${PROJECT_NAME})
 endif()
-
-# Helper function to copy DLLs from a given directory
-function(copy_dlls_from_dir dir)
-file(GLOB DLLS "${dir}/*.dll")
-foreach(DLL ${DLLS})
-	add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
-		COMMAND ${CMAKE_COMMAND} -E copy
-		${DLL}
-		$<TARGET_FILE_DIR:${PROJECT_NAME}>
-	)
-endforeach()
-endfunction()
-
-# List of directories containing DLLs
-set(DLL_DIRS
-	"${CMAKE_BINARY_DIR}/common"
-	"${CMAKE_BINARY_DIR}/core"
-	"${CMAKE_BINARY_DIR}/gr-util"
-	"${CMAKE_BINARY_DIR}/gui"
-	"${CMAKE_BINARY_DIR}/iioutil"
-	"${CMAKE_BINARY_DIR}/iio-widgets"
-	"${CMAKE_BINARY_DIR}/pluginbase"
-	"${CMAKE_BINARY_DIR}/gui/sigrok-gui"
-	"${CMAKE_BINARY_DIR}/gui/gr-gui"
-)
-
-# Copy DLLs from each directory
-foreach(DIR ${DLL_DIRS})
-	copy_dlls_from_dir(${DIR})
-endforeach()

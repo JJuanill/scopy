@@ -30,6 +30,8 @@
 #include "guistrategy/guistrategyinterface.h"
 #include "datastrategy/datastrategyinterface.h"
 #include "scopy-iio-widgets_export.h"
+#include <pluginbase/lazyloadwidget.h>
+#include <functional>
 
 namespace scopy {
 class GuiStrategyInterface;
@@ -39,6 +41,7 @@ class SCOPY_IIO_WIDGETS_EXPORT IIOWidget : public QWidget
 {
 	Q_OBJECT
 	QWIDGET_PAINT_EVENT_HELPER
+	QWIDGET_LAZY_INIT(initialize)
 public:
 	typedef enum
 	{
@@ -48,6 +51,35 @@ public:
 	} State;
 
 	IIOWidget(GuiStrategyInterface *uiStrategy, DataStrategyInterface *dataStrategy, QWidget *parent = nullptr);
+
+	/**
+	 * @brief Performs a synchronous data read.
+	 * @return Returns a QPair where the first value is a QString with the data read (e.g. the sample rate)
+	 * and the second value is a QString with the options (e.g. the available sample rates). If no options
+	 * are available, an empty string is returned.
+	 * */
+	QPair<QString, QString> read();
+
+	/**
+	 * @brief Performs a synchronous data write.
+	 * @param data The data to write.
+	 * @return The return code from this operation. It can also be accessed from the IIOWidget::lastReturnCode()
+	 * function.
+	 */
+	int write(QString data);
+
+	/**
+	 * @brief Starts an asynchronous read operation. The result can be accessed by connecting a slot to the
+	 * DataStrategyInterface::sendData() function from the Data Strategy of this IIOWidget.
+	 */
+	void readAsync();
+
+	/**
+	 * @brief Starts an asynchronous write operation. The result can be accessed by connecting a slot to the
+	 * DataStrategyInterface::emitStatus() function from the Data Steategy of this IIOWidget.
+	 * @param data
+	 */
+	void writeAsync(QString data);
 
 	/**
 	 * @brief Returns the UI of the IIOWidget
@@ -94,6 +126,9 @@ public:
 	 */
 	int lastReturnCode();
 
+	void setUItoDataConversion(std::function<QString(QString)> func);
+	void setDataToUIConversion(std::function<QString(QString)> func);
+
 Q_SIGNALS:
 	/**
 	 * @brief Emits the current state of the IIOWidget system and a string containing a more
@@ -108,7 +143,12 @@ protected Q_SLOTS:
 	void startTimer(QString data);
 	void storeReadInfo(QString data, QString optionalData);
 
+	void convertUItoDS(QString data);
+	void convertDStoUI(QString data, QString optionalData);
+
 protected:
+	void initialize();
+
 	void setLastOperationTimestamp(QDateTime timestamp);
 	void setLastOperationState(IIOWidget::State state);
 
@@ -121,6 +161,10 @@ protected:
 	QDateTime *m_lastOpTimestamp;
 	int m_lastReturnCode;
 	IIOWidget::State *m_lastOpState;
+
+	/* Conversion functions */
+	std::function<QString(QString)> m_UItoDS;
+	std::function<QString(QString)> m_DStoUI;
 };
 } // namespace scopy
 

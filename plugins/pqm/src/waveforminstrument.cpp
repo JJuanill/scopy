@@ -1,13 +1,24 @@
 #include "waveforminstrument.h"
 #include "plotaxis.h"
+#include "plottingstrategybuilder.h"
+#include <menuonoffswitch.h>
+#include <plotnavigator.hpp>
+#include <qwt_legend.h>
+#include <rollingstrategy.h>
+#include <swtriggerstrategy.h>
 #include <gui/stylehelper.h>
 #include <gui/widgets/verticalchannelmanager.h>
 #include <gui/plotaxis.h>
+#include <gui/widgets/menucollapsesection.h>
+#include <gui/widgets/menusectionwidget.h>
+#include <gui/widgets/menuheader.h>
 
 using namespace scopy::pqm;
 
-WaveformInstrument::WaveformInstrument(QWidget *parent)
+WaveformInstrument::WaveformInstrument(ToolMenuEntry *tme, QString uri, QWidget *parent)
 	: QWidget(parent)
+	, m_tme(tme)
+	, m_uri(uri)
 {
 	initData();
 	setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
@@ -15,11 +26,14 @@ WaveformInstrument::WaveformInstrument(QWidget *parent)
 	setLayout(layout);
 	StyleHelper::GetInstance()->initColorMap();
 
+	m_plottingStrategy = PlottingStrategyBuilder::build("trigger", m_plotSampleRate);
 	ToolTemplate *tool = new ToolTemplate(this);
 	tool->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
 	tool->topContainer()->setVisible(true);
 	tool->centralContainer()->setVisible(true);
 	tool->topContainerMenuControl()->setVisible(false);
+	tool->rightContainer()->setVisible(true);
+	tool->setRightContainerWidth(280);
 	layout->addWidget(tool);
 
 	m_voltagePlot = new PlotWidget(this);
@@ -32,13 +46,23 @@ WaveformInstrument::WaveformInstrument(QWidget *parent)
 	setupChannels(m_currentPlot, m_chnls["current"]);
 	tool->addWidgetToCentralContainerHelper(m_currentPlot);
 
+	PlotNavigator::syncPlotNavigators(m_voltagePlot->navigator(), m_currentPlot->navigator(),
+					  new QSet<QwtAxisId>{m_voltagePlot->xAxis()->axisId()});
+
 	m_runBtn = new RunBtn(this);
 	m_singleBtn = new SingleShotBtn(this);
 
+	m_settBtn = new GearBtn(this);
+	m_settBtn->setChecked(true);
+	tool->rightStack()->add("settings", createSettMenu(this));
+	connect(m_settBtn, &QPushButton::toggled, this, [=, this](bool b) { tool->openRightContainerHelper(b); });
+
 	tool->addWidgetToTopContainerHelper(m_runBtn, TTA_RIGHT);
 	tool->addWidgetToTopContainerHelper(m_singleBtn, TTA_RIGHT);
+	tool->addWidgetToTopContainerHelper(m_settBtn, TTA_RIGHT);
 
-	connect(this, &WaveformInstrument::runTme, m_runBtn, &QAbstractButton::setChecked);
+	connect(m_tme, &ToolMenuEntry::runClicked, m_runBtn, &QAbstractButton::setChecked);
+	connect(this, &WaveformInstrument::enableTool, m_tme, &ToolMenuEntry::setRunning);
 	connect(m_runBtn, &QAbstractButton::toggled, m_singleBtn, &QAbstractButton::setDisabled);
 	connect(m_runBtn, SIGNAL(toggled(bool)), this, SLOT(toggleWaveform(bool)));
 	connect(m_singleBtn, &QAbstractButton::toggled, m_runBtn, &QAbstractButton::setDisabled);
@@ -48,25 +72,29 @@ WaveformInstrument::WaveformInstrument(QWidget *parent)
 WaveformInstrument::~WaveformInstrument()
 {
 	m_xTime.clear();
-	m_yValues.clear();
+	ResourceManager::close("pqm" + m_uri);
+}
+
+void WaveformInstrument::showOneBuffer(bool hasFwVers)
+{
+	if(hasFwVers)
+		return;
+	m_timespanSpin->setEnabled(hasFwVers);
+	m_timespanSpin->setValue(0.03);
 }
 
 void WaveformInstrument::initData()
 {
-	for(int i = 0; i < SAMPLE_RATE; i++) {
-		m_xTime.push_back((i / (double)SAMPLE_RATE * XMAX));
-	}
-	for(const QMap<QString, QString> &chMap : m_chnls) {
-		for(const QString &ch : chMap) {
-			m_yValues[ch] = std::vector<double>(SAMPLE_RATE, 0);
-		}
+	m_xTime.clear();
+	for(int i = m_plotSampleRate - 1; i >= 0; i--) {
+		m_xTime.push_back(-(i / m_plotSampleRate));
 	}
 }
 
 void WaveformInstrument::initPlot(PlotWidget *plot, QString unitType, int yMin, int yMax)
 {
 	plot->plot()->insertLegend(new QwtLegend(), QwtPlot::TopLegend);
-	plot->xAxis()->setInterval(XMIN, XMAX);
+	plot->xAxis()->setInterval(-1, 0);
 
 	plot->yAxis()->scaleDraw()->setFormatter(new MetricPrefixFormatter());
 	plot->yAxis()->scaleDraw()->setFloatPrecision(2);
@@ -86,9 +114,68 @@ void WaveformInstrument::setupChannels(PlotWidget *plot, QMap<QString, QString> 
 		PlotChannel *plotCh = new PlotChannel(chnls.key(chnlId), chPen, plot->xAxis(), plot->yAxis(), this);
 		plot->addPlotChannel(plotCh);
 		plotCh->setEnabled(true);
-		plotCh->curve()->setRawSamples(m_xTime.data(), m_yValues[chnlId].data(), m_xTime.size());
+		m_plotChnls[chnlId] = plotCh;
 		chnlIdx++;
 	}
+}
+
+QWidget *WaveformInstrument::createSettMenu(QWidget *parent)
+{
+
+	QWidget *widget = new QWidget(parent);
+	QVBoxLayout *layout = new QVBoxLayout(widget);
+	layout->setMargin(0);
+	layout->setSpacing(10);
+
+	MenuHeaderWidget *header = new MenuHeaderWidget("Settings", QPen(StyleHelper::getColor("ScopyBlue")), widget);
+	MenuSectionWidget *plotSettingsContainer = new MenuSectionWidget(widget);
+	MenuCollapseSection *plotSection = new MenuCollapseSection("PLOT", MenuCollapseSection::MHCW_NONE, widget);
+	plotSection->setLayout(new QVBoxLayout());
+	plotSection->contentLayout()->setSpacing(10);
+	plotSection->contentLayout()->setMargin(0);
+
+	// timespan
+	m_timespanSpin = new gui::MenuSpinbox(tr("Timespan"), 1, "s", 0.02, 10, true, false, plotSection);
+	m_timespanSpin->setIncrementMode(gui::MenuSpinbox::IS_FIXED);
+	m_timespanSpin->setValue(1);
+	connect(m_timespanSpin, &gui::MenuSpinbox::valueChanged, this, [=, this](double value) {
+		m_voltagePlot->xAxis()->setMin(-value);
+		m_currentPlot->xAxis()->setMin(-value);
+	});
+
+	// plotting mode: software trigger or rolling mode
+	QWidget *plottingModeWidget = new QWidget(plotSection);
+	plottingModeWidget->setLayout(new QVBoxLayout(plottingModeWidget));
+	plottingModeWidget->layout()->setMargin(0);
+
+	connect(m_runBtn, &QPushButton::toggled, plottingModeWidget, &QWidget::setDisabled);
+	connect(m_singleBtn, &QPushButton::toggled, plottingModeWidget, &QWidget::setDisabled);
+
+	m_triggeredBy = new MenuCombo("Triggered by", plottingModeWidget);
+	m_triggeredBy->combo()->addItem("ua");
+	m_triggeredBy->combo()->addItem("ub");
+	m_triggeredBy->combo()->addItem("uc");
+	m_triggeredBy->combo()->addItem("triphasic");
+	connect(m_triggeredBy->combo(), &QComboBox::currentTextChanged, this,
+		&WaveformInstrument::onTriggeredChnlChanged);
+
+	MenuOnOffSwitch *rollingModeSwitch = new MenuOnOffSwitch("Rolling mode", plottingModeWidget);
+	rollingModeSwitch->onOffswitch()->setChecked(false);
+	connect(rollingModeSwitch->onOffswitch(), &QAbstractButton::toggled, m_triggeredBy, &MenuCombo::setDisabled);
+	connect(rollingModeSwitch->onOffswitch(), &QAbstractButton::toggled, this,
+		&WaveformInstrument::onRollingSwitch);
+	plottingModeWidget->layout()->addWidget(m_triggeredBy);
+	plottingModeWidget->layout()->addWidget(rollingModeSwitch);
+
+	plotSection->contentLayout()->addWidget(m_timespanSpin);
+	plotSection->contentLayout()->addWidget(plottingModeWidget);
+
+	plotSettingsContainer->contentLayout()->addWidget(plotSection);
+	layout->addWidget(header);
+	layout->addWidget(plotSettingsContainer);
+	layout->addSpacerItem(new QSpacerItem(0, 0, QSizePolicy::Minimum, QSizePolicy::Expanding));
+
+	return widget;
 }
 
 void WaveformInstrument::stop() { m_runBtn->setChecked(false); }
@@ -96,25 +183,84 @@ void WaveformInstrument::stop() { m_runBtn->setChecked(false); }
 void WaveformInstrument::toggleWaveform(bool en)
 {
 	if(en) {
-		ResourceManager::open("pqm", this);
+		ResourceManager::open("pqm" + m_uri, this);
 	} else {
-		ResourceManager::close("pqm");
+		ResourceManager::close("pqm" + m_uri);
 	}
+	m_plottingStrategy->clearSamples();
 	Q_EMIT enableTool(en);
 }
 
-void WaveformInstrument::onBufferDataAvailable(QMap<QString, std::vector<double>> data)
+void WaveformInstrument::updateXData(int dataSize)
 {
-	if(m_runBtn->isChecked() || m_singleBtn->isChecked()) {
-		const QStringList chList = m_yValues.keys();
-		for(const QString &ch : chList) {
-			m_yValues[ch].clear();
-			m_yValues[ch] = data[ch];
-		}
-		m_voltagePlot->replot();
-		m_currentPlot->replot();
-		if(m_singleBtn->isChecked()) {
-			m_singleBtn->setChecked(false);
-		}
+	double timespanValue = m_timespanSpin->value();
+	double plotSamples = m_plotSampleRate * timespanValue;
+	if(m_xTime.size() == plotSamples && dataSize == plotSamples) {
+		return;
+	}
+	m_xTime.clear();
+	for(int i = dataSize - 1; i >= 0; i--) {
+		m_xTime.push_back(-(i / plotSamples) * timespanValue);
 	}
 }
+
+void WaveformInstrument::plotData(QMap<QString, QVector<double>> chnlsData)
+{
+	const QStringList keys = chnlsData.keys();
+	for(const QString &chnlId : keys) {
+		int dataSize = chnlsData[chnlId].size();
+		updateXData(dataSize);
+		m_plotChnls[chnlId]->curve()->setSamples(m_xTime.data(), chnlsData[chnlId].data(), dataSize);
+	}
+	m_voltagePlot->replot();
+	m_currentPlot->replot();
+}
+
+void WaveformInstrument::deletePlottingStrategy()
+{
+	if(m_plottingStrategy) {
+		delete m_plottingStrategy;
+		m_plottingStrategy = nullptr;
+	}
+}
+
+void WaveformInstrument::createTriggeredStrategy(QString triggerChnl)
+{
+	triggerChnl = (triggerChnl.compare("triphasic") == 0) ? "" : triggerChnl;
+	m_plottingStrategy = PlottingStrategyBuilder::build(TRIGGER_MODE, m_plotSampleRate, triggerChnl);
+}
+
+void WaveformInstrument::onTriggeredChnlChanged(QString triggeredChnl)
+{
+	deletePlottingStrategy();
+	createTriggeredStrategy(triggeredChnl);
+}
+
+void WaveformInstrument::onRollingSwitch(bool checked)
+{
+	deletePlottingStrategy();
+	if(checked) {
+		m_plottingStrategy = PlottingStrategyBuilder::build(ROLLING_MODE, m_plotSampleRate);
+	} else {
+		QString triggerChnl = m_triggeredBy->combo()->currentText();
+		createTriggeredStrategy(triggerChnl);
+	}
+}
+
+void WaveformInstrument::onBufferDataAvailable(QMap<QString, QVector<double>> data)
+{
+	if(!m_runBtn->isChecked() && !m_singleBtn->isChecked()) {
+		return;
+	}
+	int samplingFreq = m_plotSampleRate * m_timespanSpin->value();
+	m_plottingStrategy->setSamplingFreq(samplingFreq);
+	QMap<QString, QVector<double>> processedData = m_plottingStrategy->processSamples(data);
+	if(m_plottingStrategy->dataReady()) {
+		plotData(processedData);
+	}
+	if(m_singleBtn->isChecked() && processedData.first().size() == samplingFreq) {
+		m_singleBtn->setChecked(false);
+	}
+}
+
+#include "moc_waveforminstrument.cpp"

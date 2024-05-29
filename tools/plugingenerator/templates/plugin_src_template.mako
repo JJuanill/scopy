@@ -52,8 +52,10 @@ bool ${config['class_name']}::loadPage()
 		m_infoPage->update(name, value);
 	}
 	cp->close(m_param);
-	m_page->ensurePolished();*/
+	m_page->ensurePolished();
 	return true;
+	*/
+	return false;
 }
 
 bool ${config['class_name']}::loadIcon()
@@ -74,7 +76,7 @@ void ${config['class_name']}::loadToolList()
 
 void ${config['class_name']}::unload() { /*delete m_infoPage;*/ }
 
-QString ${config['class_name']}::description() { return "Write the plugin description here"; }
+QString ${config['class_name']}::description() { return "${config['plugin_description']}"; }
 
 bool ${config['class_name']}::onConnect()
 {

@@ -56,6 +56,9 @@ Q_SIGNALS:
 	void connectionFailed();
 	void forget();
 
+	void connectionStarted();
+	void connectionFinished();
+
 protected:
 	void removeDisabledPlugins();
 	void loadName();
@@ -63,6 +66,9 @@ protected:
 	void loadPages();
 	void loadToolList();
 	void loadBadges();
+	void setPingPlugin(Plugin *plugin);
+	void bindPing();
+	void unbindPing();
 
 protected:
 	PluginManager *p;
@@ -76,6 +82,7 @@ protected:
 	QWidget *m_icon;
 	QWidget *m_page;
 	QPushButton *connbtn, *discbtn;
+	Plugin *m_pingPlugin = nullptr;
 };
 } // namespace scopy
 

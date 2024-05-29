@@ -12,12 +12,14 @@ class SCOPY_GUI_EXPORT PlotCursors : public QObject
 {
 	Q_OBJECT
 public:
-	PlotCursors(PlotWidget *plot);
+	PlotCursors(PlotWidget *plot, QObject *parent = nullptr);
 	~PlotCursors();
 
 	void displayIntersection();
 	void setYHandlePos(HandlePos pos);
 	void setXHandlePos(HandlePos pos);
+
+	bool tracking() const;
 
 public Q_SLOTS:
 	void setVisible(bool visible);
@@ -44,7 +46,6 @@ private:
 	void initUI();
 	void connectSignals();
 	void updateTracking();
-	double getHorizIntersectionAt(double pos);
 };
 } // namespace scopy
 

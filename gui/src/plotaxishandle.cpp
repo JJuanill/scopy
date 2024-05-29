@@ -1,10 +1,11 @@
 #include "plotaxishandle.h"
 #include "plotaxis.h"
+#include <qwt_scale_map.h>
 
 using namespace scopy;
 
 PlotAxisHandle::PlotAxisHandle(PlotWidget *plot, PlotAxis *ax)
-	: QObject(plot)
+	: QWidget(plot)
 	, m_plotWidget(plot)
 	, m_axis(ax)
 	, m_plot(plot->plot())
@@ -12,11 +13,17 @@ PlotAxisHandle::PlotAxisHandle(PlotWidget *plot, PlotAxis *ax)
 	init();
 }
 
-PlotAxisHandle::~PlotAxisHandle() {}
+PlotAxisHandle::~PlotAxisHandle()
+{
+	if(m_handle != nullptr) {
+		delete m_handle;
+	}
+}
 
 void PlotAxisHandle::init()
 {
-	m_handle = new AxisHandle(m_axis->axisId(), HandlePos::SOUTH_EAST, m_plot);
+	m_handle = new AxisHandle(m_axis->axisId(), HandlePos::SOUTH_OR_EAST, m_plot);
+	connect(m_plot, &QObject::destroyed, this, [=]() { m_handle = nullptr; });
 	m_pos = pixelToScale(m_handle->getPos());
 
 	connect(m_plotWidget, &PlotWidget::canvasSizeChanged, this, &PlotAxisHandle::updatePos);

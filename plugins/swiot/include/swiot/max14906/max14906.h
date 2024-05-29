@@ -1,8 +1,6 @@
 #ifndef MAX14906_H
 #define MAX14906_H
 
-#include "scopy-swiot_export.h"
-
 #include "diocontroller.h"
 #include "diodigitalchannelcontroller.h"
 #include "diosettingstab.h"
@@ -19,7 +17,7 @@
 #define MAX14906_POLLING_TIME 1000
 
 namespace scopy::swiot {
-class SCOPY_SWIOT_EXPORT Max14906 : public QWidget
+class Max14906 : public QWidget
 {
 	Q_OBJECT
 public:
@@ -36,6 +34,7 @@ private Q_SLOTS:
 	void runButtonToggled();
 	void timerChanged(double value);
 	void onConfigBtnPressed();
+	void startTutorial();
 
 private:
 	ToolTemplate *m_tool;
@@ -69,6 +68,8 @@ private:
 	static QMainWindow *createDockableMainWindow(const QString &title, DioDigitalChannel *digitalChannel,
 						     QWidget *parent);
 	QPushButton *createConfigBtn(QWidget *parent = nullptr);
+
+	void showEvent(QShowEvent *event) override;
 };
 } // namespace scopy::swiot
 #endif // MAX14906_H

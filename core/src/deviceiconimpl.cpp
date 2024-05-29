@@ -19,11 +19,19 @@ DeviceIconImpl::DeviceIconImpl(Device *d, QWidget *parent)
 	StyleHelper::DeviceIconBackgroundShadow(this);
 	ui->description->setText(d->displayParam());
 	ui->name->setText(d->displayName());
+	ui->name->setStyleSheet("border: none;");
+	ui->name->setReadOnly(true);
+	ui->name->home(false);
+	connect(ui->name, &QLineEdit::editingFinished, this, &DeviceIconImpl::onEditFinished);
+	createPenBtn();
+
 	ui->iconPlaceHolder->layout()->addWidget(d->icon());
 	ui->iconPlaceHolder->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
 
 	setCheckable(true);
 }
+
+DeviceIconImpl::~DeviceIconImpl() {}
 
 void DeviceIconImpl::setConnected(bool val)
 {
@@ -31,6 +39,37 @@ void DeviceIconImpl::setConnected(bool val)
 	//	ensurePolished();
 }
 
-DeviceIconImpl::~DeviceIconImpl() {}
+void DeviceIconImpl::createPenBtn()
+{
+	QPushButton *penBtn = new QPushButton();
+	penBtn->setMaximumSize(20, 20);
+	penBtn->setStyleSheet("QPushButton {"
+			      "background-color: transparent;"
+			      "border: 0px;"
+			      "}"
+			      "QPushButton:hover {"
+			      "border-image: url(:/gui/icons/edit_pen.svg);"
+			      "}");
+	connect(penBtn, &QPushButton::clicked, this, &DeviceIconImpl::onPenBtnPressed);
+	HoverWidget *penHover = new HoverWidget(penBtn, ui->name, this);
+	penHover->setStyleSheet("background-color: transparent; border: 0px;");
+	penHover->setAnchorPos(HoverPosition::HP_RIGHT);
+	penHover->setContentPos(HoverPosition::HP_RIGHT);
+	penHover->setVisible(true);
+	penHover->raise();
+}
+
+void DeviceIconImpl::onPenBtnPressed()
+{
+	ui->name->setReadOnly(false);
+	ui->name->end(false);
+	ui->name->setFocus();
+}
+
+void DeviceIconImpl::onEditFinished()
+{
+	ui->name->setReadOnly(true);
+	Q_EMIT displayNameChanged(ui->name->text());
+}
 
 #include "moc_deviceiconimpl.cpp"

@@ -10,8 +10,10 @@
 
 using namespace scopy::pqm;
 
-HarmonicsInstrument::HarmonicsInstrument(QWidget *parent)
+HarmonicsInstrument::HarmonicsInstrument(ToolMenuEntry *tme, QString uri, QWidget *parent)
 	: QWidget(parent)
+	, m_tme(tme)
+	, m_uri(uri)
 {
 	initData();
 	setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
@@ -26,10 +28,9 @@ HarmonicsInstrument::HarmonicsInstrument(QWidget *parent)
 	instrumentLayout->addWidget(tool);
 
 	// central widget components
-	QWidget *thdWidget = createThdWidget();
-	tool->addWidgetToCentralContainerHelper(thdWidget);
+	m_thdWidget = createThdWidget();
+	tool->addWidgetToCentralContainerHelper(m_thdWidget);
 
-	//
 	m_table = new QTableWidget(MAX_CHNLS, NUMBER_OF_HARMONICS, this);
 	initTable();
 	tool->addWidgetToCentralContainerHelper(m_table);
@@ -57,7 +58,8 @@ HarmonicsInstrument::HarmonicsInstrument(QWidget *parent)
 	tool->addWidgetToTopContainerHelper(m_singleBtn, TTA_RIGHT);
 	tool->addWidgetToTopContainerHelper(settingsMenuBtn, TTA_RIGHT);
 
-	connect(this, &HarmonicsInstrument::runTme, m_runBtn, &QAbstractButton::setChecked);
+	connect(m_tme, &ToolMenuEntry::runClicked, m_runBtn, &QAbstractButton::setChecked);
+	connect(this, &HarmonicsInstrument::enableTool, m_tme, &ToolMenuEntry::setRunning);
 	connect(m_runBtn, &QAbstractButton::toggled, m_singleBtn, &QAbstractButton::setDisabled);
 	connect(m_runBtn, SIGNAL(toggled(bool)), this, SLOT(toggleHarmonics(bool)));
 	connect(m_singleBtn, &QAbstractButton::toggled, m_runBtn, &QAbstractButton::setDisabled);
@@ -70,7 +72,10 @@ HarmonicsInstrument::~HarmonicsInstrument()
 	m_yValues.clear();
 	m_labels.clear();
 	m_plotChnls.clear();
+	ResourceManager::close("pqm" + m_uri);
 }
+
+void HarmonicsInstrument::showThdWidget(bool show) { m_thdWidget->setVisible(show); }
 
 void HarmonicsInstrument::initData()
 {
@@ -94,6 +99,9 @@ void HarmonicsInstrument::initTable()
 		horHeaderValues.push_back(QString::number(i));
 	}
 	m_table->setHorizontalHeaderLabels(horHeaderValues);
+	for(int i = 0; i < HARMONICS_MIN_DEGREE; i++) {
+		m_table->horizontalHeader()->hideSection(i);
+	}
 	StyleHelper::TableViewWidget(m_table->parentWidget(), "HarmonicsTable");
 	for(int i = 0; i < MAX_CHNLS; i++) {
 		for(int j = 0; j < NUMBER_OF_HARMONICS; j++) {
@@ -114,7 +122,7 @@ void HarmonicsInstrument::initPlot()
 	m_plot->xAxis()->scaleDraw()->setFormatter(new MetricPrefixFormatter());
 	m_plot->xAxis()->scaleDraw()->setFloatPrecision(0);
 	m_plot->xAxis()->scaleDraw()->setUnitType("");
-	m_plot->xAxis()->setInterval(0, HARMONICS_MAX_DEGREE);
+	m_plot->xAxis()->setInterval(HARMONICS_MIN_DEGREE, HARMONICS_MAX_DEGREE);
 
 	m_plot->setShowYAxisLabels(true);
 	m_plot->setShowXAxisLabels(true);
@@ -230,9 +238,9 @@ void HarmonicsInstrument::stop() { m_runBtn->setChecked(false); }
 void HarmonicsInstrument::toggleHarmonics(bool en)
 {
 	if(en) {
-		ResourceManager::open("pqm", this);
+		ResourceManager::open("pqm" + m_uri, this);
 	} else {
-		ResourceManager::close("pqm");
+		ResourceManager::close("pqm" + m_uri);
 	}
 	Q_EMIT enableTool(en);
 }
@@ -254,13 +262,14 @@ void HarmonicsInstrument::onSelectionChanged()
 {
 	QModelIndexList selectedIndexList = m_table->selectionModel()->selectedIndexes();
 	if(selectedIndexList.size() <= 1 || selectedFromSameCol(selectedIndexList)) {
-		m_plot->xAxis()->setInterval(0, HARMONICS_MAX_DEGREE);
+		m_plot->xAxis()->setInterval(HARMONICS_MIN_DEGREE, HARMONICS_MAX_DEGREE);
 		return;
 	}
-	int firstColumnSelected = selectedIndexList.front().column() + 1;
-	int lastColumnSelected = selectedIndexList.back().column() + 1;
-	m_plot->xAxis()->setInterval(std::min(firstColumnSelected, lastColumnSelected),
-				     std::max(firstColumnSelected, lastColumnSelected));
+	int firstColumnSelected = selectedIndexList.front().column();
+	int lastColumnSelected = selectedIndexList.back().column();
+	int lowerIdx = std::min(firstColumnSelected, lastColumnSelected);
+	int minDegree = (lowerIdx < HARMONICS_MIN_DEGREE) ? HARMONICS_MIN_DEGREE : lowerIdx;
+	m_plot->xAxis()->setInterval(minDegree, std::max(firstColumnSelected, lastColumnSelected));
 }
 
 void HarmonicsInstrument::onAttrAvailable(QMap<QString, QMap<QString, QString>> attr)
@@ -283,3 +292,5 @@ void HarmonicsInstrument::onAttrAvailable(QMap<QString, QMap<QString, QString>> 
 		}
 	}
 }
+
+#include "moc_harmonicsinstrument.cpp"

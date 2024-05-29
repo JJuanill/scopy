@@ -40,9 +40,10 @@ DatamonitorTool::DatamonitorTool(DataAcquisitionManager *dataAcquisitionManager,
 	rightMenuBtnGrp = dynamic_cast<OpenLastMenuBtn *>(openLastMenuBtn)->getButtonGroup();
 
 	infoBtn = new InfoBtn(this);
-	printBtn = new PrintBtn(this);
+	printplotManager = new PrintPlotManager(this);
 	runBtn = new RunBtn(this);
 	clearBtn = new QPushButton("Clear", this);
+	PrintBtn *printBtn = new PrintBtn(this);
 
 	connect(infoBtn, &QPushButton::clicked, this, &DatamonitorTool::startTutorial);
 
@@ -50,6 +51,12 @@ DatamonitorTool::DatamonitorTool(DataAcquisitionManager *dataAcquisitionManager,
 	addMonitorButton = new AddBtn(this);
 
 	connect(addMonitorButton, &AddBtn::clicked, this, &DatamonitorTool::requestNewTool);
+
+	removeBtn = new RemoveBtn(this);
+	if(!isDeletable) {
+		removeBtn->setVisible(false);
+	}
+	connect(removeBtn, &AddBtn::clicked, this, &DatamonitorTool::requestDeleteTool);
 
 	monitorsButton = new MenuControlButton(this);
 	monitorsButton->setName("Monitors");
@@ -78,6 +85,7 @@ DatamonitorTool::DatamonitorTool(DataAcquisitionManager *dataAcquisitionManager,
 	tool->addWidgetToTopContainerMenuControlHelper(settingsButton, TTA_LEFT);
 
 	tool->addWidgetToTopContainerHelper(addMonitorButton, TTA_LEFT);
+	tool->addWidgetToTopContainerHelper(removeBtn, TTA_LEFT);
 
 	///// time manager
 	auto &&timeTracker = TimeManager::GetInstance();
@@ -108,6 +116,12 @@ DatamonitorTool::DatamonitorTool(DataAcquisitionManager *dataAcquisitionManager,
 	m_monitorPlot = new MonitorPlot(this);
 	centralWidget->addWidget(m_monitorPlot);
 
+	connect(printBtn, &QPushButton::clicked, this, [=, this]() {
+		QList<PlotWidget *> plotList;
+		plotList.push_back(m_monitorPlot->plot());
+		printplotManager->printPlots(plotList, "Data Logger");
+	});
+
 	/////////////////////text values ////////////
 	textMonitors = new QTextEdit(this);
 	textMonitors->setReadOnly(true);
@@ -130,14 +144,11 @@ DatamonitorTool::DatamonitorTool(DataAcquisitionManager *dataAcquisitionManager,
 	centralWidget->addWidget(sevenSegmetMonitors);
 
 	////////////////////////settings //////////////
-	m_dataMonitorSettings = new DataMonitorSettings(m_monitorPlot, isDeletable);
+	m_dataMonitorSettings = new DataMonitorSettings(m_monitorPlot);
 	// TODO GET SETTINGS NAME FROM UTILS
-	m_dataMonitorSettings->init("DataMonitor", StyleHelper::getColor("ScopyBlue"));
+	m_dataMonitorSettings->init("Data Logger", StyleHelper::getColor("ScopyBlue"));
 
 	tool->rightStack()->add(DataMonitorUtils::getToolSettingsId(), m_dataMonitorSettings);
-
-	connect(m_dataMonitorSettings, &DataMonitorSettings::requestDeleteTool, this,
-		&DatamonitorTool::requestDeleteTool);
 
 	connect(m_dataMonitorSettings, &DataMonitorSettings::titleUpdated, this,
 		&DatamonitorTool::settingsTitleChanged);
@@ -313,3 +324,5 @@ void DatamonitorTool::startTutorial()
 	datamonitorTutorial->setTitle("Tutorial");
 	datamonitorTutorial->start();
 }
+
+#include "moc_datamonitortool.cpp"

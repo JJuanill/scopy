@@ -24,6 +24,7 @@
 #include <gui/widgets/menusectionwidget.h>
 
 using namespace scopy::swiot;
+using namespace scopy::gui;
 
 DioSettingsTab::DioSettingsTab(QWidget *parent)
 	: QWidget(parent)
@@ -47,9 +48,11 @@ DioSettingsTab::DioSettingsTab(QWidget *parent)
 	StyleHelper::MenuSmallLabel(label);
 
 	// timespan
-	m_maxSpinButton = new PositionSpinButton({{tr("s"), 1}}, tr("Timespan"), 1, 300, true, false, this);
-	m_maxSpinButton->setValue(10);
-	connect(m_maxSpinButton, &PositionSpinButton::valueChanged, this,
+	m_maxSpinButton = new MenuSpinbox(tr("Timespan"), 10, "s", 1, 300, true, false, this);
+	m_maxSpinButton->setIncrementMode(MenuSpinbox::IS_FIXED);
+	m_maxSpinButton->setScaleRange(1, 1);
+
+	connect(m_maxSpinButton, &MenuSpinbox::valueChanged, this,
 		[this]() { Q_EMIT timeValueChanged(m_maxSpinButton->value()); });
 
 	plotTimespanSection->contentLayout()->addWidget(label);
@@ -64,3 +67,5 @@ DioSettingsTab::DioSettingsTab(QWidget *parent)
 DioSettingsTab::~DioSettingsTab() {}
 
 double DioSettingsTab::getTimeValue() const { return m_maxSpinButton->value(); }
+
+#include "moc_diosettingstab.cpp"

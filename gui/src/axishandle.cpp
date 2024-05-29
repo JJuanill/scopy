@@ -65,7 +65,7 @@ void AxisHandle::setHandle(HandleOrientation orientation)
 	m_handle = QPixmap(":/gui/icons/handle_arrow.svg")
 			   .scaled(m_handleSize, m_handleSize, Qt::IgnoreAspectRatio, Qt::SmoothTransformation);
 
-	if(m_handlePos == HandlePos::NORTH_WEST)
+	if(m_handlePos == HandlePos::NORTH_OR_WEST)
 		m_handle = m_handle.transformed(QTransform().scale(-1, -1));
 
 	if(m_axisId.isYAxis())
@@ -83,7 +83,7 @@ void AxisHandle::setHandle(HandleOrientation orientation)
 			m_handle = m_handle.transformed(QTransform().rotate(180));
 		}
 
-		if(m_handlePos == HandlePos::NORTH_WEST) {
+		if(m_handlePos == HandlePos::NORTH_OR_WEST) {
 			m_handle = m_handle.transformed(QTransform().rotate(180));
 		}
 	}
@@ -129,7 +129,7 @@ QRect AxisHandle::getBigRect()
 		rect = QRect(m_pos.x() - m_handleMargins * 2, y, rectWidth, rectHeight);
 	}
 
-	if(m_handlePos == HandlePos::NORTH_WEST) {
+	if(m_handlePos == HandlePos::NORTH_OR_WEST) {
 		if(m_axisId.isXAxis()) {
 			int height = rect.height();
 			rect.setTop(0);
@@ -154,7 +154,7 @@ QRect AxisHandle::getSmallRect()
 		rect = QRect(m_pos.x() - m_handlePadding, y, m_handle.width(), m_handle.height());
 	}
 
-	if(m_handlePos == HandlePos::NORTH_WEST) {
+	if(m_handlePos == HandlePos::NORTH_OR_WEST) {
 		if(m_axisId.isXAxis()) {
 			int height = rect.height();
 			rect.setTop(m_handlePadding);
@@ -230,6 +230,9 @@ void AxisHandle::paintEvent(QPaintEvent *event)
 	QLine line = getLine();
 	if(m_barVisibility == BarVisibility::ALWAYS || (m_barVisibility == BarVisibility::ON_HOVER && m_isHovering)) {
 		p.drawLine(line);
+		setMask(QRegion(getRectFromLine(line)) + QRegion(getBigRect()));
+	} else {
+		setMask(QRegion(getBigRect()));
 	}
 
 	QRect rect = getRect();
@@ -239,8 +242,6 @@ void AxisHandle::paintEvent(QPaintEvent *event)
 	updateHandleOrientation();
 	p.drawPixmap(QPoint(rect.center().x() - m_handle.width() / 2, rect.center().y() - m_handle.height() / 2),
 		     m_handle);
-
-	setMask(QRegion(getRectFromLine(line)) + QRegion(getBigRect()));
 }
 
 void AxisHandle::onMouseMove(QPointF pos)
@@ -273,7 +274,9 @@ bool AxisHandle::onMouseButtonPress(QPointF pos)
 
 void AxisHandle::onMouseButtonRelease()
 {
-	m_pressed = false;
+	if(m_isHovering) {
+		m_pressed = false;
+	}
 	setCursor(Qt::OpenHandCursor);
 }
 
@@ -346,3 +349,5 @@ bool AxisHandle::eventFilter(QObject *object, QEvent *event)
 
 	return QObject::eventFilter(object, event);
 }
+
+#include "moc_axishandle.cpp"

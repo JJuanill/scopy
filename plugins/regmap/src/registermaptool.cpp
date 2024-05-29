@@ -3,6 +3,7 @@
 
 #include <QBoxLayout>
 #include <QComboBox>
+#include <QDesktopServices>
 #include <deviceregistermap.hpp>
 #include <deviceregistermap.hpp>
 #include <registermapsettingsmenu.hpp>
@@ -40,7 +41,10 @@ RegisterMapTool::RegisterMapTool(QWidget *parent)
 
 	InfoBtn *infoBtn = new InfoBtn(this);
 	tool->addWidgetToTopContainerHelper(infoBtn, TTA_LEFT);
-	// TODO on info btn click open wiki page
+	connect(infoBtn, &QAbstractButton::clicked, this, [=, this]() {
+		QDesktopServices::openUrl(
+			QUrl("https://analogdevicesinc.github.io/scopy/plugins/registermap/registermap.html"));
+	});
 
 	searchBarWidget = new SearchBarWidget();
 	searchBarWidget->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Preferred);
@@ -137,4 +141,16 @@ void RegisterMapTool::updateActiveRegisterMap(QString registerName)
 	}
 }
 
-void RegisterMapTool::toggleSearchBarEnabled(bool enabled) { searchBarWidget->setEnabled(enabled); }
+void RegisterMapTool::toggleSearchBarEnabled(bool enabled)
+{
+	searchBarWidget->setEnabled(enabled);
+	if(enabled) {
+		tool->getContainerSpacer(tool->topContainer())
+			->changeSize(0, 0, QSizePolicy::Fixed, QSizePolicy::Fixed);
+		searchBarWidget->show();
+	} else {
+		tool->getContainerSpacer(tool->topContainer())
+			->changeSize(1, 1, QSizePolicy::Expanding, QSizePolicy::Fixed);
+		searchBarWidget->hide();
+	}
+}

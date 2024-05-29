@@ -38,7 +38,7 @@
 #include <hoverwidget.h>
 
 #include <condition_variable>
-#include <gui/dropdown_switch_list.h>
+#include "m2k-gui/dropdown_switch_list.h"
 #include <libm2k/contextbuilder.hpp>
 #include <libm2k/digital/m2kdigital.hpp>
 #include <libm2k/enums.hpp>
@@ -77,7 +77,7 @@ class LogicAnalyzer : public M2kTool
 	friend class LogicAnalyzer_API;
 
 public:
-	explicit LogicAnalyzer(struct iio_context *ctx, Filter *filt, ToolMenuEntry *toolMenuItem, QJSEngine *engine,
+	explicit LogicAnalyzer(libm2k::context::M2k *m2k, Filter *filt, ToolMenuEntry *toolMenuItem, QJSEngine *engine,
 			       QWidget *parent, bool offline_mode_ = 0);
 	~LogicAnalyzer();
 	void setNativeDialogs(bool nativeDialogs) override;

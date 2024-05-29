@@ -13,6 +13,9 @@
 #include <core/detachedtoolwindow.h>
 #include <core/detachedtoolwindowmanager.h>
 #include <iioutil/connectionprovider.h>
+#include <pluginbase/preferences.h>
+#include <gui/infopage.h>
+#include <gui/deviceinfopage.h>
 
 using namespace scopy;
 using namespace scopy::debugger;
@@ -22,7 +25,14 @@ Q_LOGGING_CATEGORY(CAT_BENCHMARK, "Benchmark");
 
 bool DebuggerPlugin::compatible(QString m_param, QString category)
 {
-	qDebug(CAT_DEBUGGERPLUGIN) << " compatible";
+	qDebug(CAT_DEBUGGERPLUGIN) << "Checking if Debugger (V1) is compatible.";
+
+	// Check weather this version (V1) should be used, true if V2 should be used
+	bool useThisDebugger = Preferences::GetInstance()->get("plugins_use_debugger_v2").toBool();
+	if(useThisDebugger) {
+		return false;
+	}
+
 	bool ret = true;
 	ConnectionProvider *c = ConnectionProvider::GetInstance();
 	Connection *conn = c->open(m_param);
@@ -79,7 +89,14 @@ bool DebuggerPlugin::loadPage()
 {
 	m_page = new QWidget();
 	QVBoxLayout *lay = new QVBoxLayout(m_page);
-	lay->addWidget(new QLabel("IIO Debugger plugin", m_page));
+
+	ConnectionProvider *c = ConnectionProvider::GetInstance();
+	Connection *conn = c->open(m_param);
+	auto deviceInfoPage = new DeviceInfoPage(conn);
+	lay->addWidget(deviceInfoPage);
+	lay->addItem(new QSpacerItem(0, 0, QSizePolicy::Preferred, QSizePolicy::Expanding));
+	c->close(m_param);
+
 	return true;
 }
 

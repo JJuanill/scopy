@@ -19,7 +19,7 @@ MonitorSelectionMenu::MonitorSelectionMenu(QMap<QString, DataMonitorModel *> *mo
 	setLayout(mainLayout);
 
 	QWidget *settingsBody = new QWidget(this);
-	layout = new QVBoxLayout(this);
+	layout = new QVBoxLayout();
 	layout->setMargin(0);
 	layout->setSpacing(10);
 	settingsBody->setLayout(layout);
@@ -86,8 +86,6 @@ void MonitorSelectionMenu::generateDeviceSection(QString device, bool import)
 
 	DataMonitorStyleHelper::MonitorSelectionMenuMenuCollapseSectionStyle(devMonitorsSection);
 
-	devMonitorsSection->header()->setChecked(false);
-
 	deviceMap.insert(device, devMonitorsSection);
 }
 
@@ -111,11 +109,7 @@ void MonitorSelectionMenu::addMonitor(DataMonitorModel *monitor)
 
 	m_monitorsGroup->addButton(monitorChannel);
 
-	// apply hover to the buttons based on the color they have
-	monitorChannel->setStyleSheet(monitorChannel->styleSheet() +
-				      QString(":hover{ background-color: %1 ; }").arg(monitor->getColor().name()));
-
-	connect(monitorChannel, &MenuControlButton::toggled, this, [=, this](bool toggled) {
+	connect(monitorChannel, &MenuControlButton::clicked, this, [=, this](bool toggled) {
 		if(!monitorChannel->checkBox()->isChecked()) {
 			monitorChannel->checkBox()->setChecked(true);
 		}
@@ -148,3 +142,5 @@ void MonitorSelectionMenu::removeDevice(QString device)
 }
 
 QButtonGroup *MonitorSelectionMenu::monitorsGroup() const { return m_monitorsGroup; }
+
+#include "moc_monitorselectionmenu.cpp"

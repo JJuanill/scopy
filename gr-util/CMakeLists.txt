@@ -62,7 +62,6 @@ target_link_libraries(
 	PUBLIC Qt${QT_VERSION_MAJOR}::Core
 	       scopy-iioutil
 	       scopy-gui
-	       scopy-gr-gui
 	       scopy-iio-widgets
 	       gnuradio::gnuradio-runtime
 	       gnuradio::gnuradio-analog
@@ -75,3 +74,9 @@ target_link_libraries(
 )
 
 install(TARGETS ${PROJECT_NAME} LIBRARY DESTINATION ${SCOPY_DLL_PATH} RUNTIME DESTINATION ${SCOPY_DLL_PATH})
+
+add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E copy
+    $<TARGET_FILE:${PROJECT_NAME}>
+    ${SCOPY_CURRENT_BINARY_PATH}
+)

@@ -33,7 +33,21 @@ public:
 	virtual ~TimeSamplingInfo();
 
 public Q_SLOTS:
-	void update(PlotSamplingInfo info);
+	void update(SamplingInfo info);
+
+private:
+	MetricPrefixFormatter *m_mpf;
+};
+
+class SCOPY_GUI_EXPORT FFTSamplingInfo : public QLabel
+{
+	Q_OBJECT
+public:
+	FFTSamplingInfo(QWidget *parent = nullptr);
+	virtual ~FFTSamplingInfo();
+
+public Q_SLOTS:
+	void update(SamplingInfo info);
 
 private:
 	MetricPrefixFormatter *m_mpf;

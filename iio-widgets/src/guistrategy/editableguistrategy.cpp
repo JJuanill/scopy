@@ -19,22 +19,30 @@
  */
 
 #include "guistrategy/editableguistrategy.h"
+#include <gui/style.h>
 
 using namespace scopy;
 
-EditableGuiStrategy::EditableGuiStrategy(IIOWidgetFactoryRecipe recipe, QWidget *parent)
-	: QWidget(parent)
-	, m_ui(new QWidget(nullptr))
+EditableGuiStrategy::EditableGuiStrategy(IIOWidgetFactoryRecipe recipe, bool isCompact, QWidget *parent)
+	: QObject(parent)
+	, m_ui(new QWidget(parent))
 	, m_lineEdit(new MenuLineEdit(m_ui))
 {
 	m_recipe = recipe;
-	m_ui->setLayout(new QVBoxLayout(m_ui));
+	QLabel *label = new QLabel(recipe.data, m_ui);
+
+	if(isCompact) {
+		m_ui->setLayout(new QHBoxLayout(m_ui));
+		StyleHelper::IIOCompactLabel(label, "TitleLabel");
+		m_lineEdit->edit()->setAlignment(Qt::AlignRight);
+	} else {
+		m_ui->setLayout(new QVBoxLayout(m_ui));
+		StyleHelper::MenuSmallLabel(label, "MenuSmallLabel");
+	}
+
+	Style::setStyle(m_lineEdit->edit(), style::properties::iiowidgets::lineEdit, true, true);
+	m_lineEdit->edit()->setCursorPosition(0);
 	m_ui->layout()->setContentsMargins(0, 0, 0, 0);
-
-	auto label = new QLabel(recipe.data, m_ui);
-	StyleHelper::MenuSmallLabel(label, "MenuSmallLabel");
-	StyleHelper::IIOLineEdit(m_lineEdit->edit(), "IIOLineEdit");
-
 	m_ui->layout()->addWidget(label);
 	m_ui->layout()->addWidget(m_lineEdit);
 
@@ -49,7 +57,7 @@ EditableGuiStrategy::EditableGuiStrategy(IIOWidgetFactoryRecipe recipe, QWidget 
 	Q_EMIT requestData();
 }
 
-EditableGuiStrategy::~EditableGuiStrategy() { m_ui->deleteLater(); }
+EditableGuiStrategy::~EditableGuiStrategy() {}
 
 QWidget *EditableGuiStrategy::ui() { return m_ui; }
 

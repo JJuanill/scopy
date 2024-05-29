@@ -31,7 +31,6 @@
 
 #include <src/readwrite/fileregisterwritestrategy.hpp>
 #include <src/recyclerview/registermaptable.hpp>
-#include <tool_view_builder.hpp>
 #include <utils.h>
 
 using namespace scopy;
@@ -118,6 +117,9 @@ DeviceRegisterMap::DeviceRegisterMap(RegisterMapTemplate *registerMapTemplate, R
 					 registerMapTableWidget->setRegisterSelected(address);
 					 registerChanged(registerMapTemplate->getRegisterTemplate(address));
 					 registerController->blockSignals(false);
+					 if(autoread) {
+						 Q_EMIT registerMapValues->requestRead(address);
+					 }
 				 });
 
 		QObject::connect(registerController, &RegisterController::registerAddressChanged, this,
@@ -220,6 +222,8 @@ bool DeviceRegisterMap::hasTemplate()
 
 	return false;
 }
+
+bool DeviceRegisterMap::getAutoread() { return autoread; }
 
 void DeviceRegisterMap::initSettings()
 {

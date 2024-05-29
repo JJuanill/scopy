@@ -53,8 +53,8 @@
 #include "fft_block.hpp"
 #include "filter.hpp"
 #include "frequency_compensation_filter.h"
-#include "gui/osc_import_settings.h"
-#include "gui/oscilloscope_plot.hpp"
+#include "m2k-gui/osc_import_settings.h"
+#include "m2k-gui/oscilloscope_plot.hpp"
 #include "gui/spinbox_a.hpp"
 #include "histogram_sink_f.h"
 #include "iio_manager.hpp"
@@ -124,8 +124,8 @@ class Oscilloscope : public M2kTool
 	Q_OBJECT
 
 public:
-	explicit Oscilloscope(struct iio_context *ctx, Filter *filt, ToolMenuEntry *tme, m2k_iio_manager *m2k_man,
-			      QJSEngine *engine, QWidget *parent = 0);
+	explicit Oscilloscope(libm2k::context::M2k *m2k, QString uri, Filter *filt, ToolMenuEntry *tme,
+			      m2k_iio_manager *m2k_man, QJSEngine *engine, QWidget *parent = 0);
 	~Oscilloscope();
 
 	QPushButton *getRunButton();
@@ -260,6 +260,7 @@ public Q_SLOTS:
 	void stop() override;
 
 private:
+	QString m_uri;
 	libm2k::context::M2k *m_m2k_context;
 	libm2k::analog::M2kAnalogIn *m_m2k_analogin;
 	libm2k::digital::M2kDigital *m_m2k_digital;

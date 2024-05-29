@@ -13,8 +13,8 @@ MeasurementSettings::MeasurementSettings(QWidget *parent)
 	//		setSizePolicy(QSizePolicy::Maximum, QSizePolicy::Maximum);
 	lay->setMargin(0);
 
-	MenuSectionWidget *measureSection = new MenuSectionWidget(this);
-	MenuOnOffSwitch *measurePanelSwitch = new MenuOnOffSwitch("Measure Panel", this);
+	measureSection = new MenuSectionWidget(this);
+	measurePanelSwitch = new MenuOnOffSwitch("Measure Panel", this);
 	measurePanelSwitch->onOffswitch()->setChecked(true);
 	QHBoxLayout *hlay1 = new QHBoxLayout();
 	hlay1->setContentsMargins(0, 6, 0, 6);
@@ -73,8 +73,8 @@ MeasurementSettings::MeasurementSettings(QWidget *parent)
 	hlay2->addWidget(mesaureSortByChannel);
 	hlay2->addWidget(measureSortByType);
 
-	MenuSectionWidget *statsSection = new MenuSectionWidget(this);
-	MenuOnOffSwitch *statsPanelSwitch = new MenuOnOffSwitch("Stats Panel", this);
+	statsSection = new MenuSectionWidget(this);
+	statsPanelSwitch = new MenuOnOffSwitch("Stats Panel", this);
 	connect(statsPanelSwitch->onOffswitch(), &QAbstractButton::toggled, this,
 		[=](bool b) { Q_EMIT enableStatsPanel(b); });
 	statsSection->contentLayout()->addWidget(statsPanelSwitch);
@@ -138,10 +138,29 @@ MeasurementSettings::MeasurementSettings(QWidget *parent)
 	hlay4->addWidget(statsSortByChannel);
 	hlay4->addWidget(statsSortByType);
 
+	markerSection = new MenuSectionWidget(this);
+	markerPanelSwitch = new MenuOnOffSwitch("Marker Panel", this);
+	connect(markerPanelSwitch->onOffswitch(), &QAbstractButton::toggled, this,
+		[=](bool b) { Q_EMIT enableMarkerPanel(b); });
+	markerSection->contentLayout()->addWidget(markerPanelSwitch);
+
+	markerPanelSwitch->onOffswitch()->setChecked(false);
+
 	lay->addWidget(measureSection);
 	lay->addWidget(statsSection);
+	lay->addWidget(markerSection);
 }
 
 MeasurementSettings::~MeasurementSettings() {}
+
+bool MeasurementSettings::measurementEnabled() { return measurePanelSwitch->onOffswitch()->isChecked(); }
+bool MeasurementSettings::statsEnabled() { return statsPanelSwitch->onOffswitch()->isChecked(); }
+bool MeasurementSettings::markerEnabled() { return markerPanelSwitch->onOffswitch()->isChecked(); }
+
+MenuSectionWidget *MeasurementSettings::getMarkerSection() const { return markerSection; }
+
+MenuSectionWidget *MeasurementSettings::getStatsSection() const { return statsSection; }
+
+MenuSectionWidget *MeasurementSettings::getMeasureSection() const { return measureSection; }
 
 #include "moc_measurementsettings.cpp"

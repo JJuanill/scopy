@@ -4,10 +4,12 @@
 #include <iioutil/connectionprovider.h>
 
 #include <QHBoxLayout>
+#include <tutorialbuilder.h>
 #include <gui/widgets/menucollapsesection.h>
 #include <gui/widgets/menuheader.h>
 #include <gui/widgets/menusectionwidget.h>
 #include <gui/stylehelper.h>
+#include <pluginbase/preferences.h>
 
 using namespace scopy::swiot;
 
@@ -114,6 +116,17 @@ void Max14906::handleConnectionDestroyed()
 	m_ctx = nullptr;
 	m_cmdQueue = nullptr;
 	m_conn = nullptr;
+}
+
+void Max14906::startTutorial()
+{
+	qInfo(CAT_SWIOT) << "Starting max14906 tutorial.";
+	QWidget *parent = Util::findContainingWindow(this);
+	gui::TutorialBuilder *m_max14906Tutorial =
+		new gui::TutorialBuilder(this, ":/swiot/tutorial_chapters.json", "max14906", parent);
+
+	m_max14906Tutorial->setTitle("MAX14906");
+	m_max14906Tutorial->start();
 }
 
 void Max14906::runButtonToggled()
@@ -272,3 +285,15 @@ QPushButton *Max14906::createConfigBtn(QWidget *parent)
 	configBtn->setText("Config");
 	return configBtn;
 }
+
+void Max14906::showEvent(QShowEvent *event)
+{
+	QWidget::showEvent(event);
+
+	if(Preferences::get("max14906_start_tutorial").toBool()) {
+		startTutorial();
+		Preferences::set("max14906_start_tutorial", false);
+	}
+}
+
+#include "moc_max14906.cpp"

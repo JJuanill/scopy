@@ -5,7 +5,7 @@
 #include <QWidget>
 #include <toolbuttons.h>
 #include "registermaptemplate.hpp"
-#include "scopy-regmapplugin_export.h"
+#include "scopy-regmap_export.h"
 #include "gui/tooltemplate.h"
 #include <iio.h>
 
@@ -21,8 +21,9 @@ class RegisterMapSettingsMenu;
 
 class SearchBarWidget;
 
-class SCOPY_REGMAPPLUGIN_EXPORT RegisterMapTool : public QWidget
+class SCOPY_REGMAP_EXPORT RegisterMapTool : public QWidget
 {
+	friend class RegMap_API;
 	Q_OBJECT
 public:
 	explicit RegisterMapTool(QWidget *parent = nullptr);

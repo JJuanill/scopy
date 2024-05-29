@@ -4,7 +4,6 @@
 #include "devicefactory.h"
 #include "deviceimpl.h"
 #include "deviceloader.h"
-#include "iiodeviceimpl.h"
 #include "pluginbase/statusbarmanager.h"
 
 #include <QDebug>
@@ -17,10 +16,7 @@ using namespace scopy;
 DeviceManager::DeviceManager(PluginManager *pm, QObject *parent)
 	: QObject{parent}
 	, pm(pm)
-{
-
-	connect(QCoreApplication::instance(), SIGNAL(aboutToQuit()), this, SLOT(disconnectAll()));
-}
+{}
 
 DeviceManager::~DeviceManager() {}
 
@@ -46,7 +42,7 @@ void DeviceManager::addDevice(Device *d)
 	Q_EMIT deviceAdded(id, d);
 }
 
-QString DeviceManager::createDevice(QString category, QString param, bool async)
+QString DeviceManager::createDevice(QString category, QString param, bool async, QList<QString> plugins)
 {
 	qInfo(CAT_DEVICEMANAGER) << category << "device with params" << param << "added";
 	Q_EMIT deviceAddStarted(param);
@@ -54,8 +50,17 @@ QString DeviceManager::createDevice(QString category, QString param, bool async)
 	DeviceImpl *d = DeviceFactory::build(param, pm, category);
 	DeviceLoader *dl = new DeviceLoader(d, this);
 
-	connect(dl, &DeviceLoader::initialized, this,
-		[=]() { addDevice(d); }); // add device to manager once it is initialized
+	connect(dl, &DeviceLoader::initialized, this, [=]() {
+		QList<Plugin *> availablePlugins = d->plugins();
+		if(!plugins.isEmpty()) {
+			for(Plugin *p : qAsConst(availablePlugins)) {
+				if(!plugins.contains(p->name())) {
+					p->setEnabled(false);
+				}
+			}
+		}
+		addDevice(d);
+	}); // add device to manager once it is initialized
 	connect(dl, &DeviceLoader::initialized, dl,
 		&QObject::deleteLater); // don't forget to delete loader once we're done
 	dl->init(async);
@@ -105,15 +110,20 @@ void DeviceManager::connectDeviceToManager(DeviceImpl *d)
 	connect(d, &DeviceImpl::connected, this, [=]() { connectDevice(d->id()); });
 	connect(d, &DeviceImpl::disconnected, this, [=]() { disconnectDevice(d->id()); });
 	connect(d, &DeviceImpl::forget, this, [=]() { removeDeviceById(d->id()); });
+	connect(d, SIGNAL(connectionStarted()), this, SIGNAL(connectionStarted()));
+	connect(d, SIGNAL(connectionFinished()), this, SIGNAL(connectionFinished()));
 	connect(d, SIGNAL(requestedRestart()), this, SLOT(restartDevice()));
 	connect(d, SIGNAL(toolListChanged()), this, SLOT(changeToolListDevice()));
 	connect(d, SIGNAL(requestTool(QString)), this, SIGNAL(requestTool(QString)));
 }
+
 void DeviceManager::disconnectDeviceFromManager(DeviceImpl *d)
 {
 	disconnect(d, SIGNAL(connected()));
 	disconnect(d, SIGNAL(disconnected()));
 	disconnect(d, SIGNAL(forget()));
+	disconnect(d, SIGNAL(connectionStarted()), this, SIGNAL(connectionStarted()));
+	disconnect(d, SIGNAL(connectionFinished()), this, SIGNAL(connectionFinished()));
 	disconnect(d, SIGNAL(requestedRestart()), this, SLOT(restartDevice()));
 	disconnect(d, SIGNAL(toolListChanged()), this, SLOT(changeToolListDevice()));
 	disconnect(d, SIGNAL(requestTool(QString)), this, SIGNAL(requestTool(QString)));

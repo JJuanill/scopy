@@ -3,7 +3,7 @@
 
 #include <QWidget>
 #include "titlespinbox.hpp"
-#include "scopy-regmapplugin_export.h"
+#include "scopy-regmap_export.h"
 
 #include <QWidget>
 
@@ -20,8 +20,9 @@ class RegisterModel;
 class RegisterValueWidget;
 class AddressPicker;
 
-class SCOPY_REGMAPPLUGIN_EXPORT RegisterController : public QWidget
+class SCOPY_REGMAP_EXPORT RegisterController : public QWidget
 {
+	friend class RegMap_API;
 	Q_OBJECT
 public:
 	explicit RegisterController(QWidget *parent = nullptr);

@@ -24,47 +24,59 @@
 Q_LOGGING_CATEGORY(CAT_DEVICE_DATA_STRATEGY, "DeviceDataStrategy")
 using namespace scopy;
 
-DeviceAttrDataStrategy::DeviceAttrDataStrategy(IIOWidgetFactoryRecipe recipe, QWidget *parent)
-	: QWidget(parent)
+DeviceAttrDataStrategy::DeviceAttrDataStrategy(IIOWidgetFactoryRecipe recipe, QObject *parent)
+	: QObject(parent)
 {
 	m_recipe = recipe;
 }
+
+DeviceAttrDataStrategy::~DeviceAttrDataStrategy() {}
 
 QString DeviceAttrDataStrategy::data() { return m_data; }
 
 QString DeviceAttrDataStrategy::optionalData() { return m_optionalData; }
 
-void DeviceAttrDataStrategy::save(QString data)
+int DeviceAttrDataStrategy::write(QString data)
 {
 	if(m_recipe.device == nullptr || m_recipe.data == "") {
 		qWarning(CAT_DEVICE_DATA_STRATEGY) << "Invalid arguments, cannot write any data";
-		return;
+		return -EINVAL;
 	}
 
 	Q_EMIT aboutToWrite(m_data, data);
 	ssize_t res =
 		iio_device_attr_write(m_recipe.device, m_recipe.data.toStdString().c_str(), data.toStdString().c_str());
 	if(res < 0) {
-		qWarning(CAT_DEVICE_DATA_STRATEGY) << "Cannot write" << data << "to" << m_recipe.data;
+		// Might be a debug attribute
+		res = iio_device_debug_attr_write(m_recipe.device, m_recipe.data.toStdString().c_str(),
+						  data.toStdString().c_str());
+		if(res < 0) {
+			qWarning(CAT_DEVICE_DATA_STRATEGY) << "Cannot write" << data << "to" << m_recipe.data;
+		}
 	}
 
-	Q_EMIT emitStatus(QDateTime::currentDateTime(), m_data, data, (int)(res), false);
-	requestData();
+	return res;
 }
 
-void DeviceAttrDataStrategy::requestData()
+QPair<QString, QString> DeviceAttrDataStrategy::read()
 {
 	if(m_recipe.device == nullptr || m_recipe.data.isEmpty()) {
 		qWarning(CAT_DEVICE_DATA_STRATEGY) << "Invalid arguments, cannot read any data";
-		return;
+		return {};
 	}
 
 	char options[BUFFER_SIZE] = {0}, currentValue[BUFFER_SIZE] = {0};
-	ssize_t currentValueResult =
+
+	m_returnCode =
 		iio_device_attr_read(m_recipe.device, m_recipe.data.toStdString().c_str(), currentValue, BUFFER_SIZE);
-	if(currentValueResult < 0) {
-		qWarning(CAT_DEVICE_DATA_STRATEGY)
-			<< "Could not read" << m_recipe.data << "error code:" << currentValueResult;
+	if(m_returnCode < 0) {
+		// Might be a debug attribute
+		m_returnCode = iio_device_debug_attr_read(m_recipe.device, m_recipe.data.toStdString().c_str(),
+							  currentValue, BUFFER_SIZE);
+		if(m_returnCode < 0) {
+			qWarning(CAT_DEVICE_DATA_STRATEGY)
+				<< "Could not read" << m_recipe.data << "error code:" << m_returnCode;
+		}
 	}
 
 	if(m_recipe.iioDataOptions != "") {
@@ -74,7 +86,7 @@ void DeviceAttrDataStrategy::requestData()
 			qWarning(CAT_DEVICE_DATA_STRATEGY)
 				<< "Could not read" << m_recipe.data << "error code:" << optionsResult;
 		}
-		Q_EMIT emitStatus(QDateTime::currentDateTime(), m_optionalData, options, currentValueResult, true);
+		Q_EMIT emitStatus(QDateTime::currentDateTime(), m_optionalData, options, m_returnCode, true);
 	}
 
 	if(m_recipe.constDataOptions != "") {
@@ -87,11 +99,27 @@ void DeviceAttrDataStrategy::requestData()
 		options[m_recipe.constDataOptions.size()] = '\0'; // safety measures
 	}
 
-	QString oldData = m_data;
+	m_previousData = m_data;
 	m_data = currentValue;
 	m_optionalData = options;
-	Q_EMIT emitStatus(QDateTime::currentDateTime(), oldData, m_data, currentValueResult, true);
-	Q_EMIT sendData(m_data, m_optionalData);
+
+	return {m_data, m_optionalData};
+}
+
+void DeviceAttrDataStrategy::writeAsync(QString data)
+{
+	int res = write(data);
+
+	Q_EMIT emitStatus(QDateTime::currentDateTime(), m_data, data, (int)(res), false);
+	readAsync();
+}
+
+void DeviceAttrDataStrategy::readAsync()
+{
+	QPair<QString, QString> res = read();
+
+	Q_EMIT emitStatus(QDateTime::currentDateTime(), m_previousData, m_data, m_returnCode, true);
+	Q_EMIT sendData(res.first, res.second);
 }
 
 #include "moc_deviceattrdatastrategy.cpp"

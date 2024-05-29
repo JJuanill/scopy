@@ -26,7 +26,8 @@ public:
 public Q_SLOTS:
 
 	void addDevice(Device *d);
-	QString createDevice(QString category, QString param, bool async = true);
+	QString createDevice(QString category, QString param, bool async = true,
+			     QList<QString> plugins = QList<QString>());
 	void removeDevice(QString category, QString id);
 
 	void removeDeviceById(QString id);
@@ -53,6 +54,9 @@ Q_SIGNALS:
 	void deviceDisconnected(QString id, Device *);
 	void requestDevice(QString id);
 	void requestTool(QString id);
+
+	void connectionStarted();
+	void connectionFinished();
 
 private:
 	void connectDeviceToManager(DeviceImpl *d);
