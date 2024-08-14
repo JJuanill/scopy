@@ -15,7 +15,6 @@
 #include <algorithm>
 #include <cstdlib>
 #include <cmath>
-#include <math.h>
 #include <numeric>
 #include <complex>
 #include <iterator>
@@ -31,6 +30,9 @@ public:
     ~ADMTController();
 
     int HAR_MAG_1, HAR_MAG_2, HAR_MAG_3, HAR_MAG_8 ,HAR_PHASE_1 ,HAR_PHASE_2 ,HAR_PHASE_3 ,HAR_PHASE_8;
+
+    vector<double> angle_errors_fft;
+    vector<double> angle_errors_fft_phase;
 
     enum Channel
     {
@@ -85,10 +87,18 @@ private:
     QString uri;
 
     unsigned int bitReverse(unsigned int x, int log2n);
-    template <typename Iter_T>
+    template<class Iter_T>
     void fft(Iter_T a, Iter_T b, int log2n);
     int linear_fit(vector<double> x, vector<double> y, double* slope, double* intercept);
-    int calculate_angle_error(vector<double> angle_meas, vector<double>& angle_error_ret, double* max_angle_err);
+    void reverseArray(vector<double>& PANG, bool CCW);
+    void randomizeArray(vector<double>& PANG, bool circshiftData);
+    void calculateAngleErrors(const vector<double>& PANG, vector<double>& angle_errors, double& max_err);
+    void performFFT(const vector<double>& angle_errors, int samplesPerCycle, int cycles, vector<double>& angle_errors_fft, vector<double>& angle_errors_fft_phase);
+    void extractHarmonics(const vector<double>& angle_errors_fft, int cycles, double& H1Mag, double& H2Mag, double& H3Mag, double& H8Mag);
+    void extractPhases(const vector<double>& angle_errors_fft_phase, int cycles, double& H1Phase, double& H2Phase, double& H3Phase, double& H8Phase);
+    void applyCorrections(const vector<double>& PANG, double H1Mag, double H2Mag, double H3Mag, double H8Mag, double H1Phase, double H2Phase, double H3Phase, double H8Phase, vector<double>& HXcorrection);
+    void deriveRegisterValues(double H1Mag, double H2Mag, double H3Mag, double H8Mag, double H1Phase, double H2Phase, double H3Phase, double H8Phase, int& HAR_MAG_1, int& HAR_MAG_2, int& HAR_MAG_3, int& HAR_MAG_8, int& HAR_PHASE_1, int& HAR_PHASE_2, int& HAR_PHASE_3, int& HAR_PHASE_8);
+    void calculateErrorResults(const vector<double>& angle_errors_fft, vector<double>& ErrorMagnitudeResult, vector<double>& ErrorPhaseResult);
 };
 } // namespace scopy::admt
 
