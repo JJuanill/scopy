@@ -150,7 +150,6 @@ double ADMTController::getChannelValue(const char *deviceName, const char *chann
     return value;
 }
 
-
 /** @brief Get the attribute value of a device
  * @param deviceName A pointer to the device name
  * @param attributeName A NULL-terminated string corresponding to the name of the
@@ -160,16 +159,14 @@ double ADMTController::getChannelValue(const char *deviceName, const char *chann
  * @return On error, -1 is returned. */
 int ADMTController::getDeviceAttributeValue(const char *deviceName, const char *attributeName, double *returnValue)
 {
-    int result = -1;
-    int deviceCount = iio_context_get_devices_count(m_iioCtx);
-    if(deviceCount == 0) { return result; }
-	iio_device *iioDevice = iio_context_find_device(m_iioCtx, deviceName);
-    if(iioDevice == NULL) { return result; }
-    const char* hasAttr = iio_device_find_attr(iioDevice, attributeName);
-    if(hasAttr == NULL) { return result; }
-    result = iio_device_attr_read_double(iioDevice, attributeName, returnValue);
+    if (!deviceName || !attributeName || !returnValue) return -1;
 
-    return result;
+    iio_device *iioDevice = iio_context_find_device(m_iioCtx, deviceName);
+    if (!iioDevice) return -1;
+
+    if (!iio_device_find_attr(iioDevice, attributeName)) return -1;
+
+    return iio_device_attr_read_double(iioDevice, attributeName, returnValue);
 }
 
 /** @brief Set the attribute value of a device
@@ -181,85 +178,78 @@ int ADMTController::getDeviceAttributeValue(const char *deviceName, const char *
  * @return On error, -1 is returned. */
 int ADMTController::setDeviceAttributeValue(const char *deviceName, const char *attributeName, double writeValue)
 {
-    int result = -1;
-    int deviceCount = iio_context_get_devices_count(m_iioCtx);
-    if(deviceCount == 0) { return result; }
-	iio_device *iioDevice = iio_context_find_device(m_iioCtx, deviceName);
-    if(iioDevice == NULL) { return result; }
-    const char* hasAttr = iio_device_find_attr(iioDevice, attributeName);
-    if(hasAttr == NULL) { return result; }
-    result = iio_device_attr_write_double(iioDevice, attributeName, writeValue);
+    if (!deviceName || !attributeName) return -1;
 
-    return result;
+    iio_device *iioDevice = iio_context_find_device(m_iioCtx, deviceName);
+    if (!iioDevice) return -1;
+
+    if (!iio_device_find_attr(iioDevice, attributeName)) return -1;
+
+    return iio_device_attr_write_double(iioDevice, attributeName, writeValue);
 }
 
 int ADMTController::writeDeviceRegistry(const char *deviceName, uint32_t address, double value)
 {
-    int result = -1;
-    int deviceCount = iio_context_get_devices_count(m_iioCtx);
-    if(deviceCount == 0) { return result; }
-    iio_device *iioDevice = iio_context_find_device(m_iioCtx, deviceName);
-    if(iioDevice == NULL) { return result; }
-    result = iio_device_reg_write(iioDevice, address, static_cast<uint32_t>(value));
+    if (!deviceName) return -1;
 
-    return result;
+    iio_device *iioDevice = iio_context_find_device(m_iioCtx, deviceName);
+    if (!iioDevice) return -1;
+
+    return iio_device_reg_write(iioDevice, address, static_cast<uint32_t>(value));
 }
 
 // Main calibration function
-QString ADMTController::calibrate(vector<double> PANG, int cycles, int samplesPerCycle) {
-    int CCW = 0, circshiftData = 0;
-    QString result = "";
+QString ADMTController::calibrate(const std::vector<double>& PANG, int cycles, int samplesPerCycle) 
+{
+    QString result;
 
-    // Reverse the array based on CCW flag
-    reverseArray(PANG, CCW);
+    // Copy the input vector to avoid modifying the original
+    std::vector<double> processedPANG = PANG;
 
-    // Randomize the array based on circshiftData flag
-    randomizeArray(PANG, circshiftData);
+    // Reverse and randomize the array
+    reverseArray(processedPANG, 0);
+    randomizeArray(processedPANG, 0);
 
     // Calculate angle errors and find the maximum error
     double max_err = 0;
-    vector<double> angle_errors(PANG.size());
-    calculateAngleErrors(PANG, angle_errors, max_err);
+    std::vector<double> angle_errors(processedPANG.size());
+    calculateAngleErrors(processedPANG, angle_errors, max_err);
 
     // Perform FFT on angle errors
-    angle_errors_fft = vector<double>(PANG.size() / 2);
-    angle_errors_fft_phase = vector<double>(PANG.size() / 2);
+    std::vector<double> angle_errors_fft(processedPANG.size() / 2);
+    std::vector<double> angle_errors_fft_phase(processedPANG.size() / 2);
     performFFT(angle_errors, samplesPerCycle, cycles, angle_errors_fft, angle_errors_fft_phase);
 
-    // Extract harmonic magnitudes
+    // Extract harmonic magnitudes and phases
     double H1Mag, H2Mag, H3Mag, H8Mag;
-    extractHarmonics(angle_errors_fft, cycles, H1Mag, H2Mag, H3Mag, H8Mag);
-
-    // Extract harmonic phases
     double H1Phase, H2Phase, H3Phase, H8Phase;
+    extractHarmonics(angle_errors_fft, cycles, H1Mag, H2Mag, H3Mag, H8Mag);
     extractPhases(angle_errors_fft_phase, cycles, H1Phase, H2Phase, H3Phase, H8Phase);
 
     // Apply corrections to the data
-    vector<double> HXcorrection(PANG.size());
-    applyCorrections(PANG, H1Mag, H2Mag, H3Mag, H8Mag, H1Phase, H2Phase, H3Phase, H8Phase, HXcorrection);
+    std::vector<double> HXcorrection(processedPANG.size());
+    applyCorrections(processedPANG, H1Mag, H2Mag, H3Mag, H8Mag, H1Phase, H2Phase, H3Phase, H8Phase, HXcorrection);
 
     // Derive register values for harmonics
     int HAR_MAG_1, HAR_MAG_2, HAR_MAG_3, HAR_MAG_8;
     int HAR_PHASE_1, HAR_PHASE_2, HAR_PHASE_3, HAR_PHASE_8;
-    deriveRegisterValues(H1Mag, H2Mag, H3Mag, H8Mag, H1Phase, H2Phase, H3Phase, H8Phase, HAR_MAG_1, HAR_MAG_2, HAR_MAG_3, HAR_MAG_8, HAR_PHASE_1, HAR_PHASE_2, HAR_PHASE_3, HAR_PHASE_8);
+    deriveRegisterValues(H1Mag, H2Mag, H3Mag, H8Mag, H1Phase, H2Phase, H3Phase, H8Phase,
+                         HAR_MAG_1, HAR_MAG_2, HAR_MAG_3, HAR_MAG_8,
+                         HAR_PHASE_1, HAR_PHASE_2, HAR_PHASE_3, HAR_PHASE_8);
 
-    // Calculate error magnitude and phase results
-    vector<double> ErrorMagnitudeResult(angle_errors_fft.size());
-    vector<double> ErrorPhaseResult(angle_errors_fft.size());
-    calculateErrorResults(angle_errors_fft, ErrorMagnitudeResult, ErrorPhaseResult);
-
-    // Append the register values to the result string
-    result.append("HMAG1: " + QString::number(HAR_MAG_1) + "\n");
-    result.append("HMAG2: " + QString::number(HAR_MAG_2) + "\n");
-    result.append("HMAG3: " + QString::number(HAR_MAG_3) + "\n");
-    result.append("HMAG8: " + QString::number(HAR_MAG_8) + "\n");
-    result.append("HPHASE1: " + QString::number(HAR_PHASE_1) + "\n");
-    result.append("HPHASE2: " + QString::number(HAR_PHASE_2) + "\n");
-    result.append("HPHASE3: " + QString::number(HAR_PHASE_3) + "\n");
-    result.append("HPHASE8: " + QString::number(HAR_PHASE_8) + "\n");
+    // Format the results into the QString
+    result.append(QString("HMAG1: %1\n").arg(HAR_MAG_1));
+    result.append(QString("HMAG2: %1\n").arg(HAR_MAG_2));
+    result.append(QString("HMAG3: %1\n").arg(HAR_MAG_3));
+    result.append(QString("HMAG8: %1\n").arg(HAR_MAG_8));
+    result.append(QString("HPHASE1: %1\n").arg(HAR_PHASE_1));
+    result.append(QString("HPHASE2: %1\n").arg(HAR_PHASE_2));
+    result.append(QString("HPHASE3: %1\n").arg(HAR_PHASE_3));
+    result.append(QString("HPHASE8: %1\n").arg(HAR_PHASE_8));
 
     return result;
 }
+
 
 /* bit reversal from online example */
 unsigned int ADMTController::bitReverse(unsigned int x, int log2n) {
