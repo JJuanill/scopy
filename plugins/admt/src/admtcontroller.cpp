@@ -49,51 +49,34 @@ void ADMTController::disconnectADMT()
 
 const char* ADMTController::getChannelId(Channel channel)
 {
-	if(channel >= 0 && channel < CHANNEL_COUNT){
-		return ChannelIds[channel];
-	}
-	return "Unknown";
+    return (channel >= 0 && channel < CHANNEL_COUNT) ? ChannelIds[channel] : "Unknown";
 }
 
 const char* ADMTController::getDeviceId(Device device)
 {
-	if(device >= 0 && device < DEVICE_COUNT){
-		return DeviceIds[device];
-	}
-	return "Unknown";
+    return (device >= 0 && device < DEVICE_COUNT) ? DeviceIds[device] : "Unknown";
 }
 
 const char* ADMTController::getMotorAttribute(MotorAttribute attribute)
 {
-	if(attribute >= 0 && attribute < MOTOR_ATTR_COUNT){
-		return MotorAttributes[attribute];
-	}
-	return "Unknown";
+    return (attribute >= 0 && attribute < MOTOR_ATTR_COUNT) ? MotorAttributes[attribute] : "Unknown";
 }
-
 
 int ADMTController::getChannelIndex(const char *deviceName, const char *channelName)
 {
-	iio_device *admtDevice = iio_context_find_device(m_iioCtx, deviceName);
-	int channelCount = iio_device_get_channels_count(admtDevice);
-	iio_channel *channel;
-	std::string message = "";
-	for(int i = 0; i < channelCount; i++){
-		channel = iio_device_get_channel(admtDevice, i);
-		const char *deviceChannel = iio_channel_get_id(channel);
-		
-		std::string strDeviceChannel = std::string(deviceChannel);
-		std::string strChannelName = std::string(channelName);
+    iio_device *admtDevice = iio_context_find_device(m_iioCtx, deviceName);
+    if (!admtDevice) return -1;
 
-		if(deviceChannel != nullptr && strDeviceChannel == strChannelName){
-			message = message + "[" + std::to_string(i) + "]" + std::string(deviceChannel) + ", ";
-			return iio_channel_get_index(channel);
-		}
-		else {
-			channel = NULL;
-		}
-	}
-	return -1;
+    int channelCount = iio_device_get_channels_count(admtDevice);
+    for (int i = 0; i < channelCount; ++i) {
+        iio_channel *channel = iio_device_get_channel(admtDevice, i);
+        const char *deviceChannel = iio_channel_get_id(channel);
+
+        if (deviceChannel && strcmp(deviceChannel, channelName) == 0) {
+            return iio_channel_get_index(channel);
+        }
+    }
+    return -1;
 }
 
 double ADMTController::getChannelValue(const char *deviceName, const char *channelName, int bufferSize)
