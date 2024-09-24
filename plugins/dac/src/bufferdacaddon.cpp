@@ -47,7 +47,8 @@ BufferDacAddon::BufferDacAddon(DacDataModel *model, QWidget *parent)
 	// Start buffer configuration section
 	MenuSectionWidget *bufferConfigContainer = new MenuSectionWidget(this);
 	MenuCollapseSection *bufferConfigSection =
-		new MenuCollapseSection("FILE CONFIGURATION", MenuCollapseSection::MHCW_ARROW, bufferConfigContainer);
+		new MenuCollapseSection("FILE CONFIGURATION", MenuCollapseSection::MHCW_ARROW,
+					MenuCollapseSection::MHW_BASEWIDGET, bufferConfigContainer);
 	bufferConfigSection->contentLayout()->setSpacing(10);
 
 	// Buffersize section
@@ -393,8 +394,8 @@ void BufferDacAddon::detectSamplingFrequency(IIOWidget *w)
 QWidget *BufferDacAddon::createAttrMenu(TxNode *node, QWidget *parent)
 {
 	MenuSectionWidget *attrContainer = new MenuSectionWidget(parent);
-	MenuCollapseSection *attr =
-		new MenuCollapseSection("ATTRIBUTES", MenuCollapseSection::MHCW_NONE, attrContainer);
+	MenuCollapseSection *attr = new MenuCollapseSection("ATTRIBUTES", MenuCollapseSection::MHCW_NONE,
+							    MenuCollapseSection::MHW_BASEWIDGET, attrContainer);
 	QList<IIOWidget *> attrWidgets = IIOWidgetBuilder(attr).channel(node->getChannel()).buildAll();
 
 	auto layout = new QVBoxLayout();
