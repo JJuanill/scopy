@@ -12,6 +12,9 @@ echo "### Copy DLLs to Frameworks folder"
 cp -R $STAGING_AREA/libiio/build/iio.framework Scopy.app/Contents/Frameworks/
 cp -R $STAGING_AREA/libad9361/build/ad9361.framework Scopy.app/Contents/Frameworks/
 
+cp -R $BUILDDIR/translations $BUILDDIR/Scopy.app/Contents/MacOS/translations
+cp -R $BUILDDIR/style $BUILDDIR/Scopy.app/Contents/MacOS/style
+
 libqwtpath=${STAGING_AREA_DEPS}/lib/libqwt.6.4.0.dylib #hardcoded
 libqwtid="$(otool -D ${libqwtpath} | tail -1)"
 echo "=== Fixing libqwt"
