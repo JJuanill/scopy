@@ -8,12 +8,12 @@ QWidget {
 }
 
 scopy--DetachedToolWindow, QMainWindow > .QWidget, scopy--Sismograph > QwtPlotCanvas, QMessageBox, QToolTip {
- background-color: #293038;
+ background-color: #101820;
 }
 
 QDockWidget {
  titlebar-normal-icon: url(:/gui/icons/scopy-default/icons/sba_cmb_box_arrow_right.svg);
- background-color: #293038;
+ background-color: #101820;
 }
 QDockWidget::title {
  background-color: transparent;
@@ -132,13 +132,13 @@ QComboBox QAbstractItemView {
  border-top: 1px solid #bebebe;
 }
 QComboBox QAbstractItemView {
- selection-background-color: #293038;
+ selection-background-color: #101820;
 }
 QComboBox::item:selected {
  font-weight: bold;
  font-size: 18px;
  border-bottom: 0px solid none;
- background-color: #293038;
+ background-color: #101820;
 }
 QComboBox::item {
  background-color: #1b1b21;

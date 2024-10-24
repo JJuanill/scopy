@@ -65,6 +65,9 @@ void StyleHelper::initColorMap()
 	sh->colorMap.insert("Dark-HMC-Color-Content-Default", "#FFFFFF");
 	sh->colorMap.insert("Dark-HMC-Color-Content-Inverse", "#101820");
 	sh->colorMap.insert("Dark-HMC-Color-Layout-Divider-Default", "#4B545D");
+	sh->colorMap.insert("Dark-HMC-Color-Layout-Divider-Silent", "#3A424B");
+	sh->colorMap.insert("Dark-HMC-Color-Layout-Container", "#293038");
+	sh->colorMap.insert("Dark-HMC-Color-Layout-Canvas", "#101820");
 
 	sh->colorMap.insert("Dark-HMC-Color-Interactive-Primary-Idle", "#92BEFC");
 	sh->colorMap.insert("Dark-HMC-Color-Interactive-Primary-Hover", "#C6D8F6");
@@ -1806,9 +1809,24 @@ void StyleHelper::Divider(QFrame *w, QString objectName)
 				color: &&HMC-Color-Layout-Divider-Default&&;
 			}
 			)css");
-	style.replace("&&HMC-Color-Layout-Divider-Default&&", StyleHelper::getColor("Dark-HMC-Color-Layout-Divider-Default"));
+	style.replace("&&HMC-Color-Layout-Divider-Default&&", StyleHelper::getColor("Dark-HMC-Color-Layout-Divider-Silent"));
 	w->setStyleSheet(style);
 	w->setFixedHeight(1);
+}
+
+void StyleHelper::SubtitleMedium(QLabel *w, QString objectName)
+{
+	if(!objectName.isEmpty())
+		w->setObjectName(objectName);
+	QString style = QString(R"css(
+			QLabel {
+				font-size: 16px;
+				font-weight: 600;
+				color: &&HMC-Color-Content-Default&&;
+			}
+			)css");
+	style.replace("&&HMC-Color-Content-Default&&", StyleHelper::getColor("Dark-HMC-Color-Content-Default"));
+	w->setStyleSheet(style);
 }
 
 #include "moc_stylehelper.cpp"

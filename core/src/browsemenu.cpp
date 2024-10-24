@@ -36,9 +36,18 @@ BrowseMenu::BrowseMenu(QWidget *parent)
 	QButtonGroup *btnGroup = m_toolMenu->btnGroup();
 	m_toolMenu->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Expanding);
 
-	QPushButton *homeBtn = new QPushButton(tr("Home"), m_content);
-	homeBtn->setIcon(QIcon(":/gui/icons/" + themeName + "/icons/tool_home.svg"));
-	homeBtn->setStyleSheet("padding-left: 8px;");
+	QPushButton *homeBtn = new QPushButton(m_content);
+	QHBoxLayout *homeBtnLay = new QHBoxLayout(homeBtn);
+	homeBtnLay->setContentsMargins(12, 0, 0, 0);
+	QLabel *homeIconLabel = new QLabel();
+	homeIconLabel->setPixmap(QIcon(":/gui/icons/" + themeName + "/icons/tool_home.svg").pixmap(24, 24));
+	QLabel *homeTextLabel = new QLabel(tr("Home"));
+	StyleHelper::SubtitleMedium(homeTextLabel, "homeTextLabel");
+	homeBtnLay->addWidget(homeIconLabel);
+	homeBtnLay->addSpacing(8);
+	homeBtnLay->addWidget(homeTextLabel, 0, Qt::AlignLeft);
+	homeBtnLay->addStretch();
+	// homeBtn->setIcon(QIcon(":/gui/icons/" + themeName + "/icons/tool_home.svg"));
 	StyleHelper::ToolMenuHome(homeBtn, "toolMenuHome");
 	connect(homeBtn, &QPushButton::clicked, this, [=]() { Q_EMIT requestTool("home"); });
 

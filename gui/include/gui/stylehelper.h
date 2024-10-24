@@ -135,6 +135,7 @@ public:
 	static void ScopyLogo(QLabel *label, QString objectName = "");
 
 	static void Divider(QFrame *w, QString objectName);
+	static void SubtitleMedium(QLabel *w, QString objectName);
 
 private:
 	QMap<QString, QString> colorMap;
