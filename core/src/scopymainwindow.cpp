@@ -75,7 +75,15 @@ ScopyMainWindow::ScopyMainWindow(QWidget *parent)
 
 	////////
 	BrowseMenu *browseMenu = new BrowseMenu(ui->wToolBrowser);
+	ui->wToolBrowser->layout()->setMargin(0);
 	ui->wToolBrowser->layout()->addWidget(browseMenu);
+	QString toolBrowserStyle = QString(R"css( 
+								QWidget#wToolBrowser{
+									border-right: 1px solid &&borderColor&&; 
+								}
+							)css");
+	toolBrowserStyle.replace(QString("&&borderColor&&"), StyleHelper::getColor("Dark-HMC-Color-Layout-Divider-Default"));
+	ui->wToolBrowser->setStyleSheet(toolBrowserStyle);
 
 	connect(browseMenu, &BrowseMenu::requestTool, ts, &ToolStack::show, Qt::QueuedConnection);
 	connect(browseMenu, SIGNAL(requestLoad()), this, SLOT(load()));

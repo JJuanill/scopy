@@ -3,12 +3,16 @@
 #include <QPushButton>
 #include <stylehelper.h>
 
+static QString themeName;
+
 using namespace scopy;
 
 BrowseMenu::BrowseMenu(QWidget *parent)
 	: QWidget(parent)
 	, m_collapsed(false)
 {
+	themeName = QIcon::themeName();
+
 	setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Preferred);
 	QVBoxLayout *lay = new QVBoxLayout(this);
 	lay->setMargin(0);
@@ -33,7 +37,8 @@ BrowseMenu::BrowseMenu(QWidget *parent)
 	m_toolMenu->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Expanding);
 
 	QPushButton *homeBtn = new QPushButton(tr("Home"), m_content);
-	homeBtn->setIcon(QIcon(":/gui/icons/scopy-default/icons/tool_home.svg"));
+	homeBtn->setIcon(QIcon(":/gui/icons/" + themeName + "/icons/tool_home.svg"));
+	homeBtn->setStyleSheet("padding-left: 8px;");
 	StyleHelper::ToolMenuHome(homeBtn, "toolMenuHome");
 	connect(homeBtn, &QPushButton::clicked, this, [=]() { Q_EMIT requestTool("home"); });
 
@@ -43,11 +48,11 @@ BrowseMenu::BrowseMenu(QWidget *parent)
 	saveLoadWidget->layout()->setSpacing(0);
 	saveLoadWidget->layout()->setMargin(0);
 
-	QPushButton *saveBtn = createBtn("Save", ":/gui/icons/scopy-default/icons/save.svg", saveLoadWidget);
+	QPushButton *saveBtn = createBtn("Save", ":/gui/icons/" + themeName + "/icons/save.svg", saveLoadWidget);
 	saveBtn->setCheckable(false);
 	connect(saveBtn, &QPushButton::clicked, this, &BrowseMenu::requestSave);
 
-	QPushButton *loadBtn = createBtn("Load", ":/gui/icons/scopy-default/icons/load.svg", saveLoadWidget);
+	QPushButton *loadBtn = createBtn("Load", ":/gui/icons/" + themeName + "/icons/load.svg", saveLoadWidget);
 	loadBtn->setCheckable(false);
 	connect(loadBtn, &QPushButton::clicked, this, &BrowseMenu::requestLoad);
 
@@ -55,10 +60,10 @@ BrowseMenu::BrowseMenu(QWidget *parent)
 	saveLoadWidget->layout()->addWidget(loadBtn);
 
 	QPushButton *preferencesBtn =
-		createBtn("Preferences", ":/gui/icons/scopy-default/icons/preferences.svg", m_content);
+		createBtn("Preferences", ":/gui/icons/" + themeName + "/icons/preferences.svg", m_content);
 	connect(preferencesBtn, &QPushButton::clicked, this, [=]() { Q_EMIT requestTool("preferences"); });
 
-	QPushButton *aboutBtn = createBtn("About", ":/gui/icons/scopy-default/icons/info.svg", m_content);
+	QPushButton *aboutBtn = createBtn("About", ":/gui/icons/" + themeName + "/icons/info.svg", m_content);
 	connect(aboutBtn, &QPushButton::clicked, this, [=]() { Q_EMIT requestTool("about"); });
 
 	QLabel *logo = createScopyLogo(m_content);
@@ -122,6 +127,7 @@ QFrame *BrowseMenu::createHLine(QWidget *parent)
 	QFrame *line = new QFrame(parent);
 	line->setFrameShape(QFrame::HLine);
 	line->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Fixed);
+	StyleHelper::Divider(line, "divider");
 	return line;
 }
 

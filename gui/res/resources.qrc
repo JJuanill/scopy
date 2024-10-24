@@ -163,8 +163,51 @@
         <file>icons/search_crossed.svg</file>
         <file>icons/scopy-default/icons/tool_datalogger.svg</file>
         <file>icons/edit_pen.svg</file>
+        <file>stylesheets/harmonic-dark.qss</file>
+        <file>Inter-Regular.ttf</file>
+        <file>Inter-Medium.ttf</file>
+        <file>Inter-SemiBold.ttf</file>
+        <file>Inter-Bold.ttf</file>
+        <file>Barlow-SemiBold.ttf</file>
+        <file>icons/scopy-harmonic-dark/index.theme</file>
+        <file>icons/scopy-harmonic-dark/icons/gear_wheel.svg</file>
+        <file>icons/scopy-harmonic-dark/icons/gear_wheel_hover.svg</file>
+        <file>icons/scopy-harmonic-dark/icons/gear_wheel_pressed.svg</file>
+        <file>icons/scopy-harmonic-dark/icons/info.svg</file>
+        <file>icons/scopy-harmonic-dark/icons/load.svg</file>
+        <file>icons/scopy-harmonic-dark/icons/locked.svg</file>
+        <file>icons/scopy-harmonic-dark/icons/logo.svg</file>
+        <file>icons/scopy-harmonic-dark/icons/logo_analog.svg</file>
+        <file>icons/scopy-harmonic-dark/icons/menu.svg</file>
+        <file>icons/scopy-harmonic-dark/icons/note_checked.svg</file>
+        <file>icons/scopy-harmonic-dark/icons/note_unchecked.svg</file>
+        <file>icons/scopy-harmonic-dark/icons/play_stop.svg</file>
+        <file>icons/scopy-harmonic-dark/icons/preferences.svg</file>
+        <file>icons/scopy-harmonic-dark/icons/save.svg</file>
+        <file>icons/scopy-harmonic-dark/icons/search.svg</file>
+        <file>icons/scopy-harmonic-dark/icons/sba_cmb_box_arrow.svg</file>
+        <file>icons/scopy-harmonic-dark/icons/sba_cmb_box_arrow_right.svg</file>
+        <file>icons/scopy-harmonic-dark/icons/setup3_checked_hover.svg</file>
+        <file>icons/scopy-harmonic-dark/icons/setup3_unchecked.svg</file>
+        <file>icons/scopy-harmonic-dark/icons/setup3_unchecked_hover.svg</file>
+        <file>icons/scopy-harmonic-dark/icons/tool_calibration.svg</file>
+        <file>icons/scopy-harmonic-dark/icons/tool_debugger.svg</file>
+        <file>icons/scopy-harmonic-dark/icons/tool_home.svg</file>
+        <file>icons/scopy-harmonic-dark/icons/tool_io.svg</file>
+        <file>icons/scopy-harmonic-dark/icons/tool_logic_analyzer.svg</file>
+        <file>icons/scopy-harmonic-dark/icons/tool_network_analyzer.svg</file>
+        <file>icons/scopy-harmonic-dark/icons/tool_oscilloscope.svg</file>
+        <file>icons/scopy-harmonic-dark/icons/tool_pattern_generator.svg</file>
+        <file>icons/scopy-harmonic-dark/icons/tool_power_supply.svg</file>
+        <file>icons/scopy-harmonic-dark/icons/tool_signal_generator.svg</file>
+        <file>icons/scopy-harmonic-dark/icons/tool_spectrum_analyzer.svg</file>
+        <file>icons/scopy-harmonic-dark/icons/tool_voltmeter.svg</file>
+        <file>icons/scopy-harmonic-dark/icons/unlocked.svg</file>
+        <file>icons/scopy-harmonic-dark/icons/RegMap.svg</file>
+        <file>icons/scopy-harmonic-dark/icons/tool_datalogger.svg</file>
     </qresource>
     <qresource prefix="/">
         <file>icons/scopy-default/icons/search.svg</file>
+        <file>icons/scopy-harmonic-dark/icons/search.svg</file>
     </qresource>
 </RCC>

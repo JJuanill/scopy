@@ -134,6 +134,8 @@ public:
 	static void ToolMenuCollapse(QPushButton *btn, QString objectName = "");
 	static void ScopyLogo(QLabel *label, QString objectName = "");
 
+	static void Divider(QFrame *w, QString objectName);
+
 private:
 	QMap<QString, QString> colorMap;
 	static StyleHelper *pinstance_;

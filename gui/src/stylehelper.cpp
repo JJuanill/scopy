@@ -58,6 +58,18 @@ void StyleHelper::initColorMap()
 
 	sh->colorMap.insert("WarningText", "#FFC904");
 	sh->colorMap.insert("GrayText", "#5c5c5c");
+
+	sh->colorMap.insert("Dark-HMC-Color-System-Highlight-Default", "#B16EE0");
+	sh->colorMap.insert("Dark-HMC-Color-System-Highlight-Silent", "#5d2287");
+
+	sh->colorMap.insert("Dark-HMC-Color-Content-Default", "#FFFFFF");
+	sh->colorMap.insert("Dark-HMC-Color-Content-Inverse", "#101820");
+	sh->colorMap.insert("Dark-HMC-Color-Layout-Divider-Default", "#4B545D");
+
+	sh->colorMap.insert("Dark-HMC-Color-Interactive-Primary-Idle", "#92BEFC");
+	sh->colorMap.insert("Dark-HMC-Color-Interactive-Primary-Hover", "#C6D8F6");
+	sh->colorMap.insert("Dark-HMC-Color-Interactive-Primary-Pressed", "#C6D8F6");
+	sh->colorMap.insert("Dark-HMC-Color-Interactive-Primary-Disabled", "#0067B9");
 }
 
 QString StyleHelper::getColor(QString id)
@@ -138,12 +150,13 @@ void StyleHelper::StatsPanelLabel(StatsLabel *w, QString objectName)
 {
 	QString style = QString(R"css(
 							font-weight: 500;
-							font-family: Open Sans;
+							font-family: &&FontFamily&&;
 							font-size: 12px;
 							font-style: normal;
 							color: &&colorname&&;
 							)css");
 	style.replace(QString("&&colorname&&"), w->m_color.name());
+	style.replace("&&FontFamily&&", "Inter");
 	w->m_nameLabel->setStyleSheet(style);
 
 	style = QString(R"css(e
@@ -365,15 +378,16 @@ void StyleHelper::CollapseCheckbox(QCheckBox *chk, QString objectName)
 							background-color: transparent;
 						}
 						QCheckBox::indicator:unchecked {
-							image: url(:/gui/icons/scopy-default/icons/sba_cmb_box_arrow_right.svg);
+							image: url(:/gui/icons/&&ThemeName&&/icons/sba_cmb_box_arrow_right.svg);
 							background-color: transparent;
 						}
 						QCheckBox::indicator:checked {
-							image: url(:/gui/icons/scopy-default/icons/sba_cmb_box_arrow.svg);
+							image: url(:/gui/icons/&&ThemeName&&/icons/sba_cmb_box_arrow.svg);
 							background-color: transparent;
 						}
 						)css");
 	style.replace("&&UIElementBackground&&", StyleHelper::getColor("UIElementBackground"));
+	style.replace("&&ThemeName&&", QIcon::themeName());
 	chk->setStyleSheet(style);
 }
 
@@ -494,7 +508,7 @@ QComboBox::item:selected {
 }
 QComboBox::drop-down {
  subcontrol-position: center right;
- border-image: url(:/gui/icons/scopy-default/icons/sba_cmb_box_arrow.svg);
+ border-image: url(:/gui/icons/&&ThemeName&&/icons/sba_cmb_box_arrow.svg);
  width: 10px;
  height: 6px;
  font-size: 16px;
@@ -511,6 +525,7 @@ QComboBox::indicator {
 
 	style.replace("&&ScopyBackground&&", StyleHelper::getColor("ScopyBackground"));
 	style.replace("&&UIElementBackground&&", StyleHelper::getColor("UIElementBackground"));
+	style.replace("&&ThemeName&&", QIcon::themeName());
 	cb->setStyleSheet(style);
 }
 
@@ -525,7 +540,7 @@ void StyleHelper::MenuSmallLabel(QLabel *m_lbl, QString objectName)
 					color: white;
 					background-color: rgba(255,255,255,0);
 					font-weight: 500;
-					font-family: Open Sans;
+					font-family: &&FontFamily&&;
 					font-size: 12px;
 					font-style: normal;
 					}
@@ -533,6 +548,8 @@ void StyleHelper::MenuSmallLabel(QLabel *m_lbl, QString objectName)
 					color: grey;
 				}
 				)css");
+	
+	style.replace("&&FontFamily&&", "Inter");
 	m_lbl->setText(m_lbl->text().toUpper());
 	m_lbl->setStyleSheet(style);
 }
@@ -563,11 +580,12 @@ void StyleHelper::MenuLargeLabel(QLabel *m_lbl, QString objectName)
 					color: white;
 					background-color: rgba(255,255,255,0);
 					font-weight: 700;
-					font-family: Open Sans;
+					font-family: &&FontFamily&&;
 					font-size: 14px;
 					font-style: normal;
 					}
 				)css");
+	style.replace("&&FontFamily&&", "Inter");
 	m_lbl->setText(m_lbl->text().toUpper());
 	m_lbl->setStyleSheet(style);
 }
@@ -642,18 +660,19 @@ QComboBox::drop-down {
  subcontrol-position: center right;
  width: 10px;
  height: 6px;
- border-image: url(:/gui/icons/scopy-default/icons/sba_cmb_box_arrow.svg);
+ border-image: url(:/gui/icons/&&ThemeName&&/icons/sba_cmb_box_arrow.svg);
 }
 QComboBox::drop-down:disabled {
  subcontrol-position: center right;
  width: 0px;
  height: 0px;
- border-image: url(:/gui/icons/scopy-default/icons/sba_cmb_box_arrow.svg);
+ border-image: url(:/gui/icons/&&ThemeName&&/icons/sba_cmb_box_arrow.svg);
 }
 	)css");
 
 	style.replace("&&ScopyBackground&&", StyleHelper::getColor("ScopyBackground"));
 	style.replace("&&UIElementBackground&&", StyleHelper::getColor("UIElementBackground"));
+	style.replace("&&ThemeName&&", QIcon::themeName());
 	w->setStyleSheet(style);
 }
 
@@ -1035,7 +1054,7 @@ void StyleHelper::MenuCollapseHeaderLineEdit(QLineEdit *w, QString objectName)
 					color: white;
 					background-color: rgba(255,255,255,0);
 					font-weight: 500;
-					font-family: Open Sans;
+					font-family: &&FontFamily&&;
 					font-size: 14px;
 					font-style: normal;
 					border: 0px solid gray;
@@ -1049,6 +1068,7 @@ padding-left: -2px;
 				}
 
 				)css");
+	style.replace("&&FontFamily&&", "Inter");
 	w->setStyleSheet(style);
 }
 
@@ -1248,7 +1268,7 @@ QComboBox::item:selected {
 }
 QComboBox::drop-down {
  subcontrol-position: center right;
- border-image: url(:/gui/icons/scopy-default/icons/sba_cmb_box_arrow.svg);
+ border-image: url(:/gui/icons/&&ThemeName&&/icons/sba_cmb_box_arrow.svg);
  width: 10px;
  height: 6px;
  font-size: 16px;
@@ -1265,6 +1285,7 @@ QComboBox::indicator {
 
 	style.replace("&&ScopyBackground&&", StyleHelper::getColor("ScopyBackground"));
 	style.replace("&&UIElementBackground&&", StyleHelper::getColor("UIElementBackground"));
+	style.replace("&&ThemeName&&", QIcon::themeName());
 	w->setStyleSheet(style);
 }
 
@@ -1486,24 +1507,25 @@ void StyleHelper::TableWidgetDebugger(QTableWidget *w, QString objectName)
 					font: 11pt;
 					border: none;
 					background-color:&&ScopyBackground&&;
-					font-family: Open Sans;
+					font-family: &&FontFamily&&;
 				}
 				QTableWidget::item {
 					border-left: 1px solid &&UIElementHighlight&&;
-					font-family: Open Sans;
+					font-family: &&FontFamily&&;
 				}
 				QTableWidget::item::selected {
 					background-color: &&ScopyBlue&&;
-					font-family: Open Sans;
+					font-family: &&FontFamily&&;
 				}
 				QHeaderView::section {
 					border-left: 1px solid &&UIElementHighlight&&;
-					font-family: Open Sans;
+					font-family: &&FontFamily&&;
 				}
 				)css");
 	style.replace("&&ScopyBackground&&", StyleHelper::getColor("ScopyBackground"));
 	style.replace("&&UIElementHighlight&&", StyleHelper::getColor("UIElementHighlight"));
 	style.replace("&&ScopyBlue&&", StyleHelper::getColor("ScopyBlue"));
+	style.replace("&&FontFamily&&", "Inter");
 	w->setStyleSheet(style);
 }
 
@@ -1601,13 +1623,14 @@ void StyleHelper::IIOCompactLabel(QLabel *w, QString objectName)
 				color: white;
 				background-color: rgba(255,255,255,0);
 				font-weight: 500;
-				font-family: Open Sans;
+				font-family: &&FontFamily&&;
 				font-size: 12px;
 				font-style: normal;
 			}
 				QLabel:disabled {
 					color: grey;
 			})css";
+	style.replace("&&FontFamily&&", "Inter");
 	w->setStyleSheet(style);
 }
 
@@ -1649,20 +1672,28 @@ void StyleHelper::ToolMenuBtn(QPushButton *btn, QString objectName)
 	btn->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
 	QString style = QString(R"css(
 			QPushButton {
+				font-weight: 500;
+				font-size: 14px;
 				text-align:center;
-				height: 25px;
+				height: 44px;
 				background-color: none;
+				color: &&HMC-Color-Content-Default&&;
 				border:none;
 			}
 			QPushButton:hover {
-				background-color: rgba(0,0,0,60);
-				border: 1px solid rgba(0, 0, 0, 30);
-				border-radius:4px;
+				background-color: &&HMC-Color-Interactive-Primary-Hover&&;
+				color: &&HMC-Color-Content-Hover&&;
 			}
 			QPushButton:checked {
-				background-color: rgba(0,0,0,60);
+				background-color: &&HMC-Color-Interactive-Primary-Checked&&;
+				color: &&HMC-Color-Content-Checked&&;
 			}
 			)css");
+	style.replace("&&HMC-Color-Interactive-Primary-Hover&&", StyleHelper::getColor("Dark-HMC-Color-Interactive-Primary-Hover"));
+	style.replace("&&HMC-Color-Interactive-Primary-Checked&&", StyleHelper::getColor("Dark-HMC-Color-Interactive-Primary-Idle"));
+	style.replace("&&HMC-Color-Content-Default&&", StyleHelper::getColor("Dark-HMC-Color-Content-Default"));
+	style.replace("&&HMC-Color-Content-Hover&&", StyleHelper::getColor("Dark-HMC-Color-Content-Inverse"));
+	style.replace("&&HMC-Color-Content-Checked&&", StyleHelper::getColor("Dark-HMC-Color-Content-Inverse"));
 	btn->setStyleSheet(style);
 	btn->setCheckable(true);
 	btn->setIconSize(QSize(16, 16));
@@ -1675,23 +1706,30 @@ void StyleHelper::ToolMenuHome(QPushButton *btn, QString objectName)
 	btn->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
 	QString style = QString(R"css(
 			QPushButton {
+				font-weight: 600;
+				font-size: 16px;
 				text-align:left;
-				height: 42px;
+				padding-left: 11px;
+				height: 44px;
 				background-color: none;
 				border:none;
+				color: &&HMC-Color-Content-Default&&;
 			}
 			QPushButton:hover {
-				background-color: rgba(0,0,0,60);
-				border: 1px solid rgba(0, 0, 0, 30);
-				border-radius:4px;
+				background-color: &&HMC-Color-Interactive-Secondary-Hover&&;
+				color: &&HMC-Color-Content-Hover&&;
 			}
 			QPushButton:checked {
-				background-color: rgba(0,0,0,60);
+				background-color: &&HMC-Color-Interactive-Secondary-Checked&&;
 			}
 			)css");
+	style.replace("&&HMC-Color-Interactive-Secondary-Hover&&", StyleHelper::getColor("Dark-HMC-Color-System-Highlight-Default"));
+	style.replace("&&HMC-Color-Interactive-Secondary-Checked&&", StyleHelper::getColor("Dark-HMC-Color-System-Highlight-Silent"));
+	style.replace("&&HMC-Color-Content-Default&&", StyleHelper::getColor("Dark-HMC-Color-Content-Default"));
+	style.replace("&&HMC-Color-Content-Hover&&", StyleHelper::getColor("Dark-HMC-Color-Content-Default"));
 	btn->setStyleSheet(style);
 	btn->setCheckable(true);
-	btn->setIconSize(QSize(32, 32));
+	btn->setIconSize(QSize(24, 24));
 }
 
 void StyleHelper::ToolMenuCollapseMini(QPushButton *btn, QString objectName)
@@ -1703,11 +1741,11 @@ void StyleHelper::ToolMenuCollapseMini(QPushButton *btn, QString objectName)
 	QString style = QString(R"css(
 			height:40px;
 			width:40px;
-			background-image: url(:/gui/icons/scopy-default/icons/menu.svg);
+			background-image: url(:/gui/icons/&&ThemeName&&/icons/menu.svg);
 			background-repeat: no-repeat;
 			background-position: center center;
 			)css");
-
+	style.replace("&&ThemeName&&", QIcon::themeName());
 	btn->setStyleSheet(style);
 }
 
@@ -1736,11 +1774,11 @@ void StyleHelper::ToolMenuCollapse(QPushButton *btn, QString objectName)
 	btn->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
 	QString style = QString(R"css(
 			height:40px;
-			background-image: url(:/gui/icons/scopy-default/icons/logo.svg);
+			background-image: url(:/gui/icons/&&ThemeName&&/icons/logo.svg);
 			background-repeat: no-repeat;
 			background-position: center center;
 			)css");
-
+	style.replace("&&ThemeName&&", QIcon::themeName());
 	btn->setStyleSheet(style);
 }
 
@@ -1749,14 +1787,28 @@ void StyleHelper::ScopyLogo(QLabel *label, QString objectName)
 	if(!objectName.isEmpty())
 		label->setObjectName(objectName);
 	label->setEnabled(true);
-	label->setMinimumSize(QSize(0, 40));
+	label->setFixedHeight(60);
 	QString style = QString(R"css(
-			background-image: url(:/gui/icons/scopy-default/icons/logo_analog.svg);
+			background-image: url(:/gui/icons/&&ThemeName&&/icons/logo_analog.svg);
 			background-repeat: no-repeat;
 			background-position: center center;
-			min-height:36px;
 			)css");
+	style.replace("&&ThemeName&&", QIcon::themeName());
 	label->setStyleSheet(style);
+}
+
+void StyleHelper::Divider(QFrame *w, QString objectName)
+{
+	if(!objectName.isEmpty())
+		w->setObjectName(objectName);
+	QString style = QString(R"css(
+			QFrame {
+				color: &&HMC-Color-Layout-Divider-Default&&;
+			}
+			)css");
+	style.replace("&&HMC-Color-Layout-Divider-Default&&", StyleHelper::getColor("Dark-HMC-Color-Layout-Divider-Default"));
+	w->setStyleSheet(style);
+	w->setFixedHeight(1);
 }
 
 #include "moc_stylehelper.cpp"

@@ -23,6 +23,7 @@ ScopyHomeAddPage::ScopyHomeAddPage(QWidget *parent, PluginManager *pm)
 	layout->setMargin(0);
 
 	m_stackedWidget = new QStackedWidget(this);
+	m_stackedWidget->setContentsMargins(20, 10, 20, 10);
 	m_tabWidget = createTabWidget(m_stackedWidget);
 	m_addPage = createAddPage(m_stackedWidget);
 	m_stackedWidget->addWidget(m_tabWidget);
