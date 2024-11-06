@@ -70,7 +70,7 @@ void SmallOnOffSwitch::setDuration(int ms)
 
 void SmallOnOffSwitch::setHandleColor(const QColor &color)
 {
-	QString ss(stylesheet + QString("QWidget#handle { background-color: %1; }").arg(color.name()));
+	QString ss(stylesheet + QString("QPushButton { background-color: %1; }").arg(color.name()));
 	this->setStyleSheet(ss);
 }
 
@@ -79,8 +79,8 @@ void SmallOnOffSwitch::toggleAnim(bool enabled)
 	if(!isVisible())
 		return;
 
-	QRect off_rect(0, handle.y(), handle.width(), handle.height());
-	QRect on_rect(width() - handle.width(), handle.y(), handle.width(), handle.height());
+	QRect off_rect(width() - handle.width(), handle.y(), handle.width(), handle.height());
+	QRect on_rect(0, handle.y(), handle.width(), handle.height());
 
 	anim.stop();
 	color_anim.stop();
@@ -157,7 +157,7 @@ void SmallOnOffSwitch::paintEvent(QPaintEvent *e)
 void SmallOnOffSwitch::showEvent(QShowEvent *event)
 {
 	if(!isChecked()) {
-		handle.setGeometry(QRect(width() - handle.width(), handle.y(), handle.width(), handle.height()));
+		handle.setGeometry(0, handle.y(), handle.width(), handle.height());
 		if(bothValid) {
 			setHandleColor(color_start);
 		} else {
@@ -165,7 +165,7 @@ void SmallOnOffSwitch::showEvent(QShowEvent *event)
 		}
 	} else {
 		setHandleColor(color_start);
-		handle.setGeometry(0, handle.y(), handle.width(), handle.height());
+		handle.setGeometry(QRect(width() - handle.width(), handle.y(), handle.width(), handle.height()));
 	}
 }
 

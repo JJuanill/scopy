@@ -18,20 +18,25 @@ ScopyHomePage::ScopyHomePage(QWidget *parent, PluginManager *pm)
 	auto &&hc = is->getHomepageControls();
 	auto &&db = ui->wDeviceBrowser;
 	auto &&deviceListWidget = ui->DeviceListWidget;
+	auto &&deviceListHeader = ui->DeviceListHeader;
+	auto &&devicesLabel = ui->devicesLabel;
+	auto &&scanLabel = ui->scanLabel;
 	add = new ScopyHomeAddPage(this, pm);
 
 	is->add("home", new ScopyHomeInfoPage());
 	is->add("add", add);
 
-	// QString scopyHomePageStyle = QString(R"css(
-	// 										QWidget {
-	// 											background-color: &&HMC-Color-Layout-Canvas&&;
-	// 										}
-	// 									)css"
-	// );
-	// scopyHomePageStyle.replace("&&HMC-Color-Layout-Canvas&&", StyleHelper::getColor("Dark-HMC-Color-Layout-Canvas"));
+	QString headerStyle = QString(R"css(
+										QWidget#DeviceListHeader {
+											border-bottom: 1px solid &&HMC-Color-Layout-Divider&&;
+										}
+										)css"
+	);
+	headerStyle.replace("&&HMC-Color-Layout-Divider&&", StyleHelper::getColor("Dark-HMC-Color-Layout-Divider-Silent"));
+	deviceListHeader->setStyleSheet(headerStyle);
 
-	// this->setStyleSheet(scopyHomePageStyle);
+	StyleHelper::SubtitleLarge(devicesLabel, "devicesLabel"); 
+	StyleHelper::BodySmall(scanLabel, "scanLabel");
 
 	QString cardStyle = QString(R"css(
 										QWidget#DeviceListWidget {
@@ -42,7 +47,7 @@ ScopyHomePage::ScopyHomePage(QWidget *parent, PluginManager *pm)
 										)css"
 	);
 	cardStyle.replace("&&HMC-Color-Layout-Container&&", StyleHelper::getColor("Dark-HMC-Color-Layout-Container"));
-	cardStyle.replace("&&HMC-Color-Layout-Divider&&", StyleHelper::getColor("Dark-HMC-Color-Layout-Divider-Default"));
+	cardStyle.replace("&&HMC-Color-Layout-Divider&&", StyleHelper::getColor("Dark-HMC-Color-Content-Silent"));
 	deviceListWidget->setStyleSheet(cardStyle);
 
 	QString infoStackStyle = QString(R"css(

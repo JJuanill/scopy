@@ -1,25 +1,25 @@
 QPushButton {
-min-height: 20px;
-max-height: 20px;
-min-width: 40px;
-max-width: 40px;
-border-radius: 4px;
-background-color: #141416;
-qproperty-color_start: #4a64ff;
-qproperty-color_end: grey;
+min-height: 16px;
+max-height: 16px;
+min-width: 35px;
+max-width: 35px;
+border-radius: 8px;
+background-color: #9fa4ad;
+qproperty-color_start: #92befc;
+qproperty-color_end: #9fa4ad;
 }
 
 QWidget#handle {
-margin-right: 2px;
-margin-top: 2px;
-margin-left: 2px;
-margin-bottom: 2px;
-min-height: 16px;
-max-height: 16px;
-min-width: 16px;
-max-width: 16px;
-border-radius: 2px;
-background-color: grey;
+margin-right: 1px;
+margin-top: 1px;
+margin-left: 1px;
+margin-bottom: 1px;
+min-height: 14px;
+max-height: 14px;
+min-width: 14px;
+max-width: 14px;
+border-radius: 7px;
+background-color: #101820;
 }
 
 QWidget#handle:disabled {
