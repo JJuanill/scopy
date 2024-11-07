@@ -1124,6 +1124,25 @@ void StyleHelper::DeviceIconBackgroundShadow(QAbstractButton *w, QString objectN
 	w->setStyleSheet(style);
 }
 
+void StyleHelper::DeviceIconBorder(QAbstractButton *w, QString objectName)
+{
+	if(!objectName.isEmpty())
+		w->setObjectName(objectName);
+
+	QString style = QString(R"css(
+				QAbstractButton {
+					border: 1px solid &&HMC-Color-Layout-Divider&&;
+					border-radius: 8px;
+				}
+				QWidget#headerWidget {
+					border-bottom: 1px solid &&HMC-Color-Layout-Divider&&;
+				}
+				)css");
+
+	style.replace("&&HMC-Color-Layout-Divider&&", StyleHelper::getColor("Dark-HMC-Color-Layout-Divider-Silent"));
+	w->setStyleSheet(style);
+}
+
 void StyleHelper::FrameBackgroundShadow(QFrame *w, QString objectName)
 {
 	if(!objectName.isEmpty())
@@ -1723,9 +1742,6 @@ void StyleHelper::ToolMenuHome(QPushButton *btn, QString objectName)
 				background-color: &&HMC-Color-Interactive-Secondary-Hover&&;
 				color: &&HMC-Color-Content-Hover&&;
 			}
-			QPushButton:checked {
-				background-color: &&HMC-Color-Interactive-Secondary-Checked&&;
-			}
 			)css");
 	style.replace("&&HMC-Color-Interactive-Secondary-Hover&&", StyleHelper::getColor("Dark-HMC-Color-System-Highlight-Default"));
 	style.replace("&&HMC-Color-Interactive-Secondary-Checked&&", StyleHelper::getColor("Dark-HMC-Color-System-Highlight-Silent"));
@@ -1852,6 +1868,36 @@ void StyleHelper::BodySmall(QLabel *w, QString objectName)
 	QString style = QString(R"css(
 			QLabel {
 				font-size: 14px;
+				font-weight: 400;
+				color: &&HMC-Color-Content-Default&&;
+			}
+			)css");
+	style.replace("&&HMC-Color-Content-Default&&", StyleHelper::getColor("Dark-HMC-Color-Content-Default"));
+	w->setStyleSheet(style);
+}
+
+void StyleHelper::BodyMedium(QLabel *w, QString objectName)
+{
+	if(!objectName.isEmpty())
+		w->setObjectName(objectName);
+	QString style = QString(R"css(
+			QLabel {
+				font-size: 16px;
+				font-weight: 400;
+				color: &&HMC-Color-Content-Default&&;
+			}
+			)css");
+	style.replace("&&HMC-Color-Content-Default&&", StyleHelper::getColor("Dark-HMC-Color-Content-Default"));
+	w->setStyleSheet(style);
+}
+
+void StyleHelper::LineEditBodyMedium(QLineEdit *w, QString objectName)
+{
+	if(!objectName.isEmpty())
+		w->setObjectName(objectName);
+	QString style = QString(R"css(
+			QLineEdit {
+				font-size: 16px;
 				font-weight: 400;
 				color: &&HMC-Color-Content-Default&&;
 			}

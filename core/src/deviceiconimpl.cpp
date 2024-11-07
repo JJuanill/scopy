@@ -16,7 +16,9 @@ DeviceIconImpl::DeviceIconImpl(Device *d, QWidget *parent)
 {
 	ui = new Ui::DeviceButton;
 	ui->setupUi(this);
-	StyleHelper::DeviceIconBackgroundShadow(this);
+	StyleHelper::DeviceIconBorder(this);
+	StyleHelper::LineEditBodyMedium(ui->name);
+	StyleHelper::BodyMedium(ui->description);
 	ui->description->setText(d->displayParam());
 	ui->name->setText(d->displayName());
 	ui->name->setStyleSheet("border: none;");

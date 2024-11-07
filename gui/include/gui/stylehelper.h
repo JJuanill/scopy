@@ -95,6 +95,7 @@ public:
 						  QString objectName = "");
 	static void PlotInfoLabel(QLabel *w, QString objectName = "");
 	static void DeviceIconBackgroundShadow(QAbstractButton *w, QString objectName = "");
+	static void DeviceIconBorder(QAbstractButton *w, QString objectName = "");
 	static void FrameBackgroundShadow(QFrame *w, QString objectName = "");
 	static void HoverWidget(QWidget *w, bool draggable = false, QString objectName = "");
 	static void TransparentWidget(QWidget *w, QString objectName = "");
@@ -134,10 +135,12 @@ public:
 	static void ToolMenuCollapse(QPushButton *btn, QString objectName = "");
 	static void ScopyLogo(QLabel *label, QString objectName = "");
 
-	static void Divider(QFrame *w, QString objectName);
-	static void SubtitleMedium(QLabel *w, QString objectName);
-	static void SubtitleLarge(QLabel *w, QString objectName);
-	static void BodySmall(QLabel *w, QString objectName);
+	static void Divider(QFrame *w, QString objectName = "");
+	static void SubtitleMedium(QLabel *w, QString objectName = "");
+	static void SubtitleLarge(QLabel *w, QString objectName = "");
+	static void BodySmall(QLabel *w, QString objectName = "");
+	static void BodyMedium(QLabel *w, QString objectName = "");
+	static void LineEditBodyMedium(QLineEdit *w, QString objectName = "");
 
 private:
 	QMap<QString, QString> colorMap;
