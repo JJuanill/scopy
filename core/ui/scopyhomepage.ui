@@ -62,7 +62,7 @@
          <widget class="QWidget" name="DeviceListHeader" native="true">
           <layout class="QHBoxLayout" name="horizontalLayout_2">
            <property name="leftMargin">
-            <number>16</number>
+            <number>15</number>
            </property>
            <property name="topMargin">
             <number>8</number>

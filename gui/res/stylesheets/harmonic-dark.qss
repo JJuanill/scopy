@@ -297,14 +297,14 @@ max-width: 240px;
 }
 
 QPushButton[blue_button=true]{
- background-color: #4a64ff;
+ background-color: #92BEFC;
  color: #ffffff;
  border-radius: 4px;
  font-size: 14px;
 }
-QPushButton[blue_button=true]:pressed{ background-color: #2a44df; }
-QPushButton[blue_button=true]:hover{ background-color: #4a34ff; }
-QPushButton[blue_button=true]:disabled { background-color: grey; }
+QPushButton[blue_button=true]:pressed{ background-color: #C6D8F6; }
+QPushButton[blue_button=true]:hover{ background-color: #C6D8F6; }
+QPushButton[blue_button=true]:disabled { background-color: #0067B9; }
 
 QPushButton[info_button=true]{
  min-height: 40px;
