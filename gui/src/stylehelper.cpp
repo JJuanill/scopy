@@ -936,7 +936,7 @@ void StyleHelper::BlueIconButton(QPushButton *w, QIcon icon, QString objectName)
 {
 	if(!objectName.isEmpty())
 		w->setObjectName(objectName);
-	int size = 30;
+	int size = 24;
 	w->setIcon(icon);
 	w->setIconSize(QSize(size, size));
 	w->setProperty("blue_button", true);
@@ -945,19 +945,20 @@ void StyleHelper::BlueIconButton(QPushButton *w, QIcon icon, QString objectName)
 
 	QString style = QString(R"css(
 			QPushButton{
-			 background-color: &&ScopyBlue&&;
-			 color: &&LabelText&&;
+			 background-color: &&HMC-Color-Interactive-Primary-Idle&&;
+			 color: &&HMC-Color-Content-Default&&;
 			 border-radius: 4px;
 			 font-size: 14px;
 			}
-			QPushButton:hover:!pressed { background-color: &&ScopyBlueHover&&; }
-			QPushButton:pressed { background-color: &&ScopyBlueSelected&&; }
-			QPushButton:disabled { background-color: grey; }
+			QPushButton:hover:!pressed { background-color: &&HMC-Color-Interactive-Primary-Hover&&; }
+			QPushButton:pressed { background-color: &&HMC-Color-Interactive-Primary-Pressed&&; }
+			QPushButton:disabled { background-color: &&HMC-Color-Interactive-Primary-Disabled&&; }
 			)css");
-	style.replace("&&ScopyBlue&&", StyleHelper::getColor("ScopyBlue"));
-	style.replace("&&LabelText&&", StyleHelper::getColor("LabelText"));
-	style.replace("&&ScopyBlueHover&&", StyleHelper::getColor("ScopyBlueHover"));
-	style.replace("&&ScopyBlueSelected&&", StyleHelper::getColor("ScopyBlueSelected"));
+	style.replace("&&HMC-Color-Interactive-Primary-Idle&&", StyleHelper::getColor("Dark-HMC-Color-Interactive-Primary-Idle"));
+	style.replace("&&HMC-Color-Content-Default&&", StyleHelper::getColor("Dark-HMC-Color-Content-Default"));
+	style.replace("&&HMC-Color-Interactive-Primary-Hover&&", StyleHelper::getColor("Dark-HMC-Color-Interactive-Primary-Hover"));
+	style.replace("&&HMC-Color-Interactive-Primary-Pressed&&", StyleHelper::getColor("Dark-HMC-Color-Interactive-Primary-Pressed"));
+	style.replace("&&HMC-Color-Interactive-Primary-Disabled&&", StyleHelper::getColor("Dark-HMC-Color-Interactive-Primary-Disabled"));
 	w->setStyleSheet(style);
 }
 
@@ -1829,6 +1830,20 @@ void StyleHelper::Divider(QFrame *w, QString objectName)
 	style.replace("&&HMC-Color-Layout-Divider-Default&&", StyleHelper::getColor("Dark-HMC-Color-Layout-Divider-Silent"));
 	w->setStyleSheet(style);
 	w->setFixedHeight(1);
+}
+
+void StyleHelper::HeaderDivider(QWidget *w, QString objectName)
+{
+	if(!objectName.isEmpty())
+		w->setObjectName(objectName);
+	QString style = QString(R"css(
+		.QWidget{
+			border-bottom: 1px solid &&HMC-Color-Layout-Divider&&;
+		}
+		)css"
+	);
+	style.replace("&&HMC-Color-Layout-Divider&&", StyleHelper::getColor("Dark-HMC-Color-Layout-Divider-Silent"));
+	w->setStyleSheet(style);
 }
 
 void StyleHelper::SubtitleMedium(QLabel *w, QString objectName)

@@ -13,6 +13,11 @@ ScopyHomeInfoPage::ScopyHomeInfoPage(QWidget *parent)
 	, ui(new Ui::ScopyHomeInfoPage)
 {
 	ui->setupUi(this);
+	auto &&homeInfoHeaderWidget = ui->homeInfoHeaderWidget;
+	auto &&homepageLabel = ui->homepageLabel;
+
+	StyleHelper::HeaderDivider(homeInfoHeaderWidget);
+	StyleHelper::SubtitleLarge(homepageLabel);
 	//	initReportButton();
 }
 

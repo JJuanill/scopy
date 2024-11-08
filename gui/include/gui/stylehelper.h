@@ -136,6 +136,8 @@ public:
 	static void ScopyLogo(QLabel *label, QString objectName = "");
 
 	static void Divider(QFrame *w, QString objectName = "");
+	static void HeaderDivider(QWidget *w, QString objectName = "");
+
 	static void SubtitleMedium(QLabel *w, QString objectName = "");
 	static void SubtitleLarge(QLabel *w, QString objectName = "");
 	static void BodySmall(QLabel *w, QString objectName = "");

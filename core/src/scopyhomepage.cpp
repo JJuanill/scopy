@@ -26,14 +26,7 @@ ScopyHomePage::ScopyHomePage(QWidget *parent, PluginManager *pm)
 	is->add("home", new ScopyHomeInfoPage());
 	is->add("add", add);
 
-	QString headerStyle = QString(R"css(
-										QWidget#DeviceListHeader {
-											border-bottom: 1px solid &&HMC-Color-Layout-Divider&&;
-										}
-										)css"
-	);
-	headerStyle.replace("&&HMC-Color-Layout-Divider&&", StyleHelper::getColor("Dark-HMC-Color-Layout-Divider-Silent"));
-	deviceListHeader->setStyleSheet(headerStyle);
+	StyleHelper::HeaderDivider(deviceListHeader);
 
 	StyleHelper::SubtitleLarge(devicesLabel, "devicesLabel"); 
 	StyleHelper::BodySmall(scanLabel, "scanLabel");
@@ -59,7 +52,7 @@ ScopyHomePage::ScopyHomePage(QWidget *parent, PluginManager *pm)
 										)css"
 	);
 	infoStackStyle.replace("&&HMC-Color-Layout-Container&&", StyleHelper::getColor("Dark-HMC-Color-Layout-Container"));
-	infoStackStyle.replace("&&HMC-Color-Layout-Divider&&", StyleHelper::getColor("Dark-HMC-Color-Layout-Divider-Silent"));
+	infoStackStyle.replace("&&HMC-Color-Layout-Divider&&", StyleHelper::getColor("Dark-HMC-Color-Layout-Divider-Default"));
 	is->setStyleSheet(infoStackStyle);
 
 	//	addDevice("dev1","dev1","descr1",new QPushButton("abc"),new QLabel("page1"));
