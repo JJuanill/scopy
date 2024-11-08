@@ -16,7 +16,6 @@ resources/scopy_osp.html
 resources/stylesheets/default.qss
 resources/stylesheets/light.qss
 resources/credits.html
-resources/scopy.html
 resources/about.html
 *qt.conf
 !android/src/org/adi/scopy
