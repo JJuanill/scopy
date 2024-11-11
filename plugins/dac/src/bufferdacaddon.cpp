@@ -1,3 +1,24 @@
+/*
+ * Copyright (c) 2024 Analog Devices Inc.
+ *
+ * This file is part of Scopy
+ * (see https://www.github.com/analogdevicesinc/scopy).
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program. If not, see <https://www.gnu.org/licenses/>.
+ *
+ */
+
 #include "bufferdacaddon.h"
 #include "dacdatamodel.h"
 #include "txnode.h"
@@ -5,6 +26,7 @@
 #include "databuffer.h"
 #include "dac_logging_categories.h"
 #include "scopy-dac_config.h"
+#include <style.h>
 
 #include <menusectionwidget.h>
 #include <menucollapsesection.h>
@@ -122,7 +144,7 @@ BufferDacAddon::BufferDacAddon(DacDataModel *model, QWidget *parent)
 	connect(this, &BufferDacAddon::toggleCyclic, this,
 		[=, this](bool toggled) { m_cyclicBtn->onOffswitch()->setChecked(toggled); });
 	cyclicContainer->contentLayout()->addWidget(m_cyclicBtn);
-	cyclicContainer->setFixedHeight(48);
+	cyclicContainer->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Preferred);
 	m_cyclicBtn->onOffswitch()->setChecked(true);
 
 	// File size and file truncate section
@@ -138,7 +160,7 @@ BufferDacAddon::BufferDacAddon(DacDataModel *model, QWidget *parent)
 	m_fileSizeSpin->setScaleRange(1, 16 * 1024 * 1024);
 	m_fileSizeSpin->setValue(16);
 	filesizeContainer->contentLayout()->addWidget(m_fileSizeSpin);
-	filesizeContainer->setFixedHeight(48);
+	filesizeContainer->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Preferred);
 
 	runConfigLay->addWidget(cyclicContainer);
 	runConfigLay->addWidget(filesizeContainer);
@@ -148,7 +170,7 @@ BufferDacAddon::BufferDacAddon(DacDataModel *model, QWidget *parent)
 	MenuSectionWidget *fileBrowserSection = new MenuSectionWidget(this);
 	fileBrowserSection->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Expanding);
 	QLabel *fileLbl = new QLabel("Choose file");
-	StyleHelper::MenuSmallLabel(fileLbl);
+	Style::setStyle(fileLbl, style::properties::label::subtle);
 
 	// Determine default search dir
 	QString defaultDir = DAC_CSV_BUILD_PATH;
@@ -227,7 +249,7 @@ BufferDacAddon::BufferDacAddon(DacDataModel *model, QWidget *parent)
 		chnBtn->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Maximum);
 		chnBtn->setName(node->getUuid());
 		chnBtn->setCheckBoxStyle(MenuControlButton::CS_CIRCLE);
-		auto color = StyleHelper::getColor("CH" + QString::number(i % 7));
+		auto color = StyleHelper::getChannelColor(i);
 		chnBtn->setColor(color);
 		node->setColor(color);
 		chnBtn->setDoubleClickToOpenMenu(true);

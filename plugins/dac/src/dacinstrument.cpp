@@ -1,10 +1,34 @@
+/*
+ * Copyright (c) 2024 Analog Devices Inc.
+ *
+ * This file is part of Scopy
+ * (see https://www.github.com/analogdevicesinc/scopy).
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program. If not, see <https://www.gnu.org/licenses/>.
+ *
+ */
+
 #include "dacinstrument.h"
 #include "dacdatamanager.h"
 #include "dacutils.h"
 #include "dac_logging_categories.h"
 
+#include <QDesktopServices>
 #include <QHBoxLayout>
 #include <stylehelper.h>
+
+#include <pluginbase/preferences.h>
 
 using namespace scopy;
 using namespace scopy::dac;
@@ -47,7 +71,9 @@ DacInstrument::DacInstrument(const Connection *conn, QWidget *parent)
 	rightMenuBtnGrp->addButton(settingsBtn);
 	rightMenuBtnGrp->addButton(devicesBtn->button());
 
-	connect(infoBtn, &QPushButton::clicked, this, &DacInstrument::startTutorial);
+	connect(infoBtn, &QAbstractButton::clicked, this, [=, this]() {
+		QDesktopServices::openUrl(QUrl("https://analogdevicesinc.github.io/scopy/plugins/dac/dac.html"));
+	});
 	connect(devicesBtn, &QPushButton::toggled, dynamic_cast<MenuHAnim *>(tool->leftContainer()),
 		&MenuHAnim::toggleMenu);
 
@@ -97,7 +123,7 @@ void DacInstrument::startTutorial()
 
 void DacInstrument::runToggled(bool toggled)
 {
-	for(auto dac : m_dacDataManagers) {
+	for(auto dac : qAsConst(m_dacDataManagers)) {
 		dac->runToggled(toggled);
 	}
 }
@@ -105,7 +131,7 @@ void DacInstrument::runToggled(bool toggled)
 void DacInstrument::dacRunning(bool toggled)
 {
 	bool run = toggled;
-	for(auto dac : m_dacDataManagers) {
+	for(auto dac : qAsConst(m_dacDataManagers)) {
 		run = run || dac->isRunning();
 	}
 	Q_EMIT running(run);
@@ -161,6 +187,17 @@ void DacInstrument::abortTutorial()
 		   &DacInstrument::startBufferNonCyclicTutorial);
 	disconnect(m_dacBufferNonCyclicTutorial, &gui::TutorialBuilder::finished, this,
 		   &DacInstrument::startDdsTutorial);
+}
+
+void DacInstrument::showEvent(QShowEvent *event)
+{
+	QWidget::showEvent(event);
+
+	// Handle tutorial
+	if(Preferences::get("dacplugin_start_tutorial").toBool()) {
+		startTutorial();
+		Preferences::set("dacplugin_start_tutorial", false);
+	}
 }
 
 void DacInstrument::setupDacDataManagers()

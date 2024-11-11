@@ -1,6 +1,29 @@
+/*
+ * Copyright (c) 2024 Analog Devices Inc.
+ *
+ * This file is part of Scopy
+ * (see https://www.github.com/analogdevicesinc/scopy).
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program. If not, see <https://www.gnu.org/licenses/>.
+ *
+ */
+
 #include "tooltemplate.h"
 
 #include "ui_tooltemplate.h"
+
+#include <style.h>
 
 using namespace scopy;
 ToolTemplate::ToolTemplate(QWidget *parent)
@@ -8,6 +31,7 @@ ToolTemplate::ToolTemplate(QWidget *parent)
 {
 	m_ui = new Ui::ToolTemplate();
 	m_ui->setupUi(this);
+	Style::setBackgroundColor(this, json::theme::background_subtle);
 
 	m_ui->bottomCentral->setVisible(false);
 	m_ui->topCentral->setVisible(false);
@@ -28,6 +52,8 @@ ToolTemplate::ToolTemplate(QWidget *parent)
 	m_rightStack->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
 	m_topStack->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
 	m_bottomStack->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
+	Style::setBackgroundColor(m_ui->leftContainer, "transparent");
+	Style::setBackgroundColor(m_ui->topContainerMenuControl, json::theme::background_primary);
 }
 
 ToolTemplate::~ToolTemplate() { delete m_ui; }

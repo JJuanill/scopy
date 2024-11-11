@@ -1,9 +1,31 @@
+/*
+ * Copyright (c) 2024 Analog Devices Inc.
+ *
+ * This file is part of Scopy
+ * (see https://www.github.com/analogdevicesinc/scopy).
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program. If not, see <https://www.gnu.org/licenses/>.
+ *
+ */
+
 #include "fftplotcomponentsettings.h"
 #include <widgets/menusectionwidget.h>
 #include <widgets/menucollapsesection.h>
 #include <QWidget>
 #include <QLineEdit>
 #include "fftplotcomponentchannel.h"
+#include <style.h>
 
 #include <gnuradio/fft/window.h>
 
@@ -32,7 +54,7 @@ FFTPlotComponentSettings::FFTPlotComponentSettings(FFTPlotComponent *plt, QWidge
 	StyleHelper::MenuSmallLabel(plotTitleLabel);
 
 	QLineEdit *plotTitle = new QLineEdit(m_plotComponent->name());
-	StyleHelper::MenuLineEdit(plotTitle);
+	Style::setStyle(plotTitle, style::properties::lineedit::menuLineEdit);
 	connect(plotTitle, &QLineEdit::textChanged, this, [=](QString s) {
 		m_plotComponent->setName(s);
 		//	plotMenu->setTitle("PLOT - " + s);
@@ -89,7 +111,7 @@ FFTPlotComponentSettings::FFTPlotComponentSettings(FFTPlotComponent *plt, QWidge
 	m_windowCb->combo()->setCurrentIndex(0);
 
 	connect(m_windowCb->combo(), qOverload<int>(&QComboBox::currentIndexChanged), this, [=](int idx) {
-		for(auto c : m_channels) {
+		for(auto c : qAsConst(m_channels)) {
 			if(dynamic_cast<FFTChannel *>(c)) {
 				FFTChannel *fc = dynamic_cast<FFTChannel *>(c);
 				fc->setWindow(m_windowCb->combo()->itemData(idx).toInt());
@@ -99,7 +121,7 @@ FFTPlotComponentSettings::FFTPlotComponentSettings(FFTPlotComponent *plt, QWidge
 
 	m_windowChkb = new MenuOnOffSwitch("Window Correction", this);
 	connect(m_windowChkb->onOffswitch(), &QAbstractButton::toggled, this, [=](bool b) {
-		for(auto c : m_channels) {
+		for(auto c : qAsConst(m_channels)) {
 			if(dynamic_cast<FFTChannel *>(c)) {
 				FFTChannel *fc = dynamic_cast<FFTChannel *>(c);
 				fc->setWindowCorrection(b);
@@ -111,7 +133,7 @@ FFTPlotComponentSettings::FFTPlotComponentSettings(FFTPlotComponent *plt, QWidge
 	m_curve = new MenuPlotChannelCurveStyleControl(plotMenu);
 
 	m_deletePlot = new QPushButton("DELETE PLOT");
-	StyleHelper::BlueButton(m_deletePlot);
+	StyleHelper::BasicButton(m_deletePlot);
 	connect(m_deletePlot, &QAbstractButton::clicked, this, [=]() { Q_EMIT requestDeletePlot(); });
 
 	yaxis->contentLayout()->addWidget(m_autoscaleBtn);
@@ -149,7 +171,8 @@ FFTPlotComponentSettings::FFTPlotComponentSettings(FFTPlotComponent *plt, QWidge
 
 	m_settingsPlotHover = new QPushButton("", nullptr);
 	m_settingsPlotHover->setMaximumSize(16, 16);
-	m_settingsPlotHover->setIcon(QIcon(":/gui/icons/scopy-default/icons/preferences.svg"));
+	m_settingsPlotHover->setIcon(
+		QIcon(":/gui/icons/" + Style::getAttribute(json::theme::icon_theme_folder) + "/icons/preferences.svg"));
 
 	connect(m_settingsPlotHover, &QAbstractButton::clicked, this, [=]() { Q_EMIT requestSettings(); });
 

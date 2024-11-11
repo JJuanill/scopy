@@ -1,9 +1,32 @@
+/*
+ * Copyright (c) 2024 Analog Devices Inc.
+ *
+ * This file is part of Scopy
+ * (see https://www.github.com/analogdevicesinc/scopy).
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program. If not, see <https://www.gnu.org/licenses/>.
+ *
+ */
+
 #include "titlespinbox.hpp"
 #include "regmapstylehelper.hpp"
 #include "regmapstylehelper.hpp"
 
 #include <QBoxLayout>
+#include <style.h>
 #include <utils.h>
+#include "style_properties.h"
 
 using namespace scopy;
 using namespace regmap;
@@ -18,11 +41,13 @@ TitleSpinBox::TitleSpinBox(QString title, QWidget *parent)
 	setLayout(mainLayout);
 
 	QWidget *spinboxWidget = new QWidget(this);
+	Style::setBackgroundColor(spinboxWidget, json::theme::interactive_subtle_disabled);
 	QVBoxLayout *spinboxWidgetLayout = new QVBoxLayout(spinboxWidget);
 	spinboxWidgetLayout->setSpacing(0);
 	spinboxWidgetLayout->setMargin(0);
 
 	QWidget *buttonWidget = new QWidget(this);
+	Style::setBackgroundColor(buttonWidget, json::theme::interactive_subtle_disabled);
 	QVBoxLayout *buttonWidgetLayout = new QVBoxLayout(buttonWidget);
 	buttonWidgetLayout->setSpacing(0);
 	buttonWidgetLayout->setMargin(0);
@@ -37,6 +62,8 @@ TitleSpinBox::TitleSpinBox(QString title, QWidget *parent)
 	buttonWidgetLayout->addWidget(spinBoxDownButton);
 
 	titleLabel = new QLabel(title);
+	Style::setStyle(titleLabel, style::properties::label::menuSmall);
+	Style::setBackgroundColor(titleLabel, json::theme::interactive_subtle_disabled);
 
 	spinBox = new QSpinBox(spinboxWidget);
 	spinBox->setButtonSymbols(spinBox->ButtonSymbols::NoButtons);
@@ -49,7 +76,9 @@ TitleSpinBox::TitleSpinBox(QString title, QWidget *parent)
 	mainLayout->addWidget(buttonWidget);
 	mainLayout->addWidget(spinboxWidget);
 
-	RegmapStyleHelper::titleSpinBoxStyle(this);
+	Style::setStyle(this, style::properties::regmap::titleSpinbox, true, true);
+	Style::setStyle(spinBox, style::properties::regmap::titleSpinbox, true, true);
+	// RegmapStyleHelper::titleSpinBoxStyle(this);
 }
 
 TitleSpinBox::~TitleSpinBox() {}

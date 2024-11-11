@@ -1,3 +1,24 @@
+/*
+ * Copyright (c) 2024 Analog Devices Inc.
+ *
+ * This file is part of Scopy
+ * (see https://www.github.com/analogdevicesinc/scopy).
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program. If not, see <https://www.gnu.org/licenses/>.
+ *
+ */
+
 #include "m2kplugin.h"
 
 #include "digitalchannel_manager.hpp"
@@ -24,6 +45,7 @@
 #include <QPushButton>
 #include <QSpacerItem>
 #include <QTimer>
+#include <style.h>
 
 #include <libsigrokdecode/libsigrokdecode.h>
 #include <pluginbase/messagebroker.h>
@@ -71,25 +93,35 @@ void M2kPlugin::loadToolList()
 {
 	Preferences *p = Preferences::GetInstance();
 	m_toolList.append(SCOPY_NEW_TOOLMENUENTRY("m2kosc", tr("Oscilloscope"),
-						  ":/gui/icons/scopy-default/icons/tool_oscilloscope.svg"));
+						  ":/gui/icons/" + Style::getAttribute(json::theme::icon_theme_folder) +
+							  "/icons/tool_oscilloscope.svg"));
 	m_toolList.append(SCOPY_NEW_TOOLMENUENTRY("m2kspec", tr("Spectrum Analyzer"),
-						  ":/gui/icons/scopy-default/icons/tool_spectrum_analyzer.svg"));
+						  ":/gui/icons/" + Style::getAttribute(json::theme::icon_theme_folder) +
+							  "/icons/tool_spectrum_analyzer.svg"));
 	m_toolList.append(SCOPY_NEW_TOOLMENUENTRY("m2knet", tr("Network Analyzer"),
-						  ":/gui/icons/scopy-default/icons/tool_network_analyzer.svg"));
+						  ":/gui/icons/" + Style::getAttribute(json::theme::icon_theme_folder) +
+							  "/icons/tool_network_analyzer.svg"));
 	m_toolList.append(SCOPY_NEW_TOOLMENUENTRY("m2ksiggen", tr("Signal Generator"),
-						  ":/gui/icons/scopy-default/icons/tool_signal_generator.svg"));
+						  ":/gui/icons/" + Style::getAttribute(json::theme::icon_theme_folder) +
+							  "/icons/tool_signal_generator.svg"));
 	m_toolList.append(SCOPY_NEW_TOOLMENUENTRY("m2klogic", tr("Logic Analyzer"),
-						  ":/gui/icons/scopy-default/icons/tool_logic_analyzer.svg"));
+						  ":/gui/icons/" + Style::getAttribute(json::theme::icon_theme_folder) +
+							  "/icons/tool_logic_analyzer.svg"));
 	m_toolList.append(SCOPY_NEW_TOOLMENUENTRY("m2kpattern", tr("Pattern Generator"),
-						  ":/gui/icons/scopy-default/icons/tool_pattern_generator.svg"));
-	m_toolList.append(
-		SCOPY_NEW_TOOLMENUENTRY("m2kdio", tr("Digital I/O"), ":/gui/icons/scopy-default/icons/tool_io.svg"));
+						  ":/gui/icons/" + Style::getAttribute(json::theme::icon_theme_folder) +
+							  "/icons/tool_pattern_generator.svg"));
+	m_toolList.append(SCOPY_NEW_TOOLMENUENTRY("m2kdio", tr("Digital I/O"),
+						  ":/gui/icons/" + Style::getAttribute(json::theme::icon_theme_folder) +
+							  "/icons/tool_io.svg"));
 	m_toolList.append(SCOPY_NEW_TOOLMENUENTRY("m2kdmm", tr("Voltmeter"),
-						  ":/gui/icons/scopy-default/icons/tool_voltmeter.svg"));
+						  ":/gui/icons/" + Style::getAttribute(json::theme::icon_theme_folder) +
+							  "/icons/tool_voltmeter.svg"));
 	m_toolList.append(SCOPY_NEW_TOOLMENUENTRY("m2kpower", tr("Power Supply"),
-						  ":/gui/icons/scopy-default/icons/tool_power_supply.svg"));
+						  ":/gui/icons/" + Style::getAttribute(json::theme::icon_theme_folder) +
+							  "/icons/tool_power_supply.svg"));
 	m_toolList.append(SCOPY_NEW_TOOLMENUENTRY("m2kcal", tr("Calibration"),
-						  ":/gui/icons/scopy-default/icons/tool_calibration.svg"));
+						  ":/gui/icons/" + Style::getAttribute(json::theme::icon_theme_folder) +
+							  "/icons/tool_calibration.svg"));
 	ToolMenuEntry::findToolMenuEntryById(m_toolList, "m2kcal")
 		->setVisible(p->get("m2k_manual_calibration_enable").toBool());
 }
@@ -133,10 +165,13 @@ bool M2kPlugin::loadExtraButtons()
 {
 
 	m_btnIdentify = new QPushButton("Identify");
+	Style::setStyle(m_btnIdentify, style::properties::button::basicButton);
 	m_extraButtons.append(m_btnIdentify);
 	m_btnCalibrate = new QPushButton("Calibrate");
+	Style::setStyle(m_btnCalibrate, style::properties::button::basicButton);
 	m_extraButtons.append(m_btnCalibrate);
 	m_btnRegister = new QPushButton("Register");
+	Style::setStyle(m_btnRegister, style::properties::button::basicButton);
 	m_extraButtons.append(m_btnRegister);
 
 	m_btnCalibrate->setDisabled(true);
@@ -423,7 +458,7 @@ bool M2kPlugin::onConnect()
 		auto pgTme = ToolMenuEntry::findToolMenuEntryById(m_toolList, "m2kpattern");
 		m_adcBtnGrp = new QButtonGroup(this);
 
-		tools.insert("m2kdmm", new DMM(m_m2k, f, dmmTme, m2k_man));
+		tools.insert("m2kdmm", new DMM(m_m2k, m_param, f, dmmTme, m2k_man));
 		dmmTme->setTool(tools["m2kdmm"]);
 		tools.insert("m2kcal", new ManualCalibration(m_m2k, f, mancalTme, nullptr, calib));
 		mancalTme->setTool(tools["m2kcal"]);
@@ -431,13 +466,13 @@ bool M2kPlugin::onConnect()
 		dioTme->setTool(tools["m2kdio"]);
 		tools.insert("m2kpower", new PowerController(m_m2k, pwrTme, js, nullptr));
 		pwrTme->setTool(tools["m2kpower"]);
-		tools.insert("m2ksiggen", new SignalGenerator(m_m2k, f, siggenTme, js, nullptr));
+		tools.insert("m2ksiggen", new SignalGenerator(m_m2k, m_param, f, siggenTme, js, nullptr));
 		siggenTme->setTool(tools["m2ksiggen"]);
-		tools.insert("m2kspec", new SpectrumAnalyzer(m_m2k, f, specTme, m2k_man, js, nullptr));
+		tools.insert("m2kspec", new SpectrumAnalyzer(m_m2k, m_param, f, specTme, m2k_man, js, nullptr));
 		specTme->setTool(tools["m2kspec"]);
-		tools.insert("m2kosc", new Oscilloscope(m_m2k, f, oscTme, m2k_man, js, nullptr));
+		tools.insert("m2kosc", new Oscilloscope(m_m2k, m_param, f, oscTme, m2k_man, js, nullptr));
 		oscTme->setTool(tools["m2kosc"]);
-		tools.insert("m2knet", new NetworkAnalyzer(m_m2k, f, netTme, m2k_man, js, nullptr));
+		tools.insert("m2knet", new NetworkAnalyzer(m_m2k, m_param, f, netTme, m2k_man, js, nullptr));
 		netTme->setTool(tools["m2knet"]);
 		tools.insert("m2klogic", new logic::LogicAnalyzer(m_m2k, f, laTme, js, nullptr));
 		laTme->setTool(tools["m2klogic"]);

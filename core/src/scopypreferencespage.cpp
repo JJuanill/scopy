@@ -1,3 +1,24 @@
+/*
+ * Copyright (c) 2024 Analog Devices Inc.
+ *
+ * This file is part of Scopy
+ * (see https://www.github.com/analogdevicesinc/scopy).
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program. If not, see <https://www.gnu.org/licenses/>.
+ *
+ */
+
 #include "scopypreferencespage.h"
 #include <QTabWidget>
 #include <QVBoxLayout>
@@ -9,8 +30,11 @@
 #include <QCoreApplication>
 #include <QScrollArea>
 #include <stylehelper.h>
+#include <deviceautoconnect.h>
 #include "gui/preferenceshelper.h"
+#include <style.h>
 #include "application_restarter.h"
+#include "smallOnOffSwitch.h"
 #include <QDir>
 #include <QDebug>
 #include <QLoggingCategory>
@@ -18,13 +42,14 @@
 #include <translationsrepository.h>
 #include <widgets/menucollapsesection.h>
 #include <widgets/menusectionwidget.h>
+#include <verticaltabwidget.h>
 
 Q_LOGGING_CATEGORY(CAT_PREFERENCESPAGE, "ScopyPreferencesPage");
 
 using namespace scopy;
 ScopyPreferencesPage::ScopyPreferencesPage(QWidget *parent)
 	: QWidget(parent)
-	, tabWidget(new QTabWidget(this))
+	, tabWidget(new VerticalTabWidget(this))
 	, layout(new QVBoxLayout(this))
 {
 	initUI();
@@ -40,7 +65,7 @@ void ScopyPreferencesPage::initUI()
 	this->setLayout(layout);
 	layout->addWidget(tabWidget);
 
-	StyleHelper::BackgroundPage(tabWidget, "preferencesTable");
+	Style::setBackgroundColor(tabWidget, json::theme::background_primary);
 	StyleHelper::TabWidgetEastMenu(tabWidget, "preferencesTable");
 }
 
@@ -49,6 +74,7 @@ void ScopyPreferencesPage::addHorizontalTab(QWidget *w, QString text)
 	w->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
 
 	QWidget *pane = new QWidget();
+	Style::setBackgroundColor(pane, json::theme::background_subtle);
 	QHBoxLayout *lay = new QHBoxLayout();
 	lay->setMargin(10);
 	pane->setLayout(lay);
@@ -58,14 +84,43 @@ void ScopyPreferencesPage::addHorizontalTab(QWidget *w, QString text)
 	scrollArea->setWidgetResizable(true);
 	scrollArea->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
 	lay->addWidget(scrollArea);
+	Style::setBackgroundColor(scrollArea->viewport(), json::theme::background_subtle);
+	tabWidget->addTab(pane, text);
+}
 
-	// Hackish - so we don't override paint event
-	tabWidget->addTab(pane, "");
-	QLabel *lbl1 = new QLabel();
-	StyleHelper::TabWidgetLabel(lbl1, "tabWidgetLabel");
-	lbl1->setText(text);
-	QTabBar *tabbar = tabWidget->tabBar();
-	tabbar->setTabButton(tabbar->count() - 1, QTabBar::RightSide, lbl1);
+void ScopyPreferencesPage::initSessionDevices()
+{
+	QMap<QString, QStringList> prevSession;
+	QMap<QString, QVariant> devicesMap = Preferences::get("autoconnect_devices").toMap();
+	for(QMap<QString, QVariant>::iterator it = devicesMap.begin(); it != devicesMap.end(); ++it) {
+		QStringList plugins = it.value().toString().split(";");
+		prevSession[it.key()] = plugins;
+	}
+	updateSessionDevices(prevSession);
+}
+
+void ScopyPreferencesPage::updateSessionDevices(QMap<QString, QStringList> devices)
+{
+	int btnIdx = m_autoConnectWidget->contentLayout()->indexOf(m_devRefresh);
+	QStringList keys = devices.keys();
+	for(const QString &uri : qAsConst(keys)) {
+		if(!m_connDevices.contains(uri)) {
+			QString prefId = uri + "_sticky";
+			QCheckBox *devCb = new QCheckBox(uri, m_autoConnectWidget);
+			devCb->setObjectName(uri);
+			devCb->setChecked(Preferences::get(prefId).toBool());
+			m_connDevices[uri] = devCb;
+			m_autoConnectWidget->contentLayout()->insertWidget(btnIdx, devCb);
+			connect(devCb, &QCheckBox::toggled, this, [=](bool en) {
+				if(en) {
+					DeviceAutoConnect::addDevice(uri, devices[uri]);
+				} else {
+					DeviceAutoConnect::removeDevice(uri);
+				}
+				Preferences::set(prefId, en);
+			});
+		}
+	}
 }
 
 ScopyPreferencesPage::~ScopyPreferencesPage() {}
@@ -82,7 +137,7 @@ void ScopyPreferencesPage::initRestartWidget()
 	QSpacerItem *space1 = new QSpacerItem(6, 20, QSizePolicy::Expanding, QSizePolicy::Fixed);
 	QSpacerItem *space2 = new QSpacerItem(6, 20, QSizePolicy::Preferred, QSizePolicy::Fixed);
 	QPushButton *btn = new QPushButton("Restart");
-	StyleHelper::BlueButton(btn, "RestartBtn");
+	Style::setStyle(btn, style::properties::button::basicButton, true, true);
 	StyleHelper::BackgroundWidget(restartWidget, "restartWidget");
 	btn->setFixedWidth(100);
 
@@ -109,7 +164,7 @@ QWidget *ScopyPreferencesPage::buildSaveSessionPreference()
 	lay->addSpacerItem(new QSpacerItem(40, 40, QSizePolicy::Expanding, QSizePolicy::Fixed));
 	lay->addWidget(new QLabel("Settings files location ", this));
 	QPushButton *navigateBtn = new QPushButton("Open", this);
-	StyleHelper::BlueButton(navigateBtn, "navigateBtn");
+	Style::setStyle(navigateBtn, style::properties::button::borderButton);
 	navigateBtn->setMaximumWidth(80);
 	connect(navigateBtn, &QPushButton::clicked, this,
 		[=]() { QDesktopServices::openUrl(scopy::config::settingsFolderPath()); });
@@ -155,7 +210,7 @@ QWidget *ScopyPreferencesPage::buildResetScopyDefaultButton()
 	QHBoxLayout *lay = new QHBoxLayout(w);
 
 	QPushButton *resetBtn = new QPushButton("Reset", this);
-	StyleHelper::BlueButton(resetBtn, "resetBtn");
+	Style::setStyle(resetBtn, style::properties::button::borderButton);
 	resetBtn->setMaximumWidth(80);
 	connect(resetBtn, &QPushButton::clicked, this, &ScopyPreferencesPage::resetScopyPreferences);
 	lay->addWidget(resetBtn);
@@ -212,10 +267,36 @@ QWidget *ScopyPreferencesPage::buildGeneralPreferencesPage()
 		p, "iiowidgets_use_lazy_loading", "Use Lazy Loading", generalSection));
 	generalSection->contentLayout()->addWidget(PreferencesHelper::addPreferenceCheckBox(
 		p, "general_use_native_dialogs", "Use native dialogs", generalSection));
+	QWidget *autoConnectCb = PreferencesHelper::addPreferenceCheckBox(
+		p, "autoconnect_previous", "Auto-connect to previous session", generalSection);
+	generalSection->contentLayout()->addWidget(autoConnectCb);
 	generalSection->contentLayout()->addWidget(PreferencesHelper::addPreferenceCombo(
-		p, "general_theme", "Theme", {"default", "light", "harmonic-dark"}, generalSection));
+		p, "general_theme", "Theme", Style::GetInstance()->getThemeList(), generalSection));
 	generalSection->contentLayout()->addWidget(PreferencesHelper::addPreferenceCombo(
 		p, "general_language", "Language", t->getLanguages(), generalSection));
+	generalSection->contentLayout()->addWidget(
+		PreferencesHelper::addPreferenceCheckBox(p, "general_connect_to_multiple_devices",
+							 "Connect to multiple devices (EXPERIMENTAL)", generalSection));
+	generalSection->contentLayout()->addWidget(PreferencesHelper::addPreferenceCheckBox(
+		p, "general_scan_for_devices", "Regularly scan for new devices", generalSection));
+
+	// Auto-connect
+	m_autoConnectWidget = new MenuSectionCollapseWidget("Session devices", MenuCollapseSection::MHCW_NONE,
+							    MenuCollapseSection::MHW_COMPOSITEWIDGET, page);
+	MenuCollapseHeader *autoConnectHeader =
+		dynamic_cast<MenuCollapseHeader *>(m_autoConnectWidget->collapseSection()->header());
+	autoConnectHeader->headerWidget()->layout()->addWidget(
+		new QLabel("At each auto-connect session, it will try to connect to the checked devices"));
+	m_autoConnectWidget->contentLayout()->setSpacing(10);
+	lay->addWidget(m_autoConnectWidget);
+	lay->addSpacerItem(new QSpacerItem(0, 0, QSizePolicy::Minimum, QSizePolicy::Expanding));
+
+	m_devRefresh = new QPushButton("Refresh", m_autoConnectWidget);
+	m_devRefresh->setMaximumWidth(80);
+	Style::setStyle(m_devRefresh, style::properties::button::basicButton);
+	m_autoConnectWidget->add(m_devRefresh);
+
+	connect(m_devRefresh, &QPushButton::pressed, this, &ScopyPreferencesPage::refreshDevicesPressed);
 
 	// Debug preferences
 	MenuSectionWidget *debugWidget = new MenuSectionWidget(page);

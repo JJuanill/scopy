@@ -1,8 +1,31 @@
+/*
+ * Copyright (c) 2024 Analog Devices Inc.
+ *
+ * This file is part of Scopy
+ * (see https://www.github.com/analogdevicesinc/scopy).
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program. If not, see <https://www.gnu.org/licenses/>.
+ *
+ */
+
 #include "watchlistentry.h"
 #include <iio-widgets/datastrategy/datastrategyinterface.h>
 #include <iio-widgets/guistrategy/comboguistrategy.h>
 #include <QHBoxLayout>
 #include <QComboBox>
+#include <gui/style.h>
+#include "style_properties.h"
 
 using namespace scopy::debugger;
 
@@ -86,13 +109,8 @@ void WatchListEntry::setupWidget(IIOWidget *widget)
 
 		m_combo = new QComboBox();
 		// TODO: maybe move these to the stylehelper as well?
-		m_combo->setStyleSheet(R"css(
-		QComboBox {
-			font-family: Open Sans;
-			border: none;
-			background-color: transparent;
-			font-size: 13px;
-		})css");
+		m_combo->setContentsMargins(0, 0, 0, 0);
+		Style::setStyle(m_combo, style::properties::debugger::watchListCombo);
 		wrapper->layout()->addWidget(m_combo);
 
 		QString options = widget->getDataStrategy()->optionalData();
@@ -105,13 +123,8 @@ void WatchListEntry::setupWidget(IIOWidget *widget)
 		m_valueUi = wrapper;
 	} else {
 		m_lineedit = new QLineEdit();
-		m_lineedit->setStyleSheet(R"css(
-		QLineEdit {
-			font-family: Open Sans;
-			border: none;
-			background-color: transparent;
-			font-size: 13px;
-		})css");
+		m_lineedit->setContentsMargins(0, 0, 0, 0);
+		Style::setStyle(m_lineedit, style::properties::debugger::watchListLineEdit);
 		m_lineedit->setText(widget->getDataStrategy()->data());
 		QObject::connect(m_lineedit, &QLineEdit::editingFinished, this, [this, widget]() {
 			QString text = m_lineedit->text();

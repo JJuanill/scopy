@@ -1,12 +1,36 @@
+/*
+ * Copyright (c) 2024 Analog Devices Inc.
+ *
+ * This file is part of Scopy
+ * (see https://www.github.com/analogdevicesinc/scopy).
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program. If not, see <https://www.gnu.org/licenses/>.
+ *
+ */
+
 #include "dacplugin.h"
 #include "dac_logging_categories.h"
 #include "dacinstrument.h"
 #include "dacutils.h"
 
 #include <QLabel>
+#include <menusectionwidget.h>
+#include <style.h>
 
 #include <iioutil/connectionprovider.h>
 #include <gui/deviceinfopage.h>
+#include <pluginbase/preferences.h>
 
 using namespace scopy;
 using namespace scopy::dac;
@@ -55,14 +79,16 @@ bool DACPlugin::loadPage()
 
 bool DACPlugin::loadIcon()
 {
-	SCOPY_PLUGIN_ICON(":/gui/icons/scopy-default/icons/tool_oscilloscope.svg");
+	SCOPY_PLUGIN_ICON(":/gui/icons/" + Style::getAttribute(json::theme::icon_theme_folder) +
+			  "/icons/tool_oscilloscope.svg");
 	return true;
 }
 
 void DACPlugin::loadToolList()
 {
-	m_toolList.append(
-		SCOPY_NEW_TOOLMENUENTRY("dac", "DAC", ":/gui/icons/scopy-default/icons/tool_signal_generator.svg"));
+	m_toolList.append(SCOPY_NEW_TOOLMENUENTRY("dac", "DAC",
+						  ":/gui/icons/" + Style::getAttribute(json::theme::icon_theme_folder) +
+							  "/icons/tool_signal_generator.svg"));
 }
 
 void DACPlugin::unload()
@@ -73,6 +99,46 @@ void DACPlugin::unload()
 }
 
 QString DACPlugin::description() { return "Tool for generic IIO DAC control."; }
+
+void DACPlugin::initPreferences()
+{
+	Preferences *p = Preferences::GetInstance();
+	p->init("dacplugin_start_tutorial", true);
+}
+
+bool DACPlugin::loadPreferencesPage()
+{
+	Preferences *p = Preferences::GetInstance();
+
+	m_preferencesPage = new QWidget();
+	QVBoxLayout *lay = new QVBoxLayout(m_preferencesPage);
+
+	MenuSectionWidget *generalWidget = new MenuSectionWidget(m_preferencesPage);
+	MenuCollapseSection *generalSection = new MenuCollapseSection(
+		"General", MenuCollapseSection::MHCW_NONE, MenuCollapseSection::MHW_BASEWIDGET, generalWidget);
+	generalWidget->contentLayout()->setSpacing(10);
+	generalWidget->contentLayout()->addWidget(generalSection);
+	generalSection->contentLayout()->setSpacing(10);
+	lay->setMargin(0);
+	lay->addWidget(generalWidget);
+	lay->addSpacerItem(new QSpacerItem(0, 0, QSizePolicy::Minimum, QSizePolicy::Expanding));
+
+	QWidget *resetTutorialWidget = new QWidget();
+	QHBoxLayout *resetTutorialWidgetLayout = new QHBoxLayout();
+
+	resetTutorialWidget->setLayout(resetTutorialWidgetLayout);
+	resetTutorialWidgetLayout->setMargin(0);
+
+	QPushButton *resetTutorial = new QPushButton("Reset", generalSection);
+	Style::setStyle(resetTutorial, style::properties::button::basicButton);
+	connect(resetTutorial, &QPushButton::clicked, this, [=, this]() { p->set("dacplugin_start_tutorial", true); });
+
+	resetTutorialWidgetLayout->addWidget(new QLabel("DAC tutorial "), 6);
+	resetTutorialWidgetLayout->addWidget(resetTutorial, 1);
+	generalSection->contentLayout()->addWidget(resetTutorialWidget);
+
+	return true;
+}
 
 QString DACPlugin::about()
 {

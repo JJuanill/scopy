@@ -1,9 +1,31 @@
+/*
+ * Copyright (c) 2024 Analog Devices Inc.
+ *
+ * This file is part of Scopy
+ * (see https://www.github.com/analogdevicesinc/scopy).
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program. If not, see <https://www.gnu.org/licenses/>.
+ *
+ */
+
 #include "menus/dataloggingmenu.hpp"
 
 #include <QFileDialog>
 #include <datamonitorstylehelper.hpp>
 #include <menucollapsesection.h>
 #include <menusectionwidget.h>
+#include <style.h>
 #include <timemanager.hpp>
 
 using namespace scopy;
@@ -90,14 +112,14 @@ DataLoggingMenu::DataLoggingMenu(QWidget *parent)
 void DataLoggingMenu::updateDataLoggingStatus(ProgressBarState status)
 {
 	if(status == ProgressBarState::SUCCESS) {
-		dataLoggingFilePath->getProgressBar()->setBarColor(StyleHelper::getColor("ProgressBarSuccess"));
+		dataLoggingFilePath->getProgressBar()->setBarColor(Style::getAttribute(json::theme::content_success));
 	}
 	if(status == ProgressBarState::ERROR) {
-		dataLoggingFilePath->getProgressBar()->setBarColor(StyleHelper::getColor("ProgressBarError"));
+		dataLoggingFilePath->getProgressBar()->setBarColor(Style::getAttribute(json::theme::content_error));
 	}
 	if(status == ProgressBarState::BUSY) {
 		dataLoggingFilePath->getProgressBar()->startProgress();
-		dataLoggingFilePath->getProgressBar()->setBarColor(StyleHelper::getColor("ProgressBarBusy"));
+		dataLoggingFilePath->getProgressBar()->setBarColor(Style::getAttribute(json::theme::content_busy));
 	}
 }
 

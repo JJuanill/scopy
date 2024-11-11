@@ -1,5 +1,27 @@
+/*
+ * Copyright (c) 2024 Analog Devices Inc.
+ *
+ * This file is part of Scopy
+ * (see https://www.github.com/analogdevicesinc/scopy).
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program. If not, see <https://www.gnu.org/licenses/>.
+ *
+ */
+
 #include <customSwitch.h>
 #include <smallOnOffSwitch.h>
+#include <style.h>
 #include <widgets/menuonoffswitch.h>
 
 using namespace scopy;
@@ -17,11 +39,10 @@ MenuOnOffSwitch::MenuOnOffSwitch(QString title, QWidget *parent, bool medium)
 	m_label = new QLabel(title, this);
 	if(medium == false) {
 		m_switch = new SmallOnOffSwitch(this);
-		StyleHelper::MenuOnOffSwitchButton(dynamic_cast<SmallOnOffSwitch *>(m_switch), "menuButton");
-		StyleHelper::MenuSmallLabel(m_label, "menuLabel");
+		Style::setStyle(m_label, style::properties::label::subtle);
 	} else {
 		m_switch = new CustomSwitch(this);
-		StyleHelper::MenuMediumLabel(m_label, "menuLabel");
+		Style::setStyle(m_label, style::properties::label::subtle);
 	}
 
 	lay->addWidget(m_label);

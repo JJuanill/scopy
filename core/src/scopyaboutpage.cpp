@@ -1,3 +1,24 @@
+/*
+ * Copyright (c) 2024 Analog Devices Inc.
+ *
+ * This file is part of Scopy
+ * (see https://www.github.com/analogdevicesinc/scopy).
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program. If not, see <https://www.gnu.org/licenses/>.
+ *
+ */
+
 #include "scopyaboutpage.h"
 
 #include "widgets/hoverwidget.h"
@@ -7,13 +28,17 @@
 #include <QTabBar>
 #include <QTabWidget>
 #include <QVBoxLayout>
+#include <style.h>
 
+#include <QLineEdit>
+#include <QScrollArea>
 #include <stylehelper.h>
+#include <verticaltabwidget.h>
 
 using namespace scopy;
 ScopyAboutPage::ScopyAboutPage(QWidget *parent)
 	: QWidget(parent)
-	, tabWidget(new QTabWidget(this))
+	, tabWidget(new VerticalTabWidget(this))
 	, layout(new QVBoxLayout(this))
 {
 	initUI();
@@ -40,6 +65,7 @@ QWidget *ScopyAboutPage::buildPage(QString src)
 	lay->addWidget(browser);
 	lay->setMargin(0);
 	initNavigationWidget(browser);
+	Style::setStyle(browser, style::properties::widget::textBrowser);
 
 	if(QFile::exists(QString(src).replace("qrc:/", ":/"))) {
 		browser->setSource(src);
@@ -75,16 +101,7 @@ void ScopyAboutPage::initNavigationWidget(QTextBrowser *browser)
 	hover->show();
 }
 
-void ScopyAboutPage::addHorizontalTab(QWidget *w, QString text)
-{
-	// Hackish - so we don't override paint event
-	tabWidget->addTab(w, "");
-	QLabel *lbl1 = new QLabel();
-	lbl1->setText(text);
-	StyleHelper::TabWidgetLabel(lbl1, "tabWidgetLabel");
-	QTabBar *tabbar = tabWidget->tabBar();
-	tabbar->setTabButton(tabbar->count() - 1, QTabBar::RightSide, lbl1);
-}
+void ScopyAboutPage::addHorizontalTab(QWidget *w, QString text) { tabWidget->addTab(w, text); }
 
 ScopyAboutPage::~ScopyAboutPage() {}
 

@@ -1,3 +1,24 @@
+/*
+ * Copyright (c) 2024 Analog Devices Inc.
+ *
+ * This file is part of Scopy
+ * (see https://www.github.com/analogdevicesinc/scopy).
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program. If not, see <https://www.gnu.org/licenses/>.
+ *
+ */
+
 #ifndef EMUWIDGET_H
 #define EMUWIDGET_H
 
@@ -7,12 +28,8 @@
 #include <QLineEdit>
 #include <QProcess>
 #include <QWidget>
+#include <QLabel>
 #include <animationpushbutton.h>
-#include <menulineedit.h>
-
-namespace Ui {
-class EmuWidget;
-}
 
 namespace scopy {
 class SCOPY_CORE_EXPORT EmuWidget : public QWidget
@@ -55,9 +72,9 @@ private:
 	void setEnableDemo(bool en);
 
 	QComboBox *m_demoOptCb;
-	MenuLineEdit *m_xmlPathEdit;
-	MenuLineEdit *m_rxTxDevEdit;
-	MenuLineEdit *m_uriEdit;
+	QLineEdit *m_xmlPathEdit;
+	QLineEdit *m_rxTxDevEdit;
+	QLineEdit *m_uriEdit;
 	QLabel *m_uriMsgLabel;
 	AnimationPushButton *m_enDemoBtn;
 

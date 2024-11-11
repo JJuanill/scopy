@@ -1,6 +1,28 @@
+/*
+ * Copyright (c) 2024 Analog Devices Inc.
+ *
+ * This file is part of Scopy
+ * (see https://www.github.com/analogdevicesinc/scopy).
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program. If not, see <https://www.gnu.org/licenses/>.
+ *
+ */
+
 #include "plotzoomer.hpp"
 #include <QGuiApplication>
 #include <qwt_scale_div.h>
+#include <style.h>
 #include <stylehelper.h>
 
 using namespace scopy;
@@ -190,9 +212,10 @@ void PlotZoomer::onZoomResize(QMouseEvent *event)
 	QPalette palette;
 	if(m_rubberBand->geometry().size().width() < m_minZoom ||
 	   m_rubberBand->geometry().size().height() < m_minZoom) {
-		palette.setBrush(QPalette::Highlight, QBrush(QColor(StyleHelper::getColor("ProgressBarError"))));
+		palette.setBrush(QPalette::Highlight, QBrush(QColor(Style::getAttribute(json::theme::content_error))));
 	} else {
-		palette.setBrush(QPalette::Highlight, QBrush(QColor(StyleHelper::getColor("ScopyBackground"))));
+		palette.setBrush(QPalette::Highlight,
+				 QBrush(QColor(Style::getAttribute(json::theme::background_primary))));
 	}
 	m_rubberBand->setPalette(palette);
 }
@@ -210,7 +233,8 @@ void PlotZoomer::onZoomStart(QMouseEvent *event)
 
 void PlotZoomer::onZoomEnd()
 {
-	if(m_rubberBand->palette().color(QPalette::Highlight) == QColor(StyleHelper::getColor("ScopyBackground"))) {
+	if(m_rubberBand->palette().color(QPalette::Highlight) ==
+	   QColor(Style::getAttribute(json::theme::background_primary))) {
 		QRectF rect = m_rubberBand->geometry();
 		QwtScaleMap xScaleMap = plot()->canvasMap(m_xAxis);
 		QwtScaleMap yScaleMap = plot()->canvasMap(m_yAxis);

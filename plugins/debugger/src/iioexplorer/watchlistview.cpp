@@ -1,9 +1,33 @@
+/*
+ * Copyright (c) 2024 Analog Devices Inc.
+ *
+ * This file is part of Scopy
+ * (see https://www.github.com/analogdevicesinc/scopy).
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program. If not, see <https://www.gnu.org/licenses/>.
+ *
+ */
+
 #include "watchlistview.h"
 #include "debuggerloggingcategories.h"
+#include "style_properties.h"
 #include <QVBoxLayout>
 #include <QPushButton>
 #include <QHeaderView>
 #include <QScrollBar>
+#include <qnamespace.h>
+#include <style.h>
 
 #define NAME_POS 0
 #define VALUE_POS 1
@@ -26,6 +50,8 @@ WatchListView::WatchListView(QWidget *parent)
 
 void WatchListView::setupUi()
 {
+	setContentsMargins(0, 0, 0, 0);
+
 	QStringList headers = {"Name", "Value", "Type", "Path", ""};
 	setColumnCount(headers.size());
 	setHorizontalHeaderLabels(headers);
@@ -44,8 +70,13 @@ void WatchListView::setupUi()
 	header->setSectionResizeMode(TYPE_POS, QHeaderView::Interactive);
 	header->setSectionResizeMode(PATH_POS, QHeaderView::Interactive);
 	header->setSectionResizeMode(CLOSE_BTN_POS, QHeaderView::Interactive);
+	header->setFrameShadow(QFrame::Shadow::Plain);
+	header->setFrameShape(QFrame::Shape::NoFrame);
+	header->setFrameStyle(0);
+	header->setDefaultAlignment(Qt::AlignLeft | Qt::AlignVCenter);
 
-	StyleHelper::TableWidgetDebugger(this, "DebuggerTableWidget");
+	Style::setStyle(this, style::properties::debugger::watchListView);
+	Style::setStyle(header, style::properties::debugger::headerView, true, true);
 	verticalHeader()->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Expanding);
 }
 
@@ -157,7 +188,7 @@ void WatchListView::currentTreeSelectionChanged(IIOStandardItem *item)
 
 void WatchListView::refreshWatchlist()
 {
-	for(auto object : m_entryObjects) {
+	for(auto object : qAsConst(m_entryObjects)) {
 		IIOStandardItem::Type type = object->item()->type();
 		if(type == IIOStandardItem::ContextAttribute || type == IIOStandardItem::DeviceAttribute ||
 		   type == IIOStandardItem::ChannelAttribute) {

@@ -1,3 +1,24 @@
+/*
+ * Copyright (c) 2024 Analog Devices Inc.
+ *
+ * This file is part of Scopy
+ * (see https://www.github.com/analogdevicesinc/scopy).
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program. If not, see <https://www.gnu.org/licenses/>.
+ *
+ */
+
 #include "ddsdacaddon.h"
 #include "dacdatamodel.h"
 #include "txnode.h"
@@ -93,14 +114,13 @@ QWidget *DdsDacAddon::setupDdsTx(TxNode *txNode)
 	MenuSectionWidget *ddsModeSection = new MenuSectionWidget(this);
 	ddsModeSection->setProperty("tutorial_name", "TX_MODE_SELECTOR");
 	MenuCombo *ddsModeCombo = new MenuCombo("DDS MODE", this);
-	StyleHelper::IIOComboBox(ddsModeCombo->combo());
 	StyleHelper::BackgroundWidget(ddsModeCombo);
 	auto cb = ddsModeCombo->combo();
 	ddsModeCombo->combo()->addItem("Disabled", TxMode::DISABLED);
 	ddsModeCombo->combo()->addItem("One CW Tone", TxMode::ONE_TONE);
 	ddsModeCombo->combo()->addItem("Two CW Tones", TxMode::TWO_TONES);
 	ddsModeCombo->combo()->addItem("Independent I/Q Control", TxMode::INDEPENDENT_IQ_CTRL);
-	connect(cb, qOverload<int>(&QComboBox::currentIndexChanged), this, [=](int idx) {
+	connect(cb, qOverload<int>(&QComboBox::currentIndexChanged), [=, this](int idx) {
 		auto mode = cb->itemData(idx).toInt();
 		ddsModeStack->show(QString::number(mode));
 		TxMode *current = dynamic_cast<TxMode *>(ddsModeStack->get(QString::number(mode)));

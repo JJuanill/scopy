@@ -1,7 +1,30 @@
+/*
+ * Copyright (c) 2024 Analog Devices Inc.
+ *
+ * This file is part of Scopy
+ * (see https://www.github.com/analogdevicesinc/scopy).
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program. If not, see <https://www.gnu.org/licenses/>.
+ *
+ */
+
 #include "adcinstrument.h"
 #include <pluginbase/resourcemanager.h>
 #include <gui/smallOnOffSwitch.h>
+#include <QDesktopServices>
 #include <QLoggingCategory>
+#include <style.h>
 
 Q_LOGGING_CATEGORY(CAT_ADCINSTRUMENT, "ADCInstrument")
 
@@ -33,7 +56,7 @@ void ADCInstrument::setupToolLayout()
 	tool->bottomCentral()->setVisible(false);
 	lay->addWidget(tool);
 	tool->setLeftContainerWidth(210);
-	tool->setRightContainerWidth(300);
+	tool->setRightContainerWidth(310);
 	tool->setTopContainerHeight(100);
 	tool->setBottomContainerHeight(90);
 
@@ -50,15 +73,21 @@ void ADCInstrument::setupToolLayout()
 	addBtn = new AddBtn(this);
 	removeBtn = new RemoveBtn(this);
 
+	connect(infoBtn, &QAbstractButton::clicked, this, [=]() {
+		QDesktopServices::openUrl(QUrl("https://analogdevicesinc.github.io/scopy/plugins/adc/adc.html"));
+	});
+
 	m_sync = new QPushButton("Sync");
 	m_sync->setFixedWidth(150);
 	m_sync->setCheckable(true);
-	StyleHelper::BlueGrayButton(m_sync);
+	Style::setStyle(m_sync, style::properties::button::blueGrayButton);
+	Style::setStyle(m_sync, style::properties::label::menuMedium);
 
 	m_complex = new QPushButton("Complex");
 	m_complex->setCheckable(true);
 	m_complex->setFixedWidth(150);
-	StyleHelper::BlueGrayButton(m_complex);
+	Style::setStyle(m_complex, style::properties::button::blueGrayButton);
+	Style::setStyle(m_complex, style::properties::label::menuMedium);
 
 	m_runBtn = new RunBtn(this);
 	m_singleBtn = new SingleShotBtn(this);

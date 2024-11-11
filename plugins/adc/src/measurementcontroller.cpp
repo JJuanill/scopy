@@ -1,3 +1,24 @@
+/*
+ * Copyright (c) 2024 Analog Devices Inc.
+ *
+ * This file is part of Scopy
+ * (see https://www.github.com/analogdevicesinc/scopy).
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program. If not, see <https://www.gnu.org/licenses/>.
+ *
+ */
+
 #include "measurementcontroller.h"
 
 #include "gui/widgets/measurementlabel.h"
@@ -7,7 +28,6 @@
 #include <QLoggingCategory>
 
 #include <gui/stylehelper.h>
-#include <gui/widgets/menubigswitch.h>
 #include <gui/widgets/menucollapsesection.h>
 #include <gui/widgets/menucombo.h>
 #include <gui/widgets/menulineedit.h>
@@ -24,10 +44,10 @@ MeasurementController::MeasurementController(QPen pen, MeasureModel *msr, QObjec
 	, m_pen(pen)
 {
 	connect(m_measure, &MeasureModel::newMeasurementsAvailable, this, [=]() {
-		for(auto lbl : m_measureLabels) {
+		for(auto lbl : qAsConst(m_measureLabels)) {
 			lbl->setValue(m_measure->measurement(lbl->name())->value());
 		}
-		for(auto lbl : m_statsLabels) {
+		for(auto lbl : qAsConst(m_statsLabels)) {
 			auto stat = m_measure->measurement(lbl->name())->stat();
 			lbl->setValue(stat.average(), stat.min(), stat.max());
 		}

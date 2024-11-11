@@ -1,3 +1,24 @@
+/*
+ * Copyright (c) 2024 Analog Devices Inc.
+ *
+ * This file is part of Scopy
+ * (see https://www.github.com/analogdevicesinc/scopy).
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program. If not, see <https://www.gnu.org/licenses/>.
+ *
+ */
+
 #include "adcinstrumentcontroller.h"
 #include "timeplotcomponent.h"
 #include "adcinstrument.h"
@@ -8,12 +29,15 @@
 using namespace scopy;
 using namespace scopy::adc;
 
-ADCInstrumentController::ADCInstrumentController(ToolMenuEntry *tme, QString name, AcqTreeNode *tree, QObject *parent)
+ADCInstrumentController::ADCInstrumentController(ToolMenuEntry *tme, QString uri, QString name, AcqTreeNode *tree,
+						 QObject *parent)
 	: QObject(parent)
 	, m_refreshTimerRunning(false)
 	, m_plotComponentManager(nullptr)
 	, m_measureComponent(nullptr)
 	, m_started(false)
+	, m_tme(tme)
+	, m_uri(uri)
 {
 	chIdP = new ChannelIdProvider(this);
 	m_tree = tree;
@@ -83,7 +107,7 @@ void ADCInstrumentController::onStop()
 
 void ADCInstrumentController::start()
 {
-	ResourceManager::open("adc", this);
+	ResourceManager::open("adc" + m_uri, this);
 	bool ret = m_dataProvider->start();
 	if(!ret) {
 		Q_EMIT requestDisconnect();
@@ -93,7 +117,7 @@ void ADCInstrumentController::start()
 void ADCInstrumentController::stop()
 {
 	m_dataProvider->stop();
-	ResourceManager::close("adc");
+	ResourceManager::close("adc" + m_uri);
 }
 
 void ADCInstrumentController::stopUpdates()

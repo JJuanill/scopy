@@ -1,8 +1,30 @@
+/*
+ * Copyright (c) 2024 Analog Devices Inc.
+ *
+ * This file is part of Scopy
+ * (see https://www.github.com/analogdevicesinc/scopy).
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program. If not, see <https://www.gnu.org/licenses/>.
+ *
+ */
+
 #include "widgets/measurementpanel.h"
 
 #include <QGridLayout>
 #include <QScrollArea>
 #include <QWidget>
+#include <style.h>
 
 #include <measurementlabel.h>
 
@@ -60,6 +82,7 @@ MeasurementsPanel::MeasurementsPanel(QWidget *parent)
 	int idx = panelLayout->indexOf(spacer);
 	m_stacks.append(new VerticalWidgetStack(stackSize, this));
 	panelLayout->insertWidget(idx, m_stacks.last());
+	Style::setBackgroundColor(this, json::theme::background_subtle);
 }
 
 void MeasurementsPanel::addWidget(QWidget *meas)
@@ -158,7 +181,7 @@ void MeasurementsPanel::setInhibitUpdates(bool newInhibitUpdates)
 
 void MeasurementsPanel::clear()
 {
-	for(VerticalWidgetStack *stack : m_stacks) {
+	for(VerticalWidgetStack *stack : qAsConst(m_stacks)) {
 		stack->reparentWidgets(nullptr);
 		panelLayout->removeWidget(stack);
 		delete stack;
@@ -168,7 +191,7 @@ void MeasurementsPanel::clear()
 
 void MeasurementsPanel::refreshUi()
 {
-	for(VerticalWidgetStack *stack : m_stacks) {
+	for(VerticalWidgetStack *stack : qAsConst(m_stacks)) {
 		stack->reparentWidgets(nullptr);
 		panelLayout->removeWidget(stack);
 		delete stack;
@@ -208,6 +231,7 @@ StatsPanel::StatsPanel(QWidget *parent)
 
 	panelLayout->setAlignment(Qt::AlignLeft);
 	lay->addWidget(scrollArea);
+	Style::setBackgroundColor(this, json::theme::background_subtle);
 }
 
 StatsPanel::~StatsPanel() {}
@@ -226,11 +250,11 @@ void StatsPanel::removeStat(StatsLabel *stat)
 
 void StatsPanel::updateOrder()
 {
-	for(StatsLabel *label : m_labels) {
+	for(StatsLabel *label : qAsConst(m_labels)) {
 		panelLayout->removeWidget(label);
 	}
 
-	for(StatsLabel *label : m_labels) {
+	for(StatsLabel *label : qAsConst(m_labels)) {
 		panelLayout->addWidget(label);
 	}
 }

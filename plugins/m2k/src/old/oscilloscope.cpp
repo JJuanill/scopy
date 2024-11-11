@@ -105,8 +105,8 @@ using namespace std::placeholders;
 constexpr int MAX_BUFFER_SIZE_STREAM = 1024 * 1024;
 constexpr int MAX_KERNEL_BUFFERS = 64;
 
-Oscilloscope::Oscilloscope(libm2k::context::M2k *m2k, Filter *filt, ToolMenuEntry *tme, m2k_iio_manager *m2k_man,
-			   QJSEngine *engine, QWidget *parent)
+Oscilloscope::Oscilloscope(libm2k::context::M2k *m2k, QString uri, Filter *filt, ToolMenuEntry *tme,
+			   m2k_iio_manager *m2k_man, QJSEngine *engine, QWidget *parent)
 	: M2kTool(tme, new Oscilloscope_API(this), "Oscilloscope", parent)
 	, m_m2k_context(m2k)
 	, m_m2k_analogin(m_m2k_context->getAnalogIn())
@@ -161,6 +161,7 @@ Oscilloscope::Oscilloscope(libm2k::context::M2k *m2k, Filter *filt, ToolMenuEntr
 	, m_logicAnalyzer(nullptr)
 	, m_mixedSignalViewEnabled(false)
 	, logic_top_block(nullptr)
+	, m_uri(uri)
 {
 	ui->setupUi(this);
 	int triggers_panel = ui->stackedWidget->insertWidget(-1, &trigger_settings);
@@ -629,8 +630,8 @@ Oscilloscope::Oscilloscope(libm2k::context::M2k *m2k, Filter *filt, ToolMenuEntr
 	connect(ui->runSingleWidget, &RunSingleWidget::toggled, ch_ui->btnAutoset, &QPushButton::setEnabled);
 
 	connect(ui->runSingleWidget, &RunSingleWidget::toggled, [=](bool checked) { tme->setRunning(checked); });
-	connect(tme, &ToolMenuEntry::runToggled, ui->runSingleWidget, &RunSingleWidget::toggle);
 	connect(ui->runSingleWidget, &RunSingleWidget::toggled, this, &Oscilloscope::runStopToggled);
+	connect(tme, &ToolMenuEntry::runToggled, ui->runSingleWidget, &RunSingleWidget::toggle);
 	connect(this, &Oscilloscope::startRunning, ui->runSingleWidget, &RunSingleWidget::toggle);
 
 	connect(gsettings_ui->xyPlotLineType, SIGNAL(toggled(bool)), this, SLOT(xyPlotLineType_toggled(bool)));
@@ -876,7 +877,7 @@ Oscilloscope::Oscilloscope(libm2k::context::M2k *m2k, Filter *filt, ToolMenuEntr
 	connect(&plot, SIGNAL(leftGateChanged(double)), SLOT(onLeftGateChanged(double)));
 	connect(&plot, SIGNAL(rightGateChanged(double)), SLOT(onRightGateChanged(double)));
 
-	ui->btnHelp->setUrl("https://wiki.analog.com/university/tools/m2k/scopy/oscilloscope");
+	ui->btnHelp->setUrl("https://analogdevicesinc.github.io/scopy/plugins/m2k/oscilloscope.html");
 
 #ifdef __ANDROID__
 	ui->btnAddMath->setIconSize(QSize(24, 24));
@@ -2328,9 +2329,13 @@ void Oscilloscope::add_math_channel(const std::string &function)
 	QString qname = QString("Math %1").arg(math_chn_counter++);
 	std::string name = qname.toStdString();
 
-	auto math_sink =
-		scope_sink_f::make(noZoomXAxisWidth * getSampleRate() / m_m2k_analogin->getOversamplingRatio(),
-				   getSampleRate() / m_m2k_analogin->getOversamplingRatio(), name, 1, (QObject *)&plot);
+	int osr = m_m2k_analogin->getOversamplingRatio();
+	if(osr == 0) {
+		m_m2k_analogin->setOversamplingRatio(1);
+		osr = 1;
+	}
+	auto math_sink = scope_sink_f::make(noZoomXAxisWidth * getSampleRate() / osr, getSampleRate() / osr, name, 1,
+					    (QObject *)&plot);
 
 	double targetFps = p->get("general_plot_target_fps").toDouble();
 	math_sink->set_update_time(1.0 / targetFps);
@@ -2718,7 +2723,7 @@ void Oscilloscope::runStopToggled(bool checked)
 	Q_EMIT activateExportButton();
 
 	if(checked) {
-		ResourceManager::open("m2k-adc", this);
+		ResourceManager::open("m2k-adc" + m_uri, this);
 		periodicFlowRestart(true);
 		if(symmBufferMode->isEnhancedMemDepth()) {
 			onCmbMemoryDepthChanged(ch_ui->cmbMemoryDepth->currentText());
@@ -2754,7 +2759,7 @@ void Oscilloscope::runStopToggled(bool checked)
 		toggle_blockchain_flow(false);
 		resetStreamingFlag(symmBufferMode->isEnhancedMemDepth() || plot_samples_sequentially);
 		trigger_settings.setAdcRunningState(false);
-		ResourceManager::close("m2k-adc");
+		ResourceManager::close("m2k-adc" + m_uri);
 	}
 
 	// Update trigger status
@@ -5140,6 +5145,10 @@ double Oscilloscope::getSampleRate()
 		double sr = m_m2k_analogin->getSampleRate();
 		if(m_filtering_enabled == false) {
 			int osr = m_m2k_analogin->getOversamplingRatio();
+			if(osr == 0) {
+				m_m2k_analogin->setOversamplingRatio(1);
+				osr = 1;
+			}
 			sr = (double)(sr / osr);
 		}
 		return sr;

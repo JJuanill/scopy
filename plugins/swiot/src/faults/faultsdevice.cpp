@@ -27,6 +27,7 @@
 #include <iioutil/iiocommand/iiodeviceattributeread.h>
 #include <iioutil/iiocommand/iioregisterread.h>
 
+#include <style.h>
 #include <gui/stylehelper.h>
 #include <gui/widgets/menucollapsesection.h>
 #include <gui/dynamicWidget.h>
@@ -287,20 +288,20 @@ QWidget *FaultsDevice::createTopWidget(QWidget *parent)
 	deviceNameLabel->setText(m_name);
 
 	m_registerNoLineEdit = new QLineEdit(w);
-	StyleHelper::MenuLineEdit(m_registerNoLineEdit);
+	Style::setStyle(m_registerNoLineEdit, style::properties::widget::solidBorder);
 	m_registerNoLineEdit->setFixedWidth(140);
 	m_registerNoLineEdit->setPlaceholderText("0x0");
 	m_registerNoLineEdit->setFocusPolicy(Qt::NoFocus);
 	m_registerNoLineEdit->setReadOnly(true);
 
 	m_resetBtn = new QPushButton(w);
-	StyleHelper::BlueButton(m_resetBtn);
+	StyleHelper::BasicButton(m_resetBtn);
 	m_resetBtn->setFixedWidth(110);
 	m_resetBtn->setCheckable(false);
 	m_resetBtn->setText("RESET\nSTORED");
 
 	m_clearBtn = new QPushButton(w);
-	StyleHelper::BlueButton(m_clearBtn);
+	StyleHelper::BasicButton(m_clearBtn);
 	m_clearBtn->setFixedWidth(110);
 	m_clearBtn->setCheckable(false);
 	m_clearBtn->setText("CLEAR\nSELECTION");

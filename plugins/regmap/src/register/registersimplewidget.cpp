@@ -1,3 +1,24 @@
+/*
+ * Copyright (c) 2024 Analog Devices Inc.
+ *
+ * This file is part of Scopy
+ * (see https://www.github.com/analogdevicesinc/scopy).
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program. If not, see <https://www.gnu.org/licenses/>.
+ *
+ */
+
 #include "registersimplewidget.hpp"
 
 #include "bitfield/bitfieldsimplewidget.hpp"
@@ -46,10 +67,9 @@ RegisterSimpleWidget::RegisterSimpleWidget(RegisterModel *registerModel, QVector
 	QVBoxLayout *rightLayout = new QVBoxLayout();
 	rightLayout->setAlignment(Qt::AlignRight);
 
-	QLabel *registerAddressLable =
-		new QLabel(Utils::convertToHexa(registerModel->getAddress(), registerModel->getWidth()));
-	registerAddressLable->setAlignment(Qt::AlignRight);
-	rightLayout->addWidget(registerAddressLable);
+	registerAddressLabl = new QLabel(Utils::convertToHexa(registerModel->getAddress(), registerModel->getWidth()));
+	registerAddressLabl->setAlignment(Qt::AlignRight);
+	rightLayout->addWidget(registerAddressLabl);
 	value = new QLabel("N/R");
 	value->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Preferred);
 	value->setAlignment(Qt::AlignBottom | Qt::AlignRight);
@@ -141,12 +161,18 @@ void RegisterSimpleWidget::valueUpdated(uint32_t value)
 		}
 	}
 	this->value->setText(Utils::convertToHexa(value, registerModel->getWidth()));
-	applyStyle();
+	RegmapStyleHelper::applyRegisterValueColorPreferences(this);
 }
 
 void RegisterSimpleWidget::setRegisterSelected(bool selected)
 {
-	scopy::setDynamicProperty(regBaseInfoWidget, "is_selected", selected);
+
+	RegmapStyleHelper::toggleSelectedRegister(regBaseInfoWidget, selected);
+
+	if(value->text() != "N/R" && !selected) {
+		RegmapStyleHelper::applyRegisterValueColorPreferences(this);
+	}
+
 	for(int i = 0; i < bitFields->length(); ++i) {
 		bitFields->at(i)->setSelected(selected);
 	}

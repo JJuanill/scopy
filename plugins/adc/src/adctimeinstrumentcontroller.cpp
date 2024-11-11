@@ -1,3 +1,24 @@
+/*
+ * Copyright (c) 2024 Analog Devices Inc.
+ *
+ * This file is part of Scopy
+ * (see https://www.github.com/analogdevicesinc/scopy).
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program. If not, see <https://www.gnu.org/licenses/>.
+ *
+ */
+
 #include "adctimeinstrumentcontroller.h"
 #include "adcinstrument.h"
 #include "grdevicecomponent.h"
@@ -8,9 +29,9 @@
 using namespace scopy;
 using namespace adc;
 
-ADCTimeInstrumentController::ADCTimeInstrumentController(ToolMenuEntry *tme, QString name, AcqTreeNode *tree,
-							 QObject *parent)
-	: ADCInstrumentController(tme, name, tree, parent)
+ADCTimeInstrumentController::ADCTimeInstrumentController(ToolMenuEntry *tme, QString uri, QString name,
+							 AcqTreeNode *tree, QObject *parent)
+	: ADCInstrumentController(tme, uri, name, tree, parent)
 {
 	m_defaultCh = nullptr;
 }
@@ -66,7 +87,7 @@ void ADCTimeInstrumentController::init()
 		m_ui->m_settingsBtn->setChecked(true);
 	});
 
-	connect(m_ui->m_printBtn, &QPushButton::clicked, this, [=, this]() {
+	connect(m_ui->m_printBtn, &QPushButton::clicked, this, [=]() {
 		QList<PlotWidget *> plotList;
 
 		for(PlotComponent *pp : m_plotComponentManager->plots()) {
@@ -88,6 +109,7 @@ void ADCTimeInstrumentController::init()
 	m_otherCMCB = new CollapsableMenuControlButton(m_ui->vcm());
 	m_otherCMCB->getControlBtn()->button()->setVisible(false);
 	m_otherCMCB->getControlBtn()->setName("Other");
+	m_otherCMCB->hide();
 	m_ui->vcm()->addEnd(m_otherCMCB);
 	m_ui->m_complex->setVisible(false);
 
@@ -204,6 +226,7 @@ void ADCTimeInstrumentController::createImportFloatChannel(AcqTreeNode *node)
 	m_plotComponentManager->addChannel(c);
 	c->menu()->add(m_plotComponentManager->plotCombo(c), "plot", gui::MenuWidget::MA_BOTTOMFIRST);
 
+	m_otherCMCB->show();
 	CompositeWidget *cw = m_otherCMCB;
 	m_acqNodeComponentMap[ifcn] = c;
 	m_ui->addChannel(c->ctrl(), c, cw);
@@ -252,6 +275,11 @@ void ADCTimeInstrumentController::removeChannel(AcqTreeNode *node)
 		removeComponent(c);
 		delete c;
 	}
+
+	if(m_otherCMCB->count() <= 0) {
+		m_otherCMCB->hide();
+	}
+
 	m_plotComponentManager->replot();
 }
 

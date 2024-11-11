@@ -1,14 +1,37 @@
+/*
+ * Copyright (c) 2024 Analog Devices Inc.
+ *
+ * This file is part of Scopy
+ * (see https://www.github.com/analogdevicesinc/scopy).
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program. If not, see <https://www.gnu.org/licenses/>.
+ *
+ */
+
 #include "devicebrowser.h"
 
 #include "deviceicon.h"
 #include "deviceiconimpl.h"
 #include "dynamicWidget.h"
+#include "style_attributes.h"
 #include "stylehelper.h"
 
 #include "ui_devicebrowser.h"
 
 #include <QDebug>
 #include <QLoggingCategory>
+#include <style.h>
 
 Q_LOGGING_CATEGORY(CAT_DEVBROWSER, "DeviceBrowser")
 
@@ -40,19 +63,23 @@ DeviceBrowser::~DeviceBrowser()
 
 void DeviceBrowser::initBtns()
 {
-	StyleHelper::FrameBackgroundShadow(ui->containerHome);
-	StyleHelper::FrameBackgroundShadow(ui->containerAdd);
-
 	bg = new QButtonGroup(this);
-
 	bg->addButton(ui->btnAdd);
 	bg->addButton(ui->btnHome);
+
 	ui->btnHome->setProperty(devBrowserId, "home");
+	ui->btnHome->setIcon(Style::getPixmap(":/gui/icons/home.svg", Style::getColor(json::theme::content_inverse)));
+	Style::setStyle(ui->btnHome, style::properties::button::squareIconBrowserButton);
+
 	ui->btnAdd->setProperty(devBrowserId, "add");
+	ui->btnAdd->setIcon(Style::getPixmap(":/gui/icons/add.svg", Style::getColor(json::theme::content_inverse)));
+	Style::setStyle(ui->btnAdd, style::properties::button::squareIconBrowserButton);
+
 	list.append(ui->btnHome);
 	list.append(ui->btnAdd);
+
+	Style::setStyle(ui->containerHome, style::properties::frame::frameContainer, "selected");
 	ui->btnHome->setChecked(true);
-	setDynamicProperty(ui->containerHome, "selected", true); // select home shadow on init
 	currentIdx = 0;
 }
 
@@ -170,12 +197,18 @@ void DeviceBrowser::updateSelectedDeviceIdx(QString k)
 	if(prevDevice == ui->btnAdd)
 		prevDevice = ui->containerAdd;
 
-	setDynamicProperty(prevDevice, "selected", false);
-	setDynamicProperty(currentDevice, "selected", true);
+	Style::setStyle(prevDevice, style::properties::frame::frameContainer, "idle", true);
+	Style::setStyle(currentDevice, style::properties::frame::frameContainer, "selected", true);
 
 	qDebug(CAT_DEVBROWSER) << "prev: "
 			       << "[" << prevIdx << "] -" << getIdOfIndex(prevIdx) << "-> current: "
 			       << "[" << currentIdx << "] -" << getIdOfIndex(currentIdx);
+}
+
+void DeviceBrowser::connectingDevice(QString id)
+{
+	auto w = dynamic_cast<DeviceIcon *>(getDeviceWidgetFor(id));
+	w->setConnecting(true);
 }
 
 void DeviceBrowser::connectDevice(QString id)

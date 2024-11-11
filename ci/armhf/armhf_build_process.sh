@@ -23,9 +23,7 @@ build_with_cmake() {
 	make $JOBS
 	CURRENT_BUILD_CMAKE_OPTS=""
 
-	echo "$(basename -a "$(git config --get remote.origin.url)") - \
-	$(git rev-parse --abbrev-ref HEAD) - \
-	$(git rev-parse --short HEAD)" \
+	echo "$(basename -a "$(git config --get remote.origin.url)") - $(git rev-parse --abbrev-ref HEAD) - $(git rev-parse --short HEAD)" \
 	>> $BUILD_STATUS_FILE
 }
 
@@ -103,6 +101,7 @@ clone() {
 	echo "#######CLONE#######"
 	mkdir -p $STAGING_AREA
 	pushd $STAGING_AREA
+	[ -d 'libserialport' ] || git clone --recursive https://github.com/cseci/libserialport -b $LIBSERIALPORT_BRANCH libserialport
 	[ -d 'libiio' ]		|| git clone --recursive https://github.com/analogdevicesinc/libiio.git -b $LIBIIO_VERSION libiio
 	[ -d 'libad9361' ]	|| git clone --recursive https://github.com/analogdevicesinc/libad9361-iio.git -b $LIBAD9361_BRANCH libad9361
 	[ -d 'libm2k' ]		|| git clone --recursive https://github.com/analogdevicesinc/libm2k.git -b $LIBM2K_BRANCH libm2k
@@ -114,6 +113,21 @@ clone() {
 	[ -d 'qwt' ]		|| git clone --recursive https://github.com/cseci/qwt.git -b $QWT_BRANCH qwt
 	[ -d 'libsigrokdecode' ] || git clone --recursive https://github.com/sigrokproject/libsigrokdecode.git -b $LIBSIGROKDECODE_BRANCH libsigrokdecode
 	[ -d 'libtinyiiod' ]	|| git clone --recursive https://github.com/analogdevicesinc/libtinyiiod.git -b $LIBTINYIIOD_BRANCH libtinyiiod
+	[ -d 'KDDockWidgets' ] || git clone --recursive https://github.com/KDAB/KDDockWidgets.git -b $KDDOCK_BRANCH KDDockWidgets
+	popd
+}
+build_libserialport(){
+	echo "### Building libserialport - branch $LIBSERIALPORT_BRANCH"
+	pushd $STAGING_AREA/libserialport
+	git clean -xdf
+	./autogen.sh
+	./configure ${AUTOCONF_OPTS}
+	make $JOBS
+	patchelf --force-rpath --set-rpath \$ORIGIN $STAGING_AREA/libserialport/.libs/libserialport.so
+	sudo make install
+
+	echo "$(basename -a "$(git config --get remote.origin.url)") - $(git rev-parse --abbrev-ref HEAD) - $(git rev-parse --short HEAD)" \
+	>> $BUILD_STATUS_FILE
 	popd
 }
 
@@ -123,7 +137,7 @@ build_libiio() {
 	CURRENT_BUILD_CMAKE_OPTS="\
 		-DWITH_TESTS:BOOL=OFF \
 		-DWITH_DOC:BOOL=OFF \
-		-DHAVE_DNS_SD:BOOL=OFF\
+		-DHAVE_DNS_SD:BOOL=ON \
 		-DWITH_MATLAB_BINDINGS:BOOL=OFF \
 		-DCSHARP_BINDINGS:BOOL=OFF \
 		-DPYTHON_BINDINGS:BOOL=OFF \
@@ -229,9 +243,7 @@ build_qwt() {
 	patchelf --force-rpath --set-rpath \$ORIGIN $STAGING_AREA/qwt/lib/libqwt.so
 	sudo make INSTALL_ROOT=$SYSROOT install
 
-	echo "$(basename -a "$(git config --get remote.origin.url)") - \
-	$(git rev-parse --abbrev-ref HEAD) - \
-	$(git rev-parse --short HEAD)" \
+	echo "$(basename -a "$(git config --get remote.origin.url)") - $(git rev-parse --abbrev-ref HEAD) - $(git rev-parse --short HEAD)" \
 	>> $BUILD_STATUS_FILE
 	popd
 }
@@ -247,9 +259,7 @@ build_libsigrokdecode() {
 	patchelf --force-rpath --set-rpath \$ORIGIN $STAGING_AREA/libsigrokdecode/.libs/libsigrokdecode.so
 	sudo make install
 
-	echo "$(basename -a "$(git config --get remote.origin.url)") - \
-	$(git rev-parse --abbrev-ref HEAD) - \
-	$(git rev-parse --short HEAD)" \
+	echo "$(basename -a "$(git config --get remote.origin.url)") - $(git rev-parse --abbrev-ref HEAD) - $(git rev-parse --short HEAD)" \
 	>> $BUILD_STATUS_FILE
 	popd
 }
@@ -258,6 +268,15 @@ build_libtinyiiod() {
 	echo "### Building libtinyiiod - branch $LIBTINYIIOD_BRANCH"
 	pushd $STAGING_AREA/libtinyiiod
 	CURRENT_BUILD_CMAKE_OPTS="-DBUILD_EXAMPLES=OFF"
+	build_with_cmake
+	sudo make install
+	popd
+}
+
+build_kddock () {
+	echo "### Building KDDockWidgets - version $KDDOCK_BRANCH"
+	pushd $STAGING_AREA/KDDockWidgets
+	CURRENT_BUILD_CMAKE_OPTS=""
 	build_with_cmake
 	sudo make install
 	popd
@@ -297,6 +316,7 @@ create_appdir(){
 	EMU_XMLS=$BUILD_FOLDER/plugins/emu_xml
 	EMU_CONFIG=$SRC_DIR/resources/scopy_emu_options_config.json
 	TRANSLATIONS_QM=$(find $BUILD_FOLDER/translations -type f -name "*.qm")
+	STYLE_FOLDER=$BUILD_FOLDER/style
 	COPY_DEPS=$SRC_DIR/ci/armhf/copy-deps.sh
 
 	rm -rf $APP_DIR
@@ -321,6 +341,8 @@ create_appdir(){
 
 	mkdir -p $APP_DIR/usr/lib/scopy/translations
 	cp $TRANSLATIONS_QM $APP_DIR/usr/lib/scopy/translations
+	
+	cp -R $STYLE_FOLDER $APP_DIR/usr/lib/scopy/style
 
 	if [ -d $REGMAP_XMLS ]; then
 		cp -r $REGMAP_XMLS $APP_DIR/usr/lib/scopy/plugins
@@ -397,6 +419,7 @@ generate_ci_envs()
 # Helper functions
 #
 build_deps(){
+	build_libserialport
 	build_libiio
 	build_libad9361
 	build_spdlog
@@ -408,6 +431,7 @@ build_deps(){
 	build_qwt
 	build_libsigrokdecode
 	build_libtinyiiod
+	#build_kddock
 }
 
 run_workflow(){

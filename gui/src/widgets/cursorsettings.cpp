@@ -1,4 +1,26 @@
+/*
+ * Copyright (c) 2024 Analog Devices Inc.
+ *
+ * This file is part of Scopy
+ * (see https://www.github.com/analogdevicesinc/scopy).
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program. If not, see <https://www.gnu.org/licenses/>.
+ *
+ */
+
 #include <QVBoxLayout>
+#include <style.h>
 
 #include <stylehelper.h>
 #include <widgets/cursorsettings.h>
@@ -26,6 +48,7 @@ void CursorSettings::initUI()
 
 	// x controls
 	xControls = new MenuSectionWidget(this);
+	Style::setStyle(xControls, style::properties::widget::border);
 	layout->addWidget(xControls);
 	xControls->contentLayout()->setSpacing(10);
 
@@ -39,6 +62,7 @@ void CursorSettings::initUI()
 
 	// y controls
 	yControls = new MenuSectionWidget(this);
+	Style::setStyle(yControls, style::properties::widget::border);
 	layout->addWidget(yControls);
 	yControls->contentLayout()->setSpacing(10);
 
@@ -50,6 +74,7 @@ void CursorSettings::initUI()
 
 	// readouts controls
 	readoutsControls = new MenuSectionWidget(this);
+	Style::setStyle(readoutsControls, style::properties::widget::border);
 	layout->addWidget(readoutsControls);
 
 	readoutsDrag = new MenuOnOffSwitch(tr("Move readouts"), readoutsControls, false);

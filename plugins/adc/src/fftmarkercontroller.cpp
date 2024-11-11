@@ -1,3 +1,24 @@
+/*
+ * Copyright (c) 2024 Analog Devices Inc.
+ *
+ * This file is part of Scopy
+ * (see https://www.github.com/analogdevicesinc/scopy).
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program. If not, see <https://www.gnu.org/licenses/>.
+ *
+ */
+
 #include "fftmarkercontroller.hpp"
 
 #include <QwtText>
@@ -7,7 +28,7 @@ using namespace scopy;
 using namespace adc;
 
 FFTMarkerController::FFTMarkerController(FFTPlotComponentChannel *ch, QObject *parent)
-	: MarkerController(ch, parent)
+	: PlotMarkerController(ch, parent)
 	, m_ch(ch)
 {}
 
@@ -22,7 +43,7 @@ void FFTMarkerController::init()
 
 void FFTMarkerController::attachMarkersToPlot()
 {
-	for(auto m : this->m_markerInfo) {
+	for(const auto &m : qAsConst(this->m_markerInfo)) {
 		m.marker->setValue(m.peak.x, m.peak.y);
 
 		QwtText lbl;
@@ -116,7 +137,7 @@ void FFTMarkerController::computePeaks()
 	}
 
 	m_sortedPeakInfo.clear();
-	for(auto v : m_peakInfo) {
+	for(auto v : qAsConst(m_peakInfo)) {
 		m_sortedPeakInfo.append(v);
 	}
 

@@ -1,6 +1,26 @@
+/*
+ * Copyright (c) 2024 Analog Devices Inc.
+ *
+ * This file is part of Scopy
+ * (see https://www.github.com/analogdevicesinc/scopy).
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program. If not, see <https://www.gnu.org/licenses/>.
+ *
+ */
+
 #include "settingsinstrument.h"
 #include <gui/widgets/menucombo.h>
-#include <gui/widgets/menulineedit.h>
 #include <gui/widgets/menuonoffswitch.h>
 #include <gui/widgets/menucollapsesection.h>
 #include <gui/tooltemplate.h>
@@ -10,6 +30,9 @@
 #include <QDateTimeEdit>
 #include <QScrollArea>
 #include <QTime>
+#include <style.h>
+#include <menusectionwidget.h>
+#include <QLineEdit>
 
 Q_LOGGING_CATEGORY(CAT_PQM_SETTINGS, "pqm_settings");
 using namespace scopy::pqm;
@@ -25,7 +48,8 @@ SettingsInstrument::SettingsInstrument(QWidget *parent)
 	ToolTemplate *tool = new ToolTemplate(this);
 	tool->topContainer()->setVisible(false);
 	tool->centralContainer()->setVisible(true);
-	tool->bottomContainer()->setVisible(true);
+	tool->centralContainer()->layout()->setSpacing(10);
+	tool->bottomContainer()->setVisible(false);
 	tool->topContainerMenuControl()->setVisible(false);
 
 	instrumentLayout->addWidget(tool);
@@ -34,6 +58,8 @@ SettingsInstrument::SettingsInstrument(QWidget *parent)
 	initTimestampSection(tool->centralContainer());
 	initCalibSection(tool->centralContainer());
 	initConfigSection(tool->centralContainer());
+	tool->centralContainer()->layout()->addItem(
+		new QSpacerItem(0, 0, QSizePolicy::Expanding, QSizePolicy::Expanding));
 }
 
 SettingsInstrument::~SettingsInstrument() {}
@@ -92,12 +118,10 @@ QWidget *SettingsInstrument::createConfigEdit(QString name, QString attr)
 	lay->setSpacing(0);
 	lay->setContentsMargins(0, 0, 0, 0);
 
-	QLabel *label = new QLabel(name, configEdit);
-	StyleHelper::MenuSmallLabel(label, name);
-	MenuLineEdit *lineEdit = new MenuLineEdit(configEdit);
-	lay->addWidget(label);
+	QLineEdit *lineEdit = new QLineEdit(configEdit);
+	lay->addWidget(new QLabel(name, configEdit));
 	lay->addWidget(lineEdit);
-	connect(lineEdit->edit(), &QLineEdit::textEdited, this, [=, this](const QString val) {
+	connect(lineEdit, &QLineEdit::textEdited, this, [=, this](const QString val) {
 		if(m_pqmAttr[DEVICE_NAME].contains(attr)) {
 			m_pqmAttr[DEVICE_NAME][attr] = val;
 		}
@@ -105,8 +129,8 @@ QWidget *SettingsInstrument::createConfigEdit(QString name, QString attr)
 	connect(this, &SettingsInstrument::updateUi, this, [=, this]() {
 		if(m_pqmAttr[DEVICE_NAME].contains(attr)) {
 			QString val = m_pqmAttr[DEVICE_NAME][attr];
-			lineEdit->edit()->setPlaceholderText(val);
-			lineEdit->edit()->setText(val);
+			lineEdit->setPlaceholderText(val);
+			lineEdit->setText(val);
 		}
 	});
 
@@ -115,8 +139,14 @@ QWidget *SettingsInstrument::createConfigEdit(QString name, QString attr)
 
 void SettingsInstrument::initConfigSection(QWidget *parent)
 {
-	MenuCollapseSection *configSection = new MenuCollapseSection("Config values", MenuCollapseSection::MHCW_ARROW,
-								     MenuCollapseSection::MHW_BASEWIDGET, parent);
+	QWidget *container = new QWidget(parent);
+	container->setLayout(new QGridLayout(container));
+	Style::setStyle(container, style::properties::widget::border_interactive);
+	Style::setBackgroundColor(container, json::theme::background_primary);
+
+	MenuSectionCollapseWidget *configSection = new MenuSectionCollapseWidget(
+		"Config values", MenuCollapseSection::MHCW_ARROW, MenuCollapseSection::MHW_BASEWIDGET, container);
+	configSection->menuSection()->contentLayout()->setMargin(0);
 
 	QWidget *configWidget = new QWidget(configSection);
 	configWidget->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
@@ -162,10 +192,10 @@ void SettingsInstrument::initConfigSection(QWidget *parent)
 	readLoadingIcon->setFileName(":/gui/loading.gif");
 	readLoadingIcon->setScaledSize(QSize(20, 20));
 	configReadBtn->setAnimation(readLoadingIcon);
-	StyleHelper::BlueButton(configReadBtn, "configRead");
+	StyleHelper::BasicButton(configReadBtn, "configRead");
 	QPushButton *configSetBtn = new QPushButton("Set");
 	configSetBtn->setFixedWidth(88);
-	StyleHelper::BlueButton(configSetBtn, "configSet");
+	StyleHelper::BasicButton(configSetBtn, "configSet");
 	configBtns->layout()->addWidget(configReadBtn);
 	configBtns->layout()->addWidget(configSetBtn);
 	configBtns->layout()->addItem(new QSpacerItem(40, 20, QSizePolicy::Expanding, QSizePolicy::Minimum));
@@ -174,47 +204,64 @@ void SettingsInstrument::initConfigSection(QWidget *parent)
 	QScrollArea *scrollArea = new QScrollArea();
 	scrollArea->setWidget(configWidget);
 	scrollArea->setWidgetResizable(true);
-	configSection->contentLayout()->addWidget(scrollArea);
+	configSection->add(scrollArea);
 
 	connect(configReadBtn, &AnimationPushButton::clicked, this, &SettingsInstrument::onReadBtnPressed);
 	connect(this, &SettingsInstrument::updateUi, configReadBtn, &AnimationPushButton::stopAnimation);
 	connect(configSetBtn, &QPushButton::pressed, this, &SettingsInstrument::onSetBtnPressed);
 
-	parent->layout()->addWidget(configSection);
+	container->layout()->addWidget(configSection);
+	parent->layout()->addWidget(container);
 }
 
 void SettingsInstrument::initSystemTimeSection(QWidget *parent)
 {
-	MenuCollapseSection *systemTimeSection = new MenuCollapseSection("System time", MenuCollapseSection::MHCW_ARROW,
-									 MenuCollapseSection::MHW_BASEWIDGET, parent);
+	QWidget *container = new QWidget(parent);
+	container->setLayout(new QGridLayout(container));
+	Style::setStyle(container, style::properties::widget::border_interactive);
+	Style::setBackgroundColor(container, json::theme::background_primary);
+
+	MenuSectionCollapseWidget *systemTimeSection = new MenuSectionCollapseWidget(
+		"System time", MenuCollapseSection::MHCW_ARROW, MenuCollapseSection::MHW_BASEWIDGET, container);
+	systemTimeSection->menuSection()->contentLayout()->setMargin(0);
 	systemTimeSection->contentLayout()->setSpacing(6);
+
 	QDateTimeEdit *systemTimeEdit = new QDateTimeEdit(systemTimeSection);
 	systemTimeEdit->setDateTime(QDateTime::currentDateTime());
 	systemTimeEdit->setDisplayFormat("dd:MM:yyyy hh:mm:ss.zzz");
+	Style::setBackgroundColor(systemTimeEdit, json::theme::background_primary, true);
+
 	QPushButton *systemTimeBtn = new QPushButton("Set", systemTimeSection);
 	systemTimeBtn->setFixedWidth(88);
-	StyleHelper::BlueButton(systemTimeBtn, "systemTimeBtn");
+	StyleHelper::BasicButton(systemTimeBtn, "systemTimeBtn");
 
-	systemTimeSection->contentLayout()->addWidget(systemTimeEdit);
-	systemTimeSection->contentLayout()->addWidget(systemTimeBtn);
+	systemTimeSection->add(systemTimeEdit);
+	systemTimeSection->add(systemTimeBtn);
 
 	connect(systemTimeBtn, &QPushButton::clicked, this, [this, systemTimeEdit]() {
 		setDateTimeAttr(systemTimeEdit->dateTime(), SYSTEM_TIME_ATTR);
 		onSetBtnPressed();
 	});
 
-	parent->layout()->addWidget(systemTimeSection);
+	container->layout()->addWidget(systemTimeSection);
+	parent->layout()->addWidget(container);
 }
 
 void SettingsInstrument::initTimestampSection(QWidget *parent)
 {
-	MenuCollapseSection *timestampSection = new MenuCollapseSection("Logging", MenuCollapseSection::MHCW_ARROW,
-									MenuCollapseSection::MHW_BASEWIDGET, parent);
+	QWidget *container = new QWidget(parent);
+	container->setLayout(new QGridLayout(container));
+	Style::setStyle(container, style::properties::widget::border_interactive);
+	Style::setBackgroundColor(container, json::theme::background_primary);
+
+	MenuSectionCollapseWidget *timestampSection = new MenuSectionCollapseWidget(
+		"Logging", MenuCollapseSection::MHCW_ARROW, MenuCollapseSection::MHW_BASEWIDGET, container);
+	timestampSection->menuSection()->contentLayout()->setMargin(0);
 	timestampSection->contentLayout()->setSpacing(6);
 
 	QPushButton *startLogBtn = new QPushButton("Start", timestampSection);
 	startLogBtn->setFixedWidth(88);
-	StyleHelper::BlueButton(startLogBtn, "startLogBtn");
+	StyleHelper::BasicButton(startLogBtn, "startLogBtn");
 	startLogBtn->setCheckable(true);
 	connect(startLogBtn, &QPushButton::clicked, this, [this, startLogBtn](bool checked) {
 		m_pqmAttr[DEVICE_NAME]["start_logging"] = QString::number(checked);
@@ -228,16 +275,18 @@ void SettingsInstrument::initTimestampSection(QWidget *parent)
 
 	QWidget *timestampWidget = new QWidget(timestampSection);
 	timestampWidget->setLayout(new QHBoxLayout());
-	timestampWidget->layout()->setContentsMargins(0, 0, 0, 0);
+	timestampWidget->layout()->setMargin(0);
 	timestampWidget->layout()->setSpacing(10);
 
 	QDateTimeEdit *timestampEdit1 = new QDateTimeEdit(timestampSection);
 	timestampEdit1->setDateTime(QDateTime::currentDateTime());
 	timestampEdit1->setDisplayFormat("dd:MM:yyyy hh:mm:ss.zzz");
+	Style::setBackgroundColor(timestampEdit1, json::theme::background_primary, true);
 
 	QDateTimeEdit *timestampEdit2 = new QDateTimeEdit(timestampSection);
 	timestampEdit2->setDateTime(QDateTime::currentDateTime());
 	timestampEdit2->setDisplayFormat("dd:MM:yyyy hh:mm:ss.zzz");
+	Style::setBackgroundColor(timestampEdit2, json::theme::background_primary, true);
 
 	qInfo() << "Date time: " << timestampEdit2->dateTime().toString("yyyyMMddhhmmsszzz");
 
@@ -247,9 +296,9 @@ void SettingsInstrument::initTimestampSection(QWidget *parent)
 		}
 	});
 
-	QPushButton *timestampBtn = new QPushButton("Set interval", timestampSection);
+	QPushButton *timestampBtn = new QPushButton("Set", timestampSection);
 	timestampBtn->setFixedWidth(88);
-	StyleHelper::BlueButton(timestampBtn, "timestampBtn");
+	StyleHelper::BasicButton(timestampBtn, "timestampBtn");
 	connect(timestampBtn, &QPushButton::clicked, this, [this, timestampEdit1, timestampEdit2]() {
 		setDateTimeAttr(timestampEdit1->dateTime(), LOG_START_ATTR);
 		setDateTimeAttr(timestampEdit2->dateTime(), LOG_STOP_ATTR);
@@ -260,28 +309,36 @@ void SettingsInstrument::initTimestampSection(QWidget *parent)
 	timestampWidget->layout()->addWidget(timestampEdit2);
 	timestampWidget->layout()->addWidget(timestampBtn);
 
-	timestampSection->contentLayout()->addWidget(startLogBtn);
-	timestampSection->contentLayout()->addWidget(timestampWidget);
+	timestampSection->add(startLogBtn);
+	timestampSection->add(timestampWidget);
 
-	parent->layout()->addWidget(timestampSection);
+	container->layout()->addWidget(timestampSection);
+	parent->layout()->addWidget(container);
 }
 
 void SettingsInstrument::initCalibSection(QWidget *parent)
 {
-	MenuCollapseSection *calibrateSection = new MenuCollapseSection("Calibrate", MenuCollapseSection::MHCW_ARROW,
-									MenuCollapseSection::MHW_BASEWIDGET, parent);
+	QWidget *container = new QWidget(parent);
+	container->setLayout(new QGridLayout(container));
+	Style::setStyle(container, style::properties::widget::border_interactive);
+	Style::setBackgroundColor(container, json::theme::background_primary);
+
+	MenuSectionCollapseWidget *calibrateSection = new MenuSectionCollapseWidget(
+		"Calibrate", MenuCollapseSection::MHCW_ARROW, MenuCollapseSection::MHW_BASEWIDGET, container);
+	calibrateSection->menuSection()->contentLayout()->setMargin(0);
 	calibrateSection->contentLayout()->setSpacing(6);
 
 	MenuCombo *calibrateCombo = new MenuCombo("Channel Type", calibrateSection);
-	calibrateSection->contentLayout()->addWidget(calibrateCombo);
-	calibrateSection->contentLayout()->addWidget(createConfigEdit("Excepted RMS", "excepted_rms"));
+	calibrateSection->add(calibrateCombo);
+	calibrateSection->add(createConfigEdit("Excepted RMS", "excepted_rms"));
 
 	QPushButton *calibrateBtn = new QPushButton("Calibrate", calibrateSection);
 	calibrateBtn->setFixedWidth(88);
-	StyleHelper::BlueButton(calibrateBtn, "calibrateBtn");
-	calibrateSection->contentLayout()->addWidget(calibrateBtn);
+	StyleHelper::BasicButton(calibrateBtn, "calibrateBtn");
+	calibrateSection->add(calibrateBtn);
 
-	parent->layout()->addWidget(calibrateSection);
+	container->layout()->addWidget(calibrateSection);
+	parent->layout()->addWidget(container);
 }
 
 #include "moc_settingsinstrument.cpp"

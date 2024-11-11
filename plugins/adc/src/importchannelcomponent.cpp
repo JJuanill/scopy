@@ -1,3 +1,24 @@
+/*
+ * Copyright (c) 2024 Analog Devices Inc.
+ *
+ * This file is part of Scopy
+ * (see https://www.github.com/analogdevicesinc/scopy).
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program. If not, see <https://www.gnu.org/licenses/>.
+ *
+ */
+
 #include "importchannelcomponent.h"
 #include "timeplotcomponentchannel.h"
 #include "menusectionwidget.h"
@@ -51,7 +72,7 @@ QWidget *ImportChannelComponent::createMenu(QWidget *parent)
 	connect(m_menu->header()->title(), &QLineEdit::textChanged, this, [=](QString s) { m_ctrl->setName(s); });
 
 	QPushButton *m_forget = new QPushButton("Remove reference channel");
-	StyleHelper::BlueButton(m_forget);
+	StyleHelper::BasicButton(m_forget);
 	connect(m_forget, &QAbstractButton::clicked, this, &ImportChannelComponent::forgetChannel);
 
 	m_menu->add(yaxismenu, "yaxis");
@@ -68,7 +89,7 @@ QWidget *ImportChannelComponent::createYAxisMenu(QWidget *parent)
 
 	m_yCtrl = new MenuPlotAxisRangeControl(m_timePlotChannelComponent->m_timePlotYAxis, section);
 	m_autoscaleBtn = new QPushButton(tr("AUTOSCALE"), section);
-	StyleHelper::BlueButton(m_autoscaleBtn);
+	StyleHelper::BasicButton(m_autoscaleBtn);
 	m_autoscaler = new PlotAutoscaler(this);
 	m_autoscaler->addChannels(m_timePlotChannelComponent->m_timePlotCh);
 

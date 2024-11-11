@@ -46,6 +46,7 @@
 #include <QFutureWatcher>
 #include <QTabWidget>
 #include <QtConcurrentRun>
+#include <style.h>
 
 #include <libm2k/m2kexceptions.hpp>
 #include <libsigrokdecode/libsigrokdecode.h>
@@ -248,7 +249,7 @@ LogicAnalyzer::LogicAnalyzer(libm2k::context::M2k *m2k, Filter *filt, ToolMenuEn
 	m_wheelEventGuard = new MouseWheelWidgetGuard(ui->mainWidget);
 	m_wheelEventGuard->installEventRecursively(ui->mainWidget);
 
-	ui->btnHelp->setUrl("https://wiki.analog.com/university/tools/m2k/scopy/logicanalyzer");
+	ui->btnHelp->setUrl("https://analogdevicesinc.github.io/scopy/plugins/m2k/logic_analyzer.html");
 }
 
 LogicAnalyzer::~LogicAnalyzer()
@@ -723,11 +724,6 @@ std::vector<QWidget *> LogicAnalyzer::enableMixedSignalView(CapturePlot *osc, in
 	externalGridLayout->addWidget(externalOnOff, 0, 0);
 	auto labelCondition = new QLabel("Condition");
 	externalGridLayout->addWidget(labelCondition, 1, 0);
-
-	QFile file(":stylesheets/stylesheets/customSwitch.qss");
-	file.open(QFile::ReadOnly);
-	QString styleSheet = QString::fromLatin1(file.readAll());
-	externalOnOff->setStyleSheet(styleSheet);
 
 	auto comboBoxCondition = new QComboBox();
 	externalGridLayout->addWidget(comboBoxCondition, 1, 1);
@@ -1263,6 +1259,12 @@ void LogicAnalyzer::setupUi()
 	// Hide the run button
 	//	ui->runSingleWidget->enableRunButton(false);
 
+	// this size has been set to fit all menu widgets
+	ui->generalSettings->setMinimumWidth(350);
+
+	Style::setBackgroundColor(ui->groupSizeSpinBox, Style::getAttribute(json::theme::background_primary), true);
+	Style::setBackgroundColor(ui->groupOffsetSpinBox, Style::getAttribute(json::theme::background_primary), true);
+
 	int gsettings_panel = ui->stackedWidget->indexOf(ui->generalSettings);
 	ui->btnGeneralSettings->setProperty("id", QVariant(-gsettings_panel));
 
@@ -1283,9 +1285,6 @@ void LogicAnalyzer::setupUi()
 
 	// default trigger menu?
 	m_menuOrder.push_back(ui->btnTrigger);
-
-	// set default menu width to 0
-	ui->rightMenu->setMaximumWidth(0);
 
 	// Plot positioning and settings
 	m_plot.disableLegend();
@@ -1889,6 +1888,7 @@ void LogicAnalyzer::settingsPanelUpdate(int id)
 		QWidget *widget = ui->stackedWidget->widget(i);
 		widget->setSizePolicy(policy, policy);
 	}
+
 	ui->stackedWidget->adjustSize();
 }
 
@@ -1973,7 +1973,7 @@ HoverWidget *LogicAnalyzer::createHoverToolTip(QString info, QPoint position)
 	QWidget *content = new QWidget(this);
 	StyleHelper::HoverToolTip(content, info);
 
-	HoverWidget *toolTip = new scopy::HoverWidget(content, &m_plot, QApplication::activeWindow());
+	HoverWidget *toolTip = new scopy::HoverWidget(content, &m_plot, this);
 	toolTip->setAnchorPos(scopy::HoverPosition::HP_TOPLEFT);
 	toolTip->setContentPos(scopy::HoverPosition::HP_TOPLEFT);
 	toolTip->setAnchorOffset(position);

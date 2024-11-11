@@ -1,3 +1,24 @@
+/*
+ * Copyright (c) 2024 Analog Devices Inc.
+ *
+ * This file is part of Scopy
+ * (see https://www.github.com/analogdevicesinc/scopy).
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program. If not, see <https://www.gnu.org/licenses/>.
+ *
+ */
+
 #include <QOpenGLWidget>
 #include <QSurfaceFormat>
 #include <QLabel>
@@ -7,6 +28,8 @@
 #include <QTranslator>
 #include <QOpenGLFunctions>
 #include <browsemenu.h>
+#include <deviceautoconnect.h>
+#include <style.h>
 
 #include "logging_categories.h"
 #include "qmessagebox.h"
@@ -49,6 +72,7 @@ ScopyMainWindow::ScopyMainWindow(QWidget *parent)
 {
 	QElapsedTimer timer;
 	timer.start();
+	initPreferences();
 	ui->setupUi(this);
 
 	ScopyTitleManager::setMainWindow(this);
@@ -61,7 +85,7 @@ ScopyMainWindow::ScopyMainWindow(QWidget *parent)
 	setAttribute(Qt::WA_QuitOnClose, true);
 	initPythonWIN32();
 	initStatusBar();
-	initPreferences();
+	setupPreferences();
 
 	ConnectionProvider::GetInstance();
 	MessageBroker::GetInstance();
@@ -92,13 +116,14 @@ ScopyMainWindow::ScopyMainWindow(QWidget *parent)
 	connect(browseMenu, SIGNAL(requestSave()), this, SLOT(save()));
 	connect(browseMenu, &BrowseMenu::collapsed, this, [this](bool coll) {
 		if(coll) {
-			ui->animHolder->setAnimMin(40);
+			ui->animHolder->setAnimMin(Style::getDimension(json::global::unit_4));
 		} else {
 			ui->animHolder->setAnimMax(230);
 		}
 		ui->animHolder->toggleMenu(!coll);
 	});
 	////////
+	Style::setBackgroundColor(ui->centralwidget, json::theme::background_primary);
 
 	scanTask = new IIOScanTask(this);
 	scanTask->setScanParams("usb");
@@ -114,10 +139,13 @@ ScopyMainWindow::ScopyMainWindow(QWidget *parent)
 	initTranslations();
 
 	hp = new ScopyHomePage(this, pm);
-	ScanButtonController *sbc = new ScanButtonController(scanCycle, hp->scanControlBtn(), this);
+	m_sbc = new ScanButtonController(scanCycle, hp->scanControlBtn(), this);
+	connect(hp->scanBtn(), &QPushButton::clicked, this, [=]() { scanTask->run(); });
 
+	DeviceAutoConnect::initPreferences();
 	dm = new DeviceManager(pm, this);
-	dm->setExclusive(false);
+	bool general_connect_to_multiple_devices = Preferences::get("general_connect_to_multiple_devices").toBool();
+	dm->setExclusive(!general_connect_to_multiple_devices);
 
 	dtm = new DetachedToolWindowManager(this);
 	m_toolMenuManager = new ToolMenuManager(ts, dtm, browseMenu->toolMenu(), this);
@@ -138,14 +166,12 @@ ScopyMainWindow::ScopyMainWindow(QWidget *parent)
 	connect(dm, SIGNAL(deviceRemoveStarted(QString, Device *)), scc, SLOT(removeDevice(QString, Device *)));
 	connect(dm, SIGNAL(deviceRemoveStarted(QString, Device *)), this, SLOT(removeDeviceFromUi(QString)));
 
-	connect(dm, &DeviceManager::connectionStarted, sbc, &ScanButtonController::stopScan);
-	connect(dm, &DeviceManager::connectionFinished, sbc, &ScanButtonController::startScan);
+	connect(dm, SIGNAL(deviceConnecting(QString)), hp, SLOT(connectingDevice(QString)));
 
-	if(dm->getExclusive()) {
-		// only for device manager exclusive mode - stop scan on connect
-		connect(dm, SIGNAL(deviceConnected(QString, Device *)), sbc, SLOT(stopScan()));
-		connect(dm, SIGNAL(deviceDisconnected(QString, Device *)), sbc, SLOT(startScan()));
-	}
+	connect(dm, &DeviceManager::deviceConnecting, this, [=]() { handleScanner(); });
+	connect(dm, &DeviceManager::deviceConnected, this, [=]() { handleScanner(); });
+	connect(dm, &DeviceManager::deviceDisconnecting, this, [=]() { handleScanner(); });
+	connect(dm, &DeviceManager::deviceDisconnected, this, [=]() { handleScanner(); });
 
 	connect(dm, SIGNAL(deviceConnected(QString, Device *)), scc, SLOT(lock(QString, Device *)));
 	connect(dm, SIGNAL(deviceConnected(QString, Device *)), hp, SLOT(connectDevice(QString)));
@@ -153,7 +179,12 @@ ScopyMainWindow::ScopyMainWindow(QWidget *parent)
 	connect(dm, SIGNAL(deviceDisconnected(QString, Device *)), hp, SLOT(disconnectDevice(QString)));
 
 	connect(dm, SIGNAL(requestDevice(QString)), hp, SLOT(viewDevice(QString)));
-	sbc->startScan();
+
+	if(Preferences::get("general_scan_for_devices").toBool()) {
+		scanTask->run();
+	}
+
+	enableScanner();
 
 	connect(dm, &DeviceManager::deviceChangedToolList, m_toolMenuManager, &ToolMenuManager::changeToolListContents);
 	connect(dm, SIGNAL(deviceConnected(QString, Device *)), m_toolMenuManager, SLOT(deviceConnected(QString)));
@@ -165,6 +196,9 @@ ScopyMainWindow::ScopyMainWindow(QWidget *parent)
 	connect(hp, &ScopyHomePage::displayNameChanged, m_toolMenuManager, &ToolMenuManager::onDisplayNameChanged);
 
 	connect(hp, &ScopyHomePage::newDeviceAvailable, dm, &DeviceManager::addDevice);
+
+	connect(prefPage, &ScopyPreferencesPage::refreshDevicesPressed, dm, &DeviceManager::requestConnectedDev);
+	connect(dm, &DeviceManager::connectedDevices, prefPage, &ScopyPreferencesPage::updateSessionDevices);
 
 	initApi();
 #ifdef SCOPY_DEV_MODE
@@ -178,6 +212,9 @@ ScopyMainWindow::ScopyMainWindow(QWidget *parent)
 	api->connectDevice(id);
 	// api->switchTool(id, "Time");
 #endif
+	if(Preferences::get("autoconnect_previous").toBool())
+		deviceAutoconnect();
+	prefPage->initSessionDevices();
 
 	qInfo(CAT_BENCHMARK) << "ScopyMainWindow constructor took: " << timer.elapsed() << "ms";
 }
@@ -187,6 +224,45 @@ void ScopyMainWindow::initStatusBar()
 	// clear all margin, except the bottom one, to make room the status bar
 	statusBar = new ScopyStatusBar(this);
 	ui->mainWidget->layout()->addWidget(statusBar);
+}
+
+void ScopyMainWindow::handleScanner()
+{
+	if(Preferences::get("general_scan_for_devices").toBool()) {
+		if(dm->busy()) {
+			m_sbc->enableScan(false);
+			return;
+		}
+		if(dm->getExclusive() && dm->connectedDeviceCount() == 1) {
+			m_sbc->enableScan(false);
+			return;
+		}
+		m_sbc->enableScan(true);
+	} else {
+		m_sbc->enableScan(false);
+	}
+}
+
+void ScopyMainWindow::enableScanner()
+{
+	bool b = Preferences::get("general_scan_for_devices").toBool();
+	hp->setScannerEnable(b);
+	handleScanner();
+}
+
+void ScopyMainWindow::deviceAutoconnect()
+{
+	QMap<QString, QVariant> devicesMap = Preferences::get("autoconnect_devices").toMap();
+	const QStringList &keys = devicesMap.keys();
+	for(const QString &uri : keys) {
+		QStringList plugins = devicesMap[uri].toString().split(";");
+		auto id = api->addDevice(uri, plugins, "iio");
+		if(id.isEmpty()) {
+			DeviceAutoConnect::removeDevice(uri);
+		} else {
+			api->connectDevice(id);
+		}
+	}
 }
 
 void ScopyMainWindow::save()
@@ -219,13 +295,19 @@ void ScopyMainWindow::load(QString file)
 	ScopyTitleManager::setIniFileName(file);
 }
 
-void ScopyMainWindow::closeEvent(QCloseEvent *event) { dm->disconnectAll(); }
+void ScopyMainWindow::closeEvent(QCloseEvent *event)
+{
+	DeviceAutoConnect::clear();
+	if(Preferences::get("autoconnect_previous").toBool()) {
+		dm->saveSessionDevices();
+	}
+	dm->disconnectAll();
+}
 
 void ScopyMainWindow::requestTools(QString id) { m_toolMenuManager->showMenuItem(id); }
 
 ScopyMainWindow::~ScopyMainWindow()
 {
-
 	scanCycle->stop();
 	delete ui;
 }
@@ -268,40 +350,9 @@ void ScopyMainWindow::initTranslations()
 	t->loadTranslations(Preferences::GetInstance()->get("general_language").toString());
 }
 
-void ScopyMainWindow::initPreferences()
+void ScopyMainWindow::setupPreferences()
 {
-	QElapsedTimer timer;
-	timer.start();
-	QString preferencesPath = scopy::config::preferencesFolderPath() + "/preferences.ini";
-	Preferences *p = Preferences::GetInstance();
-	p->setPreferencesFilename(preferencesPath);
-	p->load();
-	p->init("general_first_run", true);
-	p->init("general_save_session", true);
-	p->init("general_save_attached", true);
-	p->init("general_doubleclick_attach", true);
-#if defined(__arm__)
-	p->init("general_use_opengl", false);
-#else
-	p->init("general_use_opengl", true);
-#endif
-	p->init("general_use_animations", true);
-	p->init("general_theme", "default");
-	p->init("general_language", "en");
-	p->init("show_grid", true);
-	p->init("show_graticule", false);
-	p->init("iiowidgets_use_lazy_loading", true);
-	p->init("general_plot_target_fps", "60");
-	p->init("general_show_plot_fps", true);
-	p->init("general_use_native_dialogs", false);
-	p->init("general_additional_plugin_path", "");
-	p->init("general_load_decoders", true);
-	p->init("general_doubleclick_ctrl_opens_menu", true);
-	p->init("general_check_online_version", false);
-	p->init("general_show_status_bar", true);
-
-	connect(p, SIGNAL(preferenceChanged(QString, QVariant)), this, SLOT(handlePreferences(QString, QVariant)));
-
+	auto p = Preferences::GetInstance();
 	if(p->get("general_use_opengl").toBool()) {
 		m_glLoader = new QOpenGLWidget(this);
 	}
@@ -319,6 +370,47 @@ void ScopyMainWindow::initPreferences()
 
 		QMetaObject::invokeMethod(license, &LicenseOverlay::showOverlay, Qt::QueuedConnection);
 	}
+}
+
+void ScopyMainWindow::initPreferences()
+{
+	QElapsedTimer timer;
+	timer.start();
+	QString preferencesPath = scopy::config::preferencesFolderPath() + "/preferences.ini";
+	Preferences *p = Preferences::GetInstance();
+	p->setPreferencesFilename(preferencesPath);
+	p->load();
+	p->init("autoconnect_previous", false);
+	p->init("general_first_run", true);
+	p->init("general_save_session", true);
+	p->init("general_save_attached", true);
+	p->init("general_doubleclick_attach", true);
+#if defined(__arm__)
+	p->init("general_use_opengl", false);
+#else
+	p->init("general_use_opengl", true);
+#endif
+	p->init("general_use_animations", true);
+	p->init("general_theme", "Scopy");
+	p->init("general_language", "en");
+	p->init("show_grid", true);
+	p->init("show_graticule", false);
+	p->init("iiowidgets_use_lazy_loading", true);
+	p->init("general_plot_target_fps", "60");
+	p->init("general_show_plot_fps", true);
+	p->init("general_use_native_dialogs", false);
+	p->init("general_additional_plugin_path", "");
+	p->init("general_load_decoders", true);
+	p->init("general_doubleclick_ctrl_opens_menu", true);
+	p->init("general_check_online_version", false);
+	p->init("general_show_status_bar", true);
+	p->init("general_connect_to_multiple_devices", true);
+	p->init("general_scan_for_devices", true);
+
+	connect(p, SIGNAL(preferenceChanged(QString, QVariant)), this, SLOT(handlePreferences(QString, QVariant)));
+
+	Style::GetInstance()->setTheme(Preferences::GetInstance()->get("general_theme").toString());
+
 	QString theme = p->get("general_theme").toString();
 	QString themeName = "scopy-" + theme;
 	QIcon::setThemeName(themeName);
@@ -427,6 +519,12 @@ void ScopyMainWindow::handlePreferences(QString str, QVariant val)
 		StatusBarManager::GetInstance()->setEnabled(val.toBool());
 	} else if(str == "plugins_use_debugger_v2") {
 		Q_EMIT p->restartRequired();
+	} else if(str == "general_connect_to_multiple_devices") {
+		bool general_connect_to_multiple_devices =
+			Preferences::get("general_connect_to_multiple_devices").toBool();
+		dm->setExclusive(!general_connect_to_multiple_devices);
+	} else if(str == "general_scan_for_devices") {
+		enableScanner();
 	}
 }
 

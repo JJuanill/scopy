@@ -1,5 +1,27 @@
+/*
+ * Copyright (c) 2024 Analog Devices Inc.
+ *
+ * This file is part of Scopy
+ * (see https://www.github.com/analogdevicesinc/scopy).
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program. If not, see <https://www.gnu.org/licenses/>.
+ *
+ */
+
 #include "baseheaderwidget.h"
 #include <smallOnOffSwitch.h>
+#include <style.h>
 #include <widgets/menucollapsesection.h>
 #include <QLoggingCategory>
 #include <compositeheaderwidget.h>
@@ -34,12 +56,11 @@ MenuCollapseHeader::MenuCollapseHeader(QString title, MenuCollapseSection::MenuH
 	case MenuCollapseSection::MHCW_ARROW:
 		m_ctrl = new QCheckBox(this);
 		StyleHelper::CollapseCheckbox(dynamic_cast<QCheckBox *>(m_ctrl), "menuCollapseButton");
-		connect(this, &QAbstractButton::toggled, this, [=](bool b) { m_ctrl->setChecked(!b); });
-		m_ctrl->setChecked(false);
+		connect(this, &QAbstractButton::toggled, this, [=](bool b) { m_ctrl->setChecked(b); });
+		m_ctrl->setChecked(true);
 		break;
 	case MenuCollapseSection::MHCW_ONOFF:
 		m_ctrl = new SmallOnOffSwitch(this);
-		StyleHelper::MenuOnOffSwitchButton(dynamic_cast<SmallOnOffSwitch *>(m_ctrl), "menuCollapseButton");
 		connect(this, &QAbstractButton::toggled, [=](bool b) { m_ctrl->setChecked(b); });
 		m_ctrl->setChecked(true);
 		break;
@@ -76,7 +97,7 @@ MenuCollapseSection::MenuCollapseSection(QString title, MenuCollapseSection::Men
 	: QWidget(parent)
 	, m_title(title)
 {
-
+	StyleHelper::MenuCollapseSection(this, "menuCollapse");
 	m_lay = new QVBoxLayout(this);
 	m_lay->setMargin(0);
 	m_lay->setSpacing(0);
@@ -90,7 +111,6 @@ MenuCollapseSection::MenuCollapseSection(QString title, MenuCollapseSection::Men
 	m_contLayout->setMargin(0);
 	m_contLayout->setSpacing(0);
 
-	StyleHelper::MenuCollapseSection(this, "menuCollapse");
 	connect(m_header, &QAbstractButton::toggled, container, &QWidget::setVisible);
 }
 

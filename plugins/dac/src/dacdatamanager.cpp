@@ -1,3 +1,24 @@
+/*
+ * Copyright (c) 2024 Analog Devices Inc.
+ *
+ * This file is part of Scopy
+ * (see https://www.github.com/analogdevicesinc/scopy).
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program. If not, see <https://www.gnu.org/licenses/>.
+ *
+ */
+
 #include "dacdatamanager.h"
 #include "dacdatamodel.h"
 #include "ddsdacaddon.h"
@@ -33,7 +54,6 @@ DacDataManager::DacDataManager(struct iio_device *dev, QWidget *parent)
 	MenuSectionWidget *modeSection = new MenuSectionWidget(this);
 	m_mode = new MenuCombo("MODE", this);
 	m_mode->setProperty("tutorial_name", "MODE_SELECTOR");
-	StyleHelper::IIOComboBox(m_mode->combo());
 	StyleHelper::BackgroundWidget(m_mode);
 	auto cb = m_mode->combo();
 	connect(cb, qOverload<int>(&QComboBox::currentIndexChanged), this, [=, this](int idx) {
@@ -57,7 +77,7 @@ DacDataManager::DacDataManager(struct iio_device *dev, QWidget *parent)
 	Q_EMIT m_mode->combo()->currentIndexChanged(0);
 	modeSection->contentLayout()->addWidget(m_mode);
 
-	m_color = StyleHelper::getColor("ScopyBlue");
+	m_color = StyleHelper::getColor("interactive_primary_idle");
 	m_layout->addWidget(modeSection);
 	m_layout->addWidget(dacAddonStack);
 	m_layout->addItem(new QSpacerItem(0, 0, QSizePolicy::Expanding));

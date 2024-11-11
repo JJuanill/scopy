@@ -1,9 +1,31 @@
+/*
+ * Copyright (c) 2024 Analog Devices Inc.
+ *
+ * This file is part of Scopy
+ * (see https://www.github.com/analogdevicesinc/scopy).
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program. If not, see <https://www.gnu.org/licenses/>.
+ *
+ */
+
 #include "fftplotmanagersettings.h"
 #include <gui/widgets/menusectionwidget.h>
 #include <gui/widgets/menucollapsesection.h>
 #include <gui/widgets/menuheader.h>
 #include <gui/stylehelper.h>
 #include <grtimechannelcomponent.h>
+#include <style.h>
 
 namespace scopy {
 namespace adc {
@@ -32,13 +54,13 @@ FFTPlotManagerSettings::~FFTPlotManagerSettings() {}
 
 QWidget *FFTPlotManagerSettings::createMenu(QWidget *parent)
 {
-	m_pen = QPen(StyleHelper::getColor("ScopyBlue"));
+	m_pen = QPen(Style::getAttribute(json::theme::interactive_primary_idle));
 	m_menu = new MenuWidget("FFT PLOT", m_pen, parent);
 
 	QWidget *xaxismenu = createXAxisMenu(m_menu);
 
 	m_addPlotBtn = new QPushButton("Add Plot", this);
-	StyleHelper::BlueButton(m_addPlotBtn, "AddPlotButton");
+	StyleHelper::BasicButton(m_addPlotBtn, "AddPlotButton");
 
 	connect(m_addPlotBtn, &QPushButton::clicked, this, [=]() {
 		uint32_t idx =

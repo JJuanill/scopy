@@ -1,5 +1,27 @@
+/*
+ * Copyright (c) 2024 Analog Devices Inc.
+ *
+ * This file is part of Scopy
+ * (see https://www.github.com/analogdevicesinc/scopy).
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program. If not, see <https://www.gnu.org/licenses/>.
+ *
+ */
+
 #include "datamonitorstylehelper.hpp"
 
+#include <style.h>
 #include <stylehelper.h>
 
 using namespace scopy::datamonitor;
@@ -8,57 +30,29 @@ DataMonitorStyleHelper::DataMonitorStyleHelper(QObject *parent)
 	: QObject{parent}
 {}
 
-void DataMonitorStyleHelper::DataMonitorSettingsStyle(DataMonitorSettings *dataMonitorSettings)
-{
-	QString style = QString(R"css(
-						QWidget {
-							background-color : &&backgroundColor&& ;
-						}
-
-						)css");
-
-	style.replace("&&backgroundColor&&", "transparent");
-
-	if(dataMonitorSettings->deleteMonitor) {
-		dataMonitorSettings->deleteMonitor->setStyleSheet(DataMonitorStyleHelper::RemoveButtonStyle());
-	}
-	dataMonitorSettings->setStyleSheet(style);
-}
-
 void DataMonitorStyleHelper::DataMonitorToolStyle(DatamonitorTool *tool)
 {
-	tool->clearBtn->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
-	tool->clearBtn->setStyleSheet(RemoveButtonStyle());
-	tool->textMonitors->setStyleSheet("color: white; font-size: 16px;");
-	tool->tool->setRightContainerWidth(285);
+	tool->tool->setRightContainerWidth(300);
 	tool->tool->setLeftContainerWidth(185);
 	tool->tool->centralContainer()->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Preferred);
 
-	StyleHelper::SquareToggleButtonWithIcon(tool->addMonitorButton, "add_monitor_btn", false);
+	Style::setStyle(tool->textMonitors, style::properties::widget::textEditBigLabel, true, true);
+
+	Style::setStyle(tool->clearBtn, style::properties::button::clear, true, true);
 }
 
 void DataMonitorStyleHelper::SevenSegmentMonitorsStyle(SevenSegmentMonitor *sevenSegmentMonitor, QString lcdColor)
 {
+
 	QString style = QString(R"css(
-
-						QWidget {
-								background-color: &&childWidgetBackground&& ;
-								height: 60px;
-						}
-
 						scopy--LcdNumber {
 							background-color: transparent ;
 							color : &&lcdColor&& ;
 							border : 0px ;
 						}
-						.scopy--datamonitor--SevenSegmentMonitor:hover {
-							border: 1px solid &&hoverBackground&& ;
-							border-radius: 4px;
-						}
+
 						)css");
 
-	style.replace("&&childWidgetBackground&&", StyleHelper::getColor("UIElementBackground"));
-	style.replace("&&hoverBackground&&", StyleHelper::getColor("LabelText"));
 	style.replace("&&lcdColor&&", lcdColor);
 
 	sevenSegmentMonitor->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Fixed);
@@ -77,6 +71,8 @@ void DataMonitorStyleHelper::SevenSegmentMonitorsStyle(SevenSegmentMonitor *seve
 	sevenSegmentMonitor->layout->setAlignment(sevenSegmentMonitor->lcdNumber, Qt::AlignHCenter | Qt::AlignVCenter);
 
 	sevenSegmentMonitor->setStyleSheet(style);
+
+	Style::setStyle(sevenSegmentMonitor, style::properties::widget::basicComponent);
 }
 
 void DataMonitorStyleHelper::SevenSegmentMonitorMenuStyle(SevenSegmentMonitorSettings *sevenSegmentMonitorSettings)
@@ -86,54 +82,9 @@ void DataMonitorStyleHelper::SevenSegmentMonitorMenuStyle(SevenSegmentMonitorSet
 
 void DataMonitorStyleHelper::DataLoggingMenuStyle(DataLoggingMenu *menu)
 {
-	StyleHelper::BlueButton(menu->dataLoggingBrowseBtn);
-	StyleHelper::BlueButton(menu->dataLoggingBtn);
-	StyleHelper::BlueButton(menu->dataLoadingBtn);
-}
-
-void DataMonitorStyleHelper::MonitorSelectionMenuMenuCollapseSectionStyle(MenuCollapseSection *menu)
-{
-	QString style = QString(R"css(
-			.scopy--MenuCollapseSection { background-color: #272730;
-										border-radius: 4px;
-										margin-bottom: 3px;
-				}
-			QWidget {
-				background-color: transparent;
-			}
-			)css");
-
-	menu->layout()->setContentsMargins(10, 10, 10, 10);
-	menu->setStyleSheet(style);
-}
-
-QString DataMonitorStyleHelper::RemoveButtonStyle()
-{
-	QString style = QString(R"css(
-			QPushButton {
-				width: 88px;
-				height: 48px;
-					border-radius: 2px;
-					text-align: center;
-					padding-left: 20px;
-					padding-right: 20px;
-					color: white;
-					font-weight: 700;
-					font-size: 14px;
-			}
-
-			QPushButton:!checked {
-				background-color: &&backgroundColor&& ;
-			}
-
-			QPushButton:disabled {
-				background-color: &&disabledColor&& ;
-			})css");
-
-	style.replace("&&backgroundColor&&", StyleHelper::getColor("CH6"));
-	style.replace("&&disabledColor&&", "gray");
-
-	return style;
+	StyleHelper::BasicButton(menu->dataLoggingBrowseBtn);
+	StyleHelper::BasicButton(menu->dataLoggingBtn);
+	StyleHelper::BasicButton(menu->dataLoadingBtn);
 }
 
 #include "moc_datamonitorstylehelper.cpp"

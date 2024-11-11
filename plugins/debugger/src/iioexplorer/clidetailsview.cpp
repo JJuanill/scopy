@@ -1,5 +1,28 @@
+/*
+ * Copyright (c) 2024 Analog Devices Inc.
+ *
+ * This file is part of Scopy
+ * (see https://www.github.com/analogdevicesinc/scopy).
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program. If not, see <https://www.gnu.org/licenses/>.
+ *
+ */
+
 #include "clidetailsview.h"
 #include "debuggerloggingcategories.h"
+#include <gui/style.h>
+#include "style_properties.h"
 
 using namespace scopy::debugger;
 
@@ -84,7 +107,7 @@ void CliDetailsView::setupUi()
 
 void CliDetailsView::setupChannelAttr()
 {
-	IIOWidget *w = m_channelIIOItem->getIIOWidgets()[0];
+	IIOWidget *w = m_channelIIOItem->getIIOWidgets().at(0);
 	DataStrategyInterface *ds = w->getDataStrategy();
 
 	m_currentText.append(tabs(4) + "attr " + QString::number(m_noChnlAttributes) + ": " + m_channelIIOItem->name() +
@@ -125,7 +148,7 @@ void CliDetailsView::setupChannel()
 
 void CliDetailsView::setupDeviceAttr()
 {
-	IIOWidget *w = m_deviceIIOItem->getIIOWidgets()[0];
+	IIOWidget *w = m_deviceIIOItem->getIIOWidgets().at(0);
 	DataStrategyInterface *ds = w->getDataStrategy();
 
 	m_deviceAttrsString.append(tabs(4) + "attr " + QString::number(m_noDevAttributes) + ": " +
@@ -183,7 +206,7 @@ void CliDetailsView::setupContextAttr()
 {
 	++m_noCtxAttributes;
 	m_currentText.append(tabs(1) + m_contextIIOItem->name() + ": " +
-			     m_contextIIOItem->getIIOWidgets()[0]->getDataStrategy()->data() + "\n");
+			     m_contextIIOItem->getIIOWidgets().at(0)->getDataStrategy()->data() + "\n");
 }
 
 void CliDetailsView::setupContext()

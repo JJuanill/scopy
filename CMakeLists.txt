@@ -1,3 +1,23 @@
+#
+# Copyright (c) 2024 Analog Devices Inc.
+#
+# This file is part of Scopy
+# (see https://www.github.com/analogdevicesinc/scopy).
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program. If not, see <https://www.gnu.org/licenses/>.
+#
+
 cmake_minimum_required(VERSION 3.9)
 enable_testing()
 
@@ -48,6 +68,9 @@ configure_about(./resources/about)
 file(GLOB SCOPY_RESOURCE_FILES gui/res/resources.qrc resources/aboutpage.qrc)
 find_file(SCOPY_ICON_ICO icon.ico PATHS ${CMAKE_SOURCE_DIR}/gui/res)
 message(STATUS "SCOPY_RESOURCE_FILES: " ${SCOPY_RESOURCE_FILES})
+
+include(ScopyStyle)
+generate_style("--core" ${CMAKE_CURRENT_SOURCE_DIR}/gui/style ${CMAKE_CURRENT_SOURCE_DIR}/gui/include/gui)
 
 option(ENABLE_TRANSLATION "Enable translation" ON)
 include(ScopyTranslation)
@@ -102,7 +125,9 @@ set(SCOPY_DLL_INSTALL_PATH ${CMAKE_INSTALL_FULL_LIBDIR})
 set(SCOPY_PLUGIN_BUILD_PATH ${CMAKE_BINARY_DIR}/plugins/plugins)
 set(SCOPY_PLUGIN_INSTALL_PATH ${CMAKE_INSTALL_FULL_LIBDIR}/scopy/plugins)
 set(SCOPY_TRANSLATION_BUILD_PATH ${CMAKE_CURRENT_BINARY_DIR}/translations)
-set(SCOPY_TRANSLATION_INSTALL_PATH ${CMAKE_INSTALL_FULL_LIBDIR}/scopy/translations)
+set(SCOPY_TRANSLATION_INSTALL_PATH ${CMAKE_INSTALL_FULL_LIBDIR}/scopy)
+set(SCOPY_STYLE_BUILD_PATH ${CMAKE_CURRENT_BINARY_DIR}/style)
+set(SCOPY_STYLE_INSTALL_PATH ${CMAKE_INSTALL_FULL_LIBDIR}/scopy)
 set(SCOPY_PDK pdk)
 
 if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
@@ -240,6 +265,7 @@ install(FILES ${CMAKE_CURRENT_BINARY_DIR}/plugins/resources/scopy_emu_options_co
 )
 install(DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/plugins/emu_xml DESTINATION ${SCOPY_PLUGIN_INSTALL_PATH})
 install(DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/translations DESTINATION ${SCOPY_TRANSLATION_INSTALL_PATH})
+install(DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/style DESTINATION ${SCOPY_STYLE_INSTALL_PATH})
 install(TARGETS ${PROJECT_NAME} BUNDLE DESTINATION ${CMAKE_INSTALL_FULL_BINDIR})
 
 if(QT_VERSION_MAJOR EQUAL 6)

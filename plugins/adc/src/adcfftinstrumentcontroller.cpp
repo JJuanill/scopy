@@ -1,3 +1,24 @@
+/*
+ * Copyright (c) 2024 Analog Devices Inc.
+ *
+ * This file is part of Scopy
+ * (see https://www.github.com/analogdevicesinc/scopy).
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program. If not, see <https://www.gnu.org/licenses/>.
+ *
+ */
+
 #include "adcfftinstrumentcontroller.h"
 #include "adcinstrument.h"
 #include "grdevicecomponent.h"
@@ -12,9 +33,9 @@
 using namespace scopy;
 using namespace adc;
 
-ADCFFTInstrumentController::ADCFFTInstrumentController(ToolMenuEntry *tme, QString name, AcqTreeNode *tree,
+ADCFFTInstrumentController::ADCFFTInstrumentController(ToolMenuEntry *tme, QString uri, QString name, AcqTreeNode *tree,
 						       QObject *parent)
-	: ADCInstrumentController(tme, name, tree, parent)
+	: ADCInstrumentController(tme, uri, name, tree, parent)
 {
 	m_defaultComplexCh = nullptr;
 	m_defaultRealCh = nullptr;
@@ -67,7 +88,7 @@ void ADCFFTInstrumentController::init()
 		m_ui->m_settingsBtn->setChecked(true);
 	});
 
-	connect(m_ui->m_printBtn, &QPushButton::clicked, this, [=, this]() {
+	connect(m_ui->m_printBtn, &QPushButton::clicked, [=]() {
 		QList<PlotWidget *> plotList;
 
 		for(PlotComponent *pp : m_plotComponentManager->plots()) {
@@ -89,6 +110,7 @@ void ADCFFTInstrumentController::init()
 	m_otherCMCB = new CollapsableMenuControlButton(m_ui->vcm());
 	m_otherCMCB->getControlBtn()->button()->setVisible(false);
 	m_otherCMCB->getControlBtn()->setName("Other");
+	m_otherCMCB->hide();
 	m_ui->vcm()->addEnd(m_otherCMCB);
 
 	m_ui->m_settingsBtn->animateClick();
@@ -157,14 +179,14 @@ void ADCFFTInstrumentController::createIIOFloatChannel(AcqTreeNode *node)
 		m_defaultRealCh = c;
 		m_plotComponentManager->selectChannel(c);
 	}
-	connect(c->markerController(), &MarkerController::markerInfoUpdated, this, [=]() {
+	connect(c->markerController(), &PlotMarkerController::markerInfoUpdated, this, [=]() {
 		auto info = c->markerController()->markerInfo();
 		QString name = c->name();
 		m_plotComponentManager->markerPanel()->updateChannel(name, info);
 	});
 
 	auto markerController = dynamic_cast<FFTPlotComponentChannel *>(c->plotChannelCmpt())->markerController();
-	connect(markerController, &MarkerController::markerEnabled, this, [=](bool b) {
+	connect(markerController, &PlotMarkerController::markerEnabled, this, [=](bool b) {
 		if(b) {
 			m_plotComponentManager->markerPanel()->newChannel(c->name(), c->pen());
 		} else {
@@ -221,13 +243,13 @@ void ADCFFTInstrumentController::createIIOComplexChannel(AcqTreeNode *node_I, Ac
 		m_defaultComplexCh = c;
 	}
 
-	connect(c->markerController(), &MarkerController::markerInfoUpdated, this, [=]() {
+	connect(c->markerController(), &PlotMarkerController::markerInfoUpdated, this, [=]() {
 		auto info = c->markerController()->markerInfo();
 		m_plotComponentManager->markerPanel()->updateChannel(c->name(), info);
 	});
 
 	auto markerController = dynamic_cast<FFTPlotComponentChannel *>(c->plotChannelCmpt())->markerController();
-	connect(markerController, &MarkerController::markerEnabled, this, [=](bool b) {
+	connect(markerController, &PlotMarkerController::markerEnabled, this, [=](bool b) {
 		if(b) {
 			m_plotComponentManager->markerPanel()->newChannel(c->name(), c->pen());
 		} else {
@@ -302,6 +324,7 @@ void ADCFFTInstrumentController::createImportFloatChannel(AcqTreeNode *node)
 	m_plotComponentManager->addChannel(c);
 	c->menu()->add(m_plotComponentManager->plotCombo(c), "plot", gui::MenuWidget::MA_BOTTOMFIRST);
 
+	m_otherCMCB->show();
 	CompositeWidget *cw = m_otherCMCB;
 	m_acqNodeComponentMap[ifcn] = c;
 	m_ui->addChannel(c->ctrl(), c, cw);
@@ -382,5 +405,10 @@ void ADCFFTInstrumentController::removeChannel(AcqTreeNode *node)
 		removeComponent(c);
 		delete c;
 	}
+
+	if(m_otherCMCB->count() <= 0) {
+		m_otherCMCB->hide();
+	}
+
 	m_plotComponentManager->replot();
 }

@@ -31,6 +31,8 @@
 
 #include <iio.h>
 
+#include <gui/style.h>
+
 #include <gnuradio/analog/sig_source.h>
 #include <gnuradio/analog/sig_source_waveform.h>
 #include <gnuradio/blocks/float_to_short.h>
@@ -168,11 +170,11 @@ void NetworkAnalyzer::_configureAdcFlowgraph(size_t buffer_size)
 	// Build the flowgraph only once
 	m_initFlowgraph = false;
 
-	ui->btnHelp->setUrl("https://wiki.analog.com/university/tools/m2k/scopy/networkanalyzer");
+	ui->btnHelp->setUrl("https://analogdevicesinc.github.io/scopy/plugins/m2k/network_analyzer.html");
 }
 
-NetworkAnalyzer::NetworkAnalyzer(libm2k::context::M2k *m2k, Filter *filt, ToolMenuEntry *tme, m2k_iio_manager *m2k_man,
-				 QJSEngine *engine, QWidget *parent)
+NetworkAnalyzer::NetworkAnalyzer(libm2k::context::M2k *m2k, QString uri, Filter *filt, ToolMenuEntry *tme,
+				 m2k_iio_manager *m2k_man, QJSEngine *engine, QWidget *parent)
 	: M2kTool(tme, new NetworkAnalyzer_API(this), "Network Analyzer", parent)
 	, ui(new Ui::NetworkAnalyzer)
 	, m_m2k_context(nullptr)
@@ -197,6 +199,7 @@ NetworkAnalyzer::NetworkAnalyzer(libm2k::context::M2k *m2k, Filter *filt, ToolMe
 	, m_importDataLoaded(false)
 	, m_nb_averaging(1)
 	, m_nb_periods(2)
+	, m_uri(uri)
 {
 	if(m2k) {
 		m_m2k_context = m2k;
@@ -210,6 +213,8 @@ NetworkAnalyzer::NetworkAnalyzer(libm2k::context::M2k *m2k, Filter *filt, ToolMe
 	}
 
 	ui->setupUi(this);
+	Style::setStyle(ui->spinBox_averaging, style::properties::widget::bottomBorder);
+	Style::setStyle(ui->spinBox_periods, style::properties::widget::bottomBorder);
 
 	bufferPreviewer = new NetworkAnalyzerBufferViewer();
 	bufferPreviewer->setVisible(false);
@@ -1614,8 +1619,8 @@ void NetworkAnalyzer::startStop(bool pressed)
 	ui->spinBox_periods->setEnabled(!pressed);
 
 	if(pressed) {
-		ResourceManager::open("m2k-adc", this);
-		ResourceManager::open("m2k-dac", this);
+		ResourceManager::open("m2k-adc" + m_uri, this);
+		ResourceManager::open("m2k-dac" + m_uri, this);
 		m_m2k_analogin->setKernelBuffersCount(1);
 		if(shouldClear) {
 			m_dBgraph.reset();
@@ -1647,8 +1652,8 @@ void NetworkAnalyzer::startStop(bool pressed)
 		m_dBgraph.sweepDone();
 		m_phaseGraph.sweepDone();
 		ui->statusLabel->setText(tr("Stopped"));
-		ResourceManager::close("m2k-dac");
-		ResourceManager::close("m2k-adc");
+		ResourceManager::close("m2k-dac" + m_uri);
+		ResourceManager::close("m2k-adc" + m_uri);
 		try {
 			m_m2k_analogin->setKernelBuffersCount(KERNEL_BUFFERS_DEFAULT);
 		} catch(libm2k::m2k_exception &e) {

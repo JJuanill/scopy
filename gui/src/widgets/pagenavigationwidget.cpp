@@ -1,8 +1,30 @@
+/*
+ * Copyright (c) 2024 Analog Devices Inc.
+ *
+ * This file is part of Scopy
+ * (see https://www.github.com/analogdevicesinc/scopy).
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program. If not, see <https://www.gnu.org/licenses/>.
+ *
+ */
+
 #include "widgets/pagenavigationwidget.h"
 
 #include <QBoxLayout>
 #include <QDebug>
 #include <QLoggingCategory>
+#include <style.h>
 
 #include <stylehelper.h>
 
@@ -28,20 +50,31 @@ void PageNavigationWidget::initUI(QWidget *parent)
 	buttonsLayout->setSpacing(10);
 
 	homeButton = new QPushButton(this);
-	StyleHelper::BlueIconButton(homeButton, QIcon(":/gui/icons/launcher_home.svg"), "homeButton");
+	StyleHelper::BlueIconButton(
+		homeButton, Style::getPixmap(":/gui/icons/home.svg", Style::getColor(json::theme::content_inverse)),
+		"homeButton");
 	buttonsLayout->addWidget(homeButton);
 	homeButton->hide();
 
 	backwardButton = new QPushButton(this);
-	StyleHelper::BlueIconButton(backwardButton, QIcon(":/gui/icons/handle_left_arrow.svg"), "backwardButton");
+	StyleHelper::BlueIconButton(
+		backwardButton,
+		Style::getPixmap(":/gui/icons/handle_left_arrow.svg", Style::getColor(json::theme::content_inverse)),
+		"backwardButton");
 	buttonsLayout->addWidget(backwardButton);
 
 	forwardButton = new QPushButton(this);
-	StyleHelper::BlueIconButton(forwardButton, QIcon(":/gui/icons/handle_right_arrow.svg"), "forwardButton");
+	StyleHelper::BlueIconButton(
+		forwardButton,
+		Style::getPixmap(":/gui/icons/handle_right_arrow.svg", Style::getColor(json::theme::content_inverse)),
+		"forwardButton");
 	buttonsLayout->addWidget(forwardButton);
 
 	openButton = new QPushButton(this);
-	StyleHelper::BlueIconButton(openButton, QIcon(":/gui/icons/sba_up_btn_pressed.svg"), "openButton");
+	StyleHelper::BlueIconButton(
+		openButton,
+		Style::getPixmap(":/gui/icons/sba_up_btn_pressed.svg", Style::getColor(json::theme::content_inverse)),
+		"openButton");
 	buttonsLayout->addWidget(openButton);
 	openButton->hide();
 

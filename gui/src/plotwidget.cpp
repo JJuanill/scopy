@@ -1,6 +1,28 @@
+/*
+ * Copyright (c) 2024 Analog Devices Inc.
+ *
+ * This file is part of Scopy
+ * (see https://www.github.com/analogdevicesinc/scopy).
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program. If not, see <https://www.gnu.org/licenses/>.
+ *
+ */
+
 #include "plotwidget.h"
 
 #include "plotaxis.h"
+#include "style.h"
 
 #include <QDebug>
 #include <QLabel>
@@ -56,6 +78,8 @@ PlotWidget::PlotWidget(QWidget *parent)
 	setupPlotButtonManager();
 
 	m_plot->canvas()->installEventFilter(this);
+	Style::setBackgroundColor(m_plot, "transparent");
+	Style::setBackgroundColor(m_plot->canvas(), json::theme::background_plot, true);
 }
 
 void PlotWidget::setupNavigator()
@@ -259,7 +283,7 @@ void PlotWidget::setupAxes()
 
 	m_xPosition = Preferences::get("adc_plot_xaxis_label_position").toInt();
 	m_yPosition = Preferences::get("adc_plot_yaxis_label_position").toInt();
-	QPen pen(QColor("#9E9E9F"));
+	QPen pen(QColor(Style::getAttribute(json::theme::interactive_subtle_idle)));
 	m_xAxis = new PlotAxis(m_xPosition, this, pen, this);
 	m_yAxis = new PlotAxis(m_yPosition, this, pen, this);
 }
@@ -367,7 +391,7 @@ void PlotWidget::printPlot(QPainter *painter, bool useSymbols)
 		// save current curve color
 		plotChColors.push_back(getChannels().at(i)->curve()->pen());
 		// get channel colors from StyleHelper
-		printPen.setColor(StyleHelper::getColor("CH" + QString::number(i)));
+		printPen.setColor(StyleHelper::getChannelColor(i));
 		printPen.setWidth(2);
 		getChannels().at(i)->curve()->setPen(printPen);
 		if(useSymbols) {

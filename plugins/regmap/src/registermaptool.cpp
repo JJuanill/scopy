@@ -1,3 +1,24 @@
+/*
+ * Copyright (c) 2024 Analog Devices Inc.
+ *
+ * This file is part of Scopy
+ * (see https://www.github.com/analogdevicesinc/scopy).
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program. If not, see <https://www.gnu.org/licenses/>.
+ *
+ */
+
 #include "registermaptool.hpp"
 #include "utils.hpp"
 
@@ -13,6 +34,7 @@
 #include <registermapvalues.hpp>
 #include <regmapstylehelper.hpp>
 #include <searchbarwidget.hpp>
+#include <style.h>
 #include <stylehelper.h>
 #include <toolbuttons.h>
 #include <xmlfilemanager.hpp>
@@ -21,6 +43,7 @@
 #include <readwrite/fileregisterwritestrategy.hpp>
 #include <readwrite/iioregisterreadstrategy.hpp>
 #include <readwrite/iioregisterwritestrategy.hpp>
+#include <style_properties.h>
 
 using namespace scopy;
 using namespace regmap;
@@ -41,7 +64,7 @@ RegisterMapTool::RegisterMapTool(QWidget *parent)
 
 	InfoBtn *infoBtn = new InfoBtn(this);
 	tool->addWidgetToTopContainerHelper(infoBtn, TTA_LEFT);
-	connect(infoBtn, &QAbstractButton::clicked, this, [=, this]() {
+	connect(infoBtn, &QAbstractButton::clicked, this, [=]() {
 		QDesktopServices::openUrl(
 			QUrl("https://analogdevicesinc.github.io/scopy/plugins/registermap/registermap.html"));
 	});
@@ -56,6 +79,7 @@ RegisterMapTool::RegisterMapTool(QWidget *parent)
 	tool->setRightContainerWidth(settings->sizeHint().width());
 
 	settingsMenu = new GearBtn(this);
+	Style::setStyle(settingsMenu, style::properties::button::squareIconButton, true, true);
 
 	connect(settingsMenu, &QAbstractButton::toggled, this, [=](bool toggled) {
 		tool->openRightContainerHelper(toggled);
@@ -66,7 +90,8 @@ RegisterMapTool::RegisterMapTool(QWidget *parent)
 	tool->addWidgetToTopContainerMenuControlHelper(settingsMenu, TTA_RIGHT);
 
 	registerDeviceList = new QComboBox(tool->topContainer());
-	RegmapStyleHelper::comboboxStyle(registerDeviceList);
+	Style::setStyle(registerDeviceList, style::properties::regmap::deviceComboBox, true, true);
+	Style::setStyle(registerDeviceList, style::properties::regmap::simpleWidget);
 	registerDeviceList->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Preferred);
 	QObject::connect(registerDeviceList, &QComboBox::currentTextChanged, this,
 			 &RegisterMapTool::updateActiveRegisterMap);

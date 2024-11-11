@@ -19,7 +19,7 @@
  */
 
 #include "widgets/popupwidget.h"
-
+#include <style.h>
 #include "stylehelper.h"
 
 using namespace scopy;
@@ -41,7 +41,6 @@ PopupWidget::~PopupWidget() { delete m_tintedOverlay; }
 void PopupWidget::initUI()
 {
 	this->setObjectName("PopupWidget");
-	this->setStyleSheet("");
 	this->resize(500, 300);
 	auto verticalLayout = new QVBoxLayout(this);
 	this->setLayout(verticalLayout);
@@ -76,10 +75,11 @@ void PopupWidget::initUI()
 
 	backgroundWidget->setLayout(backgroundLayout);
 
-	StyleHelper::TutorialChapterTitleLabel(m_titleLabel, "titleLabel");
-	StyleHelper::BlueButton(m_continueButton, "continueButton");
-	StyleHelper::BlueButton(m_exitButton, "exitButton");
-	StyleHelper::OverlayMenu(this, "popupOverlay");
+	Style::setStyle(m_titleLabel, style::properties::label::tutorialChapter);
+	Style::setStyle(m_descriptionTextBrowser, style::properties::label::tutorialChapter);
+	Style::setStyle(m_continueButton, style::properties::button::basicButton, true, true);
+	Style::setStyle(m_exitButton, style::properties::button::basicButton, true, true);
+	Style::setStyle(this, style::properties::widget::overlayMenu);
 }
 
 void PopupWidget::setFocusOnContinueButton()

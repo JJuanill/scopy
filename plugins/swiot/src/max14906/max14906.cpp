@@ -1,13 +1,38 @@
+/*
+ * Copyright (c) 2024 Analog Devices Inc.
+ *
+ * This file is part of Scopy
+ * (see https://www.github.com/analogdevicesinc/scopy).
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program. If not, see <https://www.gnu.org/licenses/>.
+ *
+ */
+
 #include "max14906/max14906.h"
 
 #include "swiot_logging_categories.h"
 #include <iioutil/connectionprovider.h>
 
+#include <QDesktopServices>
 #include <QHBoxLayout>
+#include <tutorialbuilder.h>
 #include <gui/widgets/menucollapsesection.h>
 #include <gui/widgets/menuheader.h>
 #include <gui/widgets/menusectionwidget.h>
 #include <gui/stylehelper.h>
+#include <pluginbase/preferences.h>
+#include <style.h>
 
 using namespace scopy::swiot;
 
@@ -19,6 +44,7 @@ Max14906::Max14906(QString uri, ToolMenuEntry *tme, QWidget *parent)
 {
 	setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
 	QHBoxLayout *layout = new QHBoxLayout(this);
+	layout->setContentsMargins(0, 0, 0, 0);
 	setLayout(layout);
 
 	// tool template configuration
@@ -31,6 +57,13 @@ Max14906::Max14906(QString uri, ToolMenuEntry *tme, QWidget *parent)
 	m_tool->setRightContainerWidth(280);
 
 	layout->addWidget(m_tool);
+
+	InfoBtn *infoBtn = new InfoBtn(this);
+	m_tool->addWidgetToTopContainerHelper(infoBtn, TTA_LEFT);
+	connect(infoBtn, &QAbstractButton::clicked, this, [=, this]() {
+		QDesktopServices::openUrl(
+			QUrl("https://analogdevicesinc.github.io/scopy/plugins/swiot1l/max14906.html"));
+	});
 
 	m_configBtn = createConfigBtn(this);
 	m_runBtn = new RunBtn(this);
@@ -114,6 +147,17 @@ void Max14906::handleConnectionDestroyed()
 	m_ctx = nullptr;
 	m_cmdQueue = nullptr;
 	m_conn = nullptr;
+}
+
+void Max14906::startTutorial()
+{
+	qInfo(CAT_SWIOT) << "Starting max14906 tutorial.";
+	QWidget *parent = Util::findContainingWindow(this);
+	gui::TutorialBuilder *m_max14906Tutorial =
+		new gui::TutorialBuilder(this, ":/swiot/tutorial_chapters.json", "max14906", parent);
+
+	m_max14906Tutorial->setTitle("MAX14906");
+	m_max14906Tutorial->start();
 }
 
 void Max14906::runButtonToggled()
@@ -266,11 +310,21 @@ QMainWindow *Max14906::createDockableMainWindow(const QString &title, DioDigital
 QPushButton *Max14906::createConfigBtn(QWidget *parent)
 {
 	QPushButton *configBtn = new QPushButton(parent);
-	StyleHelper::BlueGrayButton(configBtn, "back_btn");
+	Style::setStyle(configBtn, style::properties::button::squareIconButton);
 	configBtn->setFixedWidth(128);
 	configBtn->setCheckable(false);
 	configBtn->setText("Config");
 	return configBtn;
+}
+
+void Max14906::showEvent(QShowEvent *event)
+{
+	QWidget::showEvent(event);
+
+	if(Preferences::get("max14906_start_tutorial").toBool()) {
+		startTutorial();
+		Preferences::set("max14906_start_tutorial", false);
+	}
 }
 
 #include "moc_max14906.cpp"

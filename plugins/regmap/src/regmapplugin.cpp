@@ -1,3 +1,24 @@
+/*
+ * Copyright (c) 2024 Analog Devices Inc.
+ *
+ * This file is part of Scopy
+ * (see https://www.github.com/analogdevicesinc/scopy).
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program. If not, see <https://www.gnu.org/licenses/>.
+ *
+ */
+
 #include "jsonformatedelement.hpp"
 #include "regmapplugin.h"
 #include "utils.hpp"
@@ -18,6 +39,7 @@
 #include <QJsonObject>
 #include <QJsonArray>
 #include <registermaptool.hpp>
+#include <style.h>
 #include <src/readwrite/iioregisterreadstrategy.hpp>
 #include <src/readwrite/iioregisterwritestrategy.hpp>
 #include <pluginbase/preferences.h>
@@ -28,12 +50,14 @@
 #include <readwrite/fileregisterreadstrategy.hpp>
 #include <readwrite/fileregisterwritestrategy.hpp>
 #include "logging_categories.h"
+#include <regmap_api.h>
 
 #include "iioutil/connectionprovider.h"
 #include "jsonformatedelement.hpp"
 #include "scopy-regmap_config.h"
 #include "utils.hpp"
 #include "utils.hpp"
+#include <pluginbase/scopyjs.h>
 #if defined __APPLE__
 #include <QApplication>
 #endif
@@ -59,14 +83,16 @@ bool RegmapPlugin::loadPage()
 bool RegmapPlugin::loadIcon()
 {
 	m_icon = new QLabel("");
-	m_icon->setStyleSheet("border-image: url(:/gui/icons/scopy-default/icons/tool_calibration.svg);");
+	m_icon->setStyleSheet("border-image: url(:/gui/icons/" + Style::getAttribute(json::theme::icon_theme_folder) +
+			      "/icons/RegMap.svg);");
 	return true;
 }
 
 void RegmapPlugin::loadToolList()
 {
-	ToolMenuEntry *toolMenuEntry = SCOPY_NEW_TOOLMENUENTRY(REGMAP_PLUGIN_SCOPY_MODULE, REGMAP_PLUGIN_DISPLAY_NAME,
-							       ":/gui/icons/scopy-default/icons/tool_calibration.svg");
+	ToolMenuEntry *toolMenuEntry = SCOPY_NEW_TOOLMENUENTRY(
+		REGMAP_PLUGIN_SCOPY_MODULE, REGMAP_PLUGIN_DISPLAY_NAME,
+		":/gui/icons/" + Style::getAttribute(json::theme::icon_theme_folder) + "/icons/tool_calibration.svg");
 	m_toolList.append(toolMenuEntry);
 	m_toolList.last()->setRunBtnVisible(true);
 	m_toolList.last()->setRunEnabled(false);
@@ -198,6 +224,7 @@ bool RegmapPlugin::onConnect()
 
 		m_toolList[0]->setEnabled(true);
 		m_toolList[0]->setTool(m_registerMapWidget);
+		InitApi();
 
 		for(auto &tool : m_toolList) {
 			tool->setEnabled(true);
@@ -300,4 +327,11 @@ bool RegmapPlugin::isBufferCapable(iio_device *dev)
 	return false;
 }
 
+void RegmapPlugin::InitApi()
+{
+	api = new RegMap_API(this);
+	ScopyJS *js = ScopyJS::GetInstance();
+	api->setObjectName("regmap");
+	js->registerApi(api);
+}
 #include "moc_regmapplugin.cpp"

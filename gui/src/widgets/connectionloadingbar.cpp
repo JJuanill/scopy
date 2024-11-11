@@ -1,3 +1,24 @@
+/*
+ * Copyright (c) 2024 Analog Devices Inc.
+ *
+ * This file is part of Scopy
+ * (see https://www.github.com/analogdevicesinc/scopy).
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program. If not, see <https://www.gnu.org/licenses/>.
+ *
+ */
+
 #include "connectionloadingbar.h"
 #include <QHBoxLayout>
 #include <stylehelper.h>
@@ -45,7 +66,8 @@ void ConnectionLoadingBar::setupUi()
 	m_progressBar->setMaximumHeight(10);
 	m_progressBar->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Preferred);
 	m_progressBar->setValue(0);
-	QString style = QString("QProgressBar::chunk {background-color: %1;}").arg(StyleHelper::getColor("ScopyBlue"));
+	QString style = QString("QProgressBar::chunk {background-color: %1;}")
+				.arg(StyleHelper::getColor("interactive_primary_idle"));
 	setStyleSheet(style);
 
 	layout()->addWidget(m_loadingLabel);

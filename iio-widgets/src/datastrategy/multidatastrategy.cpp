@@ -1,3 +1,24 @@
+/*
+ * Copyright (c) 2024 Analog Devices Inc.
+ *
+ * This file is part of Scopy
+ * (see https://www.github.com/analogdevicesinc/scopy).
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program. If not, see <https://www.gnu.org/licenses/>.
+ *
+ */
+
 #include "datastrategy/multidatastrategy.h"
 
 Q_LOGGING_CATEGORY(CAT_MULTI_DATA_STRATEGY, "MultiDataStrategy")
@@ -10,7 +31,7 @@ MultiDataStrategy::MultiDataStrategy(QList<DataStrategyInterface *> strategies, 
 	, m_optionalData("")
 	, m_returnCode(0)
 {
-	for(DataStrategyInterface *ds : m_dataStrategies) {
+	for(DataStrategyInterface *ds : qAsConst(m_dataStrategies)) {
 		QWidget *widgetDS = dynamic_cast<QWidget *>(ds);
 		if(!widgetDS) {
 			qWarning(CAT_MULTI_DATA_STRATEGY) << "Data strategy not valid.";
@@ -76,7 +97,7 @@ QString MultiDataStrategy::optionalData() { return m_optionalData; }
 int MultiDataStrategy::write(QString data)
 {
 	int res = 0;
-	for(DataStrategyInterface *ds : m_dataStrategies) {
+	for(DataStrategyInterface *ds : qAsConst(m_dataStrategies)) {
 		int currentRet = ds->write(data);
 		if(currentRet < 0) {
 			res = currentRet;
@@ -104,14 +125,14 @@ QPair<QString, QString> MultiDataStrategy::read()
 
 void MultiDataStrategy::writeAsync(QString data)
 {
-	for(DataStrategyInterface *ds : m_dataStrategies) {
+	for(DataStrategyInterface *ds : qAsConst(m_dataStrategies)) {
 		ds->writeAsync(data);
 	}
 }
 
 void MultiDataStrategy::readAsync()
 {
-	for(DataStrategyInterface *ds : m_dataStrategies) {
+	for(DataStrategyInterface *ds : qAsConst(m_dataStrategies)) {
 		ds->readAsync();
 	}
 }
@@ -125,7 +146,7 @@ void MultiDataStrategy::receiveSingleRead(QString data, QString optionalData)
 	if(m_receivedSignals == m_expectedSignals) {
 		qDebug(CAT_MULTI_DATA_STRATEGY) << "Received all signals!";
 		bool ok = true;
-		for(QPair<QString, QString> ss : m_receivedData) {
+		for(const QPair<QString, QString> &ss : qAsConst(m_receivedData)) {
 			if(ss.first != data || ss.second != optionalData) {
 				ok = false;
 				Q_EMIT sendData("DIFFERENT RESULTS", "");

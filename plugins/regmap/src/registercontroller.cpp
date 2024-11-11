@@ -1,3 +1,24 @@
+/*
+ * Copyright (c) 2024 Analog Devices Inc.
+ *
+ * This file is part of Scopy
+ * (see https://www.github.com/analogdevicesinc/scopy).
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program. If not, see <https://www.gnu.org/licenses/>.
+ *
+ */
+
 #include "registercontroller.hpp"
 
 #include "textspinbox.hpp"
@@ -16,6 +37,8 @@
 #include <QAbstractSpinBox>
 #include <titlespinbox.hpp>
 #include <utils.h>
+#include <style.h>
+#include "style_properties.h"
 
 using namespace scopy;
 using namespace regmap;
@@ -60,6 +83,7 @@ RegisterController::RegisterController(QWidget *parent)
 
 	readWidgetLayout->addWidget(readButton, 1, Qt::AlignRight);
 
+	Style::setStyle(readWidget, style::properties::regmap::registercontroller);
 	QWidget *writeWidget = new QWidget(this);
 	writeWidget->setFixedHeight(72);
 	mainLayout->addWidget(writeWidget);
@@ -82,6 +106,8 @@ RegisterController::RegisterController(QWidget *parent)
 	writeWidgetLeftLayout->addWidget(regValue);
 	writeWidgetLayout->addLayout(writeWidgetLeftLayout, 3);
 
+	Style::setStyle(regValue, style::properties::regmap::lineEdit);
+	Style::setStyle(writeWidget, style::properties::regmap::registercontroller);
 	writeButton = new QPushButton("Write", writeWidget);
 	// request write on register
 	QObject::connect(writeButton, &QPushButton::clicked, this, [=]() {
@@ -128,14 +154,16 @@ void RegisterController::setHasMap(bool hasMap)
 		detailedRegisterToggle->setCheckable(true);
 		QIcon detailedRegisterToggleIcon;
 		detailedRegisterToggleIcon.addPixmap(
-			Util::ChangeSVGColor(":/gui/icons/scopy-default/icons/tool_calibration.svg", "white", 1));
+			Style::getPixmap(":/gui/icons/" + Style::getAttribute(json::theme::icon_theme_folder) +
+						 "/icons/tool_calibration.svg",
+					 Style::getColor(json::theme::content_inverse)));
 		detailedRegisterToggle->setIcon(detailedRegisterToggleIcon);
 		detailedRegisterToggle->setChecked(true);
 		QObject::connect(detailedRegisterToggle, &QPushButton::toggled, this,
 				 &RegisterController::toggleDetailedMenu);
 		writeWidgetLayout->addWidget(detailedRegisterToggle, 0.5, Qt::AlignRight);
-		RegmapStyleHelper::smallBlueButton(detailedRegisterToggle);
-		detailedRegisterToggle->setFixedSize(40, 40);
+		Style::setStyle(detailedRegisterToggle, style::properties::button::squareIconButton, true, true);
+		detailedRegisterToggle->setFixedSize(32, 32);
 	}
 }
 
@@ -143,11 +171,11 @@ void RegisterController::applyStyle()
 {
 	setFixedHeight(72);
 
-	RegmapStyleHelper::BlueButton(readButton);
+	Style::setStyle(readButton, style::properties::button::basicButton, true, true);
 	readButton->setFixedHeight(40);
-	RegmapStyleHelper::BlueButton(writeButton);
+	Style::setStyle(writeButton, style::properties::button::basicButton, true, true);
 	writeButton->setFixedHeight(40);
-	valueLabel->setStyleSheet(RegmapStyleHelper::grayLabelStyle());
+	Style::setStyle(valueLabel, style::properties::label::menuSmall);
 
-	setStyleSheet(RegmapStyleHelper::regmapControllerStyle(nullptr));
+	// setStyleSheet(RegmapStyleHelper::regmapControllerStyle(nullptr));
 }

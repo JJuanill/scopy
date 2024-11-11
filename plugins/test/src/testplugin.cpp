@@ -1,5 +1,27 @@
+/*
+ * Copyright (c) 2024 Analog Devices Inc.
+ *
+ * This file is part of Scopy
+ * (see https://www.github.com/analogdevicesinc/scopy).
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program. If not, see <https://www.gnu.org/licenses/>.
+ *
+ */
+
 #include "testplugin.h"
 
+#include "styletool.h"
 #include "testtool.h"
 #include "tutorialoverlay.h"
 
@@ -13,6 +35,7 @@
 #include <QPainter>
 #include <QPushButton>
 #include <QSpacerItem>
+#include <style.h>
 
 #include <cursorsettings.h>
 #include <gui/utils.h>
@@ -92,16 +115,23 @@ bool TestPlugin::loadPage()
 void TestPlugin::loadToolList()
 {
 	renameCnt = 0;
-	m_toolList.append(
-		SCOPY_NEW_TOOLMENUENTRY("test1first", "FirstPlugin", ":/gui/icons/scopy-default/icons/tool_home.svg"));
-	m_toolList.append(
-		SCOPY_NEW_TOOLMENUENTRY("test1second", "Second Plugin", ":/gui/icons/scopy-default/icons/tool_io.svg"));
+	m_toolList.append(SCOPY_NEW_TOOLMENUENTRY("test1first", "FirstPlugin", ":/gui/icons/home.svg"));
+	m_toolList.append(SCOPY_NEW_TOOLMENUENTRY("test1second", "Second Plugin",
+						  ":/gui/icons/" + Style::getAttribute(json::theme::icon_theme_folder) +
+							  "/icons/tool_io.svg"));
+	m_toolList.append(SCOPY_NEW_TOOLMENUENTRY("teststyle", "Style Preview", ":/gui/icons/home.svg"));
 }
 
 bool TestPlugin::loadExtraButtons()
 {
-	m_extraButtons.append(new QPushButton("Calibrate"));
-	m_extraButtons.append(new QPushButton("Register"));
+	QPushButton *btnCalibrate = new QPushButton("Calibrate");
+	Style::setStyle(btnCalibrate, style::properties::button::grayButton);
+	m_extraButtons.append(btnCalibrate);
+
+	QPushButton *btnRegister = new QPushButton("Register");
+	Style::setStyle(btnRegister, style::properties::button::grayButton);
+	m_extraButtons.append(btnRegister);
+
 	connect(m_extraButtons[0], &QAbstractButton::clicked, this, [=]() { edit->setText("Calibrating"); });
 	connect(m_extraButtons[1], &QAbstractButton::clicked, this, [=]() { edit->setText("Registering"); });
 	return true;
@@ -142,7 +172,7 @@ This label is cool
 # Link
 
 For more info, visit [wiki](https://wiki.analog.com/)
-![ADI](:/gui/icons/scopy-default/icons/logo.svg "ADI")
+![ADI](:/gui/icons/" + Style::getAttribute(json::theme::icon_theme_folder) + "/icons/logo.svg "ADI")
 )story");
 
 	tut->setTitle("Welcome to TestPlugin ! ");
@@ -204,6 +234,12 @@ bool TestPlugin::onConnect()
 	m_toolList[1]->setTool(tool2);
 	m_toolList[1]->setEnabled(true);
 	m_toolList[1]->setRunBtnVisible(true);
+
+	tool3 = new StyleTool();
+
+	m_toolList[2]->setTool(tool3);
+	m_toolList[2]->setEnabled(true);
+	m_toolList[2]->setRunBtnVisible(false);
 
 	m_pluginApi = new TestPlugin_API(this);
 	m_pluginApi->setObjectName(m_name);

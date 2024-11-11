@@ -1,3 +1,24 @@
+/*
+ * Copyright (c) 2024 Analog Devices Inc.
+ *
+ * This file is part of Scopy
+ * (see https://www.github.com/analogdevicesinc/scopy).
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program. If not, see <https://www.gnu.org/licenses/>.
+ *
+ */
+
 #include "deviceregistermap.hpp"
 
 #include "dynamicWidget.h"
@@ -28,10 +49,13 @@
 #include <QPushButton>
 #include <qboxlayout.h>
 #include <qcheckbox.h>
+#include <style.h>
 
 #include <src/readwrite/fileregisterwritestrategy.hpp>
 #include <src/recyclerview/registermaptable.hpp>
 #include <utils.h>
+
+#include "style_properties.h"
 
 using namespace scopy;
 using namespace regmap;
@@ -53,11 +77,12 @@ DeviceRegisterMap::DeviceRegisterMap(RegisterMapTemplate *registerMapTemplate, R
 	tool->bottomCentral()->setVisible(true);
 	layout->addWidget(tool);
 
-	RegmapStyleHelper::DeviceRegisterMap(this);
+	Style::setBackgroundColor(this, Style::getAttribute(json::theme::interactive_primary_disabled));
 
 	initSettings();
 
 	registerController = new RegisterController(this);
+	Style::setStyle(registerController, style::properties::regmap::registercontroller, true, true);
 
 	QWidget *controllerWidget = new QWidget(this);
 	QHBoxLayout *controllerLayout = new QHBoxLayout(controllerWidget);
@@ -82,7 +107,8 @@ DeviceRegisterMap::DeviceRegisterMap(RegisterMapTemplate *registerMapTemplate, R
 		tableHeadWidget->setLayout(tableHeadWidgetLayout);
 
 		QWidget *registerTableHead = new QWidget(tableHeadWidget);
-		RegmapStyleHelper::widgetidthRoundCornersStyle(registerTableHead);
+		Style::setBackgroundColor(registerTableHead,
+					  Style::getAttribute(json::theme::interactive_subtle_disabled));
 
 		QHBoxLayout *registerTableHeadLayout = new QHBoxLayout(registerTableHead);
 		registerTableHeadLayout->setSpacing(0);
@@ -93,7 +119,8 @@ DeviceRegisterMap::DeviceRegisterMap(RegisterMapTemplate *registerMapTemplate, R
 		registerTableHead->setFixedWidth(180);
 
 		QWidget *colBitCount = new QWidget(tableHeadWidget);
-		RegmapStyleHelper::widgetidthRoundCornersStyle(colBitCount);
+		Style::setBackgroundColor(colBitCount, Style::getAttribute(json::theme::interactive_subtle_disabled));
+
 		QHBoxLayout *tableHead = new QHBoxLayout(colBitCount);
 		colBitCount->setLayout(tableHead);
 
@@ -222,6 +249,8 @@ bool DeviceRegisterMap::hasTemplate()
 
 	return false;
 }
+
+bool DeviceRegisterMap::getAutoread() { return autoread; }
 
 void DeviceRegisterMap::initSettings()
 {

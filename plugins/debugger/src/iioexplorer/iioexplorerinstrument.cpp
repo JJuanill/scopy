@@ -1,11 +1,33 @@
+/*
+ * Copyright (c) 2024 Analog Devices Inc.
+ *
+ * This file is part of Scopy
+ * (see https://www.github.com/analogdevicesinc/scopy).
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program. If not, see <https://www.gnu.org/licenses/>.
+ *
+ */
+
 #include <QVBoxLayout>
 #include <QLabel>
-
+#include <QScrollBar>
+#include <style.h>
 #include <gui/stylehelper.h>
-
 #include "iioexplorerinstrument.h"
 #include "iiostandarditem.h"
 #include "debuggerloggingcategories.h"
+#include "style_properties.h"
 
 using namespace scopy::debugger;
 
@@ -15,13 +37,13 @@ IIOExplorerInstrument::IIOExplorerInstrument(struct iio_context *context, QStrin
 	, m_uri(uri)
 	, m_currentlySelectedItem(nullptr)
 {
-	setObjectName("IIODebugInstrument - " + uri);
+	setObjectName("IIOExplorerInstrument - " + uri);
 	setupUi();
 	connectSignalsAndSlots();
 
 	// api object for saving the state of widgets
 	m_apiObject = new IIOExplorerInstrument_API(this);
-	m_apiObject->setObjectName("IIODebugInstrument");
+	m_apiObject->setObjectName("IIOExplorerInstrument");
 }
 
 IIOExplorerInstrument::~IIOExplorerInstrument() {}
@@ -40,6 +62,7 @@ void IIOExplorerInstrument::loadSettings(QSettings &s)
 
 void IIOExplorerInstrument::setupUi()
 {
+	setMinimumSize(720, 480); // Decent minimum size
 	m_tabWidget = new QTabWidget(this);
 
 	m_mainWidget = new QWidget(m_tabWidget);
@@ -60,15 +83,13 @@ void IIOExplorerInstrument::setupUi()
 	QWidget *details_container = new QWidget(right_container);
 	QWidget *watch_list = new QWidget(right_container);
 
-	StyleHelper::BackgroundPage(details_container, "DetailsContainer");
-	StyleHelper::BackgroundPage(watch_list, "WatchListContainer");
-	StyleHelper::BackgroundPage(tree_view_container, "TreeViewContainer");
+	Style::setBackgroundColor(details_container, json::theme::background_subtle);
+	Style::setBackgroundColor(tree_view_container, json::theme::background_subtle);
 	StyleHelper::SplitterStyle(m_HSplitter, "HorizontalSplitter");
 	StyleHelper::SplitterStyle(m_VSplitter, "VerticalSplitter");
-	StyleHelper::TabWidgetBarUnderline(m_tabWidget, "IIODebugInstrumentTabWidget");
 
 	m_mainWidget->setLayout(new QVBoxLayout(m_mainWidget));
-	m_mainWidget->layout()->setContentsMargins(0, 0, 0, 0);
+	m_mainWidget->layout()->setContentsMargins(10, 10, 10, 10);
 
 	bottom_container->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Preferred);
 	bottom_container->setLayout(new QHBoxLayout(bottom_container));
@@ -83,7 +104,7 @@ void IIOExplorerInstrument::setupUi()
 	m_proxyModel = new IIOSortFilterProxyModel(this);
 	m_treeView = new QTreeView(tree_view_container);
 	m_treeView->setHeaderHidden(true);
-	StyleHelper::TreeViewDebugger(m_treeView, "TreeView");
+
 	// m_saveContextSetup = new SaveContextSetup(m_treeView, bottom_container);
 	// m_iioModel = new IIOModel(m_context, m_uri, m_treeView);
 
@@ -93,11 +114,14 @@ void IIOExplorerInstrument::setupUi()
 	m_detailsView = new DetailsView(details_container);
 	m_watchListView = new WatchListView(watch_list);
 
-	watch_list->layout()->setContentsMargins(0, 0, 0, 0);
 	watch_list->layout()->addWidget(m_watchListView);
 
 	m_proxyModel->setSourceModel(m_iioModel->getModel());
 	m_proxyModel->setFilterCaseSensitivity(Qt::CaseInsensitive);
+
+	Style::setBackgroundColor(m_mainWidget, json::theme::background_subtle);
+	Style::setBackgroundColor(m_debugLogger, json::theme::background_subtle);
+	Style::setStyle(m_treeView, style::properties::debugger::treeView);
 
 	m_treeView->setModel(m_proxyModel);
 
@@ -120,6 +144,7 @@ void IIOExplorerInstrument::setupUi()
 	right_container->layout()->addWidget(m_VSplitter);
 
 	setLayout(new QVBoxLayout(this));
+	layout()->setContentsMargins(0, 0, 0, 0);
 	layout()->addWidget(m_tabWidget);
 }
 

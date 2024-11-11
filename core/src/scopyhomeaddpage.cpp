@@ -1,4 +1,25 @@
-﻿#include "scopyhomeaddpage.h"
+/*
+ * Copyright (c) 2024 Analog Devices Inc.
+ *
+ * This file is part of Scopy
+ * (see https://www.github.com/analogdevicesinc/scopy).
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program. If not, see <https://www.gnu.org/licenses/>.
+ *
+ */
+
+#include "scopyhomeaddpage.h"
 #include "devicefactory.h"
 #include "deviceloader.h"
 
@@ -6,6 +27,7 @@
 #include <QLoggingCategory>
 #include <QtConcurrent>
 #include <menusectionwidget.h>
+#include <style.h>
 
 Q_LOGGING_CATEGORY(CAT_HOME_ADD_PAGE, "ScopyHomeAddPage")
 
@@ -16,7 +38,6 @@ ScopyHomeAddPage::ScopyHomeAddPage(QWidget *parent, PluginManager *pm)
 	, m_pluginManager(pm)
 	, m_deviceImpl(nullptr)
 {
-	StyleHelper::BackgroundAddPage(this, "add");
 	setProperty("device_page", true);
 	setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
 	QVBoxLayout *layout = new QVBoxLayout(this);
@@ -218,13 +239,13 @@ QWidget *ScopyHomeAddPage::createBtnsWidget(QWidget *parent)
 
 	m_backBtn = new QPushButton(btnsWidget);
 	m_backBtn->setText("BACK");
-	StyleHelper::BlueButton(m_backBtn);
+	StyleHelper::BasicButton(m_backBtn);
 	m_backBtn->setFixedWidth(128);
 
 	m_addBtn = new QPushButton(btnsWidget);
 	m_addBtn->setText("ADD DEVICE");
 	m_addBtn->setAutoDefault(true);
-	StyleHelper::BlueButton(m_addBtn);
+	StyleHelper::BasicButton(m_addBtn);
 	m_addBtn->setFixedWidth(128);
 
 	btnsLay->addWidget(m_backBtn);

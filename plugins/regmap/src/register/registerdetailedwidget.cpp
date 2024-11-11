@@ -1,3 +1,24 @@
+/*
+ * Copyright (c) 2024 Analog Devices Inc.
+ *
+ * This file is part of Scopy
+ * (see https://www.github.com/analogdevicesinc/scopy).
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program. If not, see <https://www.gnu.org/licenses/>.
+ *
+ */
+
 #include "registerdetailedwidget.hpp"
 
 #include "../verticalscrollarea.hpp"
@@ -16,6 +37,8 @@
 #include "utils.hpp"
 #include <QtMath>
 #include <menucollapsesection.h>
+#include <style.h>
+#include <style_properties.h>
 
 using namespace scopy;
 using namespace regmap;
@@ -31,15 +54,13 @@ RegisterDetailedWidget::RegisterDetailedWidget(RegisterModel *regModel, QWidget 
 	regWidth = regModel->getWidth();
 
 	QWidget *nameDescriptionWidget = new QWidget(this);
-	nameDescriptionWidget->setStyleSheet(RegmapStyleHelper::simpleWidgetStyle());
+	Style::setBackgroundColor(nameDescriptionWidget, Style::getAttribute(json::theme::interactive_subtle_disabled));
 	QHBoxLayout *nameDescriptionLayout = new QHBoxLayout(nameDescriptionWidget);
 	nameDescriptionWidget->setLayout(nameDescriptionLayout);
 	QLabel *nameLabel = new QLabel("Name: " + regModel->getName(), this);
 	QLabel *descriptionLabel = new QLabel("Description: " + regModel->getDescription(), this);
 	nameDescriptionLayout->addWidget(nameLabel);
 	nameDescriptionLayout->addWidget(descriptionLabel);
-	setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Maximum);
-
 	setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Maximum);
 
 	QGridLayout *bitFieldsWidgetLayout = new QGridLayout();

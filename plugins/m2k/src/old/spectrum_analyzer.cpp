@@ -127,7 +127,7 @@ void SpectrumAnalyzer::initInstrumentStrings()
 	};
 }
 
-SpectrumAnalyzer::SpectrumAnalyzer(libm2k::context::M2k *m2k, Filter *filt, ToolMenuEntry *tme,
+SpectrumAnalyzer::SpectrumAnalyzer(libm2k::context::M2k *m2k, QString uri, Filter *filt, ToolMenuEntry *tme,
 				   m2k_iio_manager *m2k_man, QJSEngine *engine, QWidget *parent)
 	: M2kTool(tme, new SpectrumAnalyzer_API(this), "Spectrum Analyzer", parent)
 	, ui(new Ui::SpectrumAnalyzer)
@@ -155,6 +155,7 @@ SpectrumAnalyzer::SpectrumAnalyzer(libm2k::context::M2k *m2k, Filter *filt, Tool
 	, fft_ids(nullptr)
 	, m_nb_overlapping_avg(1)
 	, use_float_sink(true)
+	, m_uri(uri)
 {
 	initInstrumentStrings();
 	// Get the list of names of the available channels
@@ -174,6 +175,7 @@ SpectrumAnalyzer::SpectrumAnalyzer(libm2k::context::M2k *m2k, Filter *filt, Tool
 	sample_rate = m_max_sample_rate;
 
 	ui->setupUi(this);
+	ui->sweepSettings->setMinimumWidth(350);
 	// Temporarily disable the delta marker button
 	ui->pushButton_4->hide();
 
@@ -770,7 +772,7 @@ SpectrumAnalyzer::SpectrumAnalyzer(libm2k::context::M2k *m2k, Filter *filt, Tool
 	connect(ui->btnExport, &QPushButton::clicked, this, &SpectrumAnalyzer::btnExportClicked);
 	readPreferences();
 
-	ui->btnHelp->setUrl("https://wiki.analog.com/university/tools/m2k/scopy/spectrumanalyzer");
+	ui->btnHelp->setUrl("https://analogdevicesinc.github.io/scopy/plugins/m2k/spectrum_analyzer.html");
 
 #ifndef SPECTRAL_MSR
 	// TODO: enable measurements
@@ -1978,7 +1980,7 @@ void SpectrumAnalyzer::runStopToggled(bool checked)
 	}
 
 	if(checked) {
-		ResourceManager::open("m2k-adc", this);
+		ResourceManager::open("m2k-adc" + m_uri, this);
 
 		if(iio) {
 			writeAllSettingsToHardware();
@@ -1992,7 +1994,7 @@ void SpectrumAnalyzer::runStopToggled(bool checked)
 	} else {
 		stop_blockchain_flow();
 		sample_timer->stop();
-		ResourceManager::close("m2k-adc");
+		ResourceManager::close("m2k-adc" + m_uri);
 	}
 
 	if(!checked) {

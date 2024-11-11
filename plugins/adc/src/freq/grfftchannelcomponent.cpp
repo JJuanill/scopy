@@ -1,3 +1,24 @@
+/*
+ * Copyright (c) 2024 Analog Devices Inc.
+ *
+ * This file is part of Scopy
+ * (see https://www.github.com/analogdevicesinc/scopy).
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program. If not, see <https://www.gnu.org/licenses/>.
+ *
+ */
+
 #include "grfftchannelcomponent.h"
 #include <pluginbase/preferences.h>
 #include <gui/widgets/menusectionwidget.h>
@@ -109,7 +130,10 @@ GRFFTChannelComponent::~GRFFTChannelComponent() {}
 
 MeasureManagerInterface *GRFFTChannelComponent::getMeasureManager() { return nullptr; }
 
-MarkerController *GRFFTChannelComponent::markerController() { return m_fftPlotComponentChannel->markerController(); }
+PlotMarkerController *GRFFTChannelComponent::markerController()
+{
+	return m_fftPlotComponentChannel->markerController();
+}
 
 QWidget *GRFFTChannelComponent::createYAxisMenu(QWidget *parent)
 {
@@ -139,7 +163,7 @@ QWidget *GRFFTChannelComponent::createCurveMenu(QWidget *parent)
 QPushButton *GRFFTChannelComponent::createSnapshotButton(QWidget *parent)
 {
 	QPushButton *snapBtn = new QPushButton("Snapshot", parent);
-	StyleHelper::BlueButton(snapBtn);
+	StyleHelper::BasicButton(snapBtn);
 
 	/*connect(snapBtn, &QPushButton::clicked, this, [=]() {
 		std::vector<float> x, y;
@@ -199,11 +223,11 @@ QWidget *GRFFTChannelComponent::createMarkerMenu(QWidget *parent)
 	layout->setMargin(0);
 
 	MenuCombo *markerCb = new MenuCombo("Marker Type", section);
-	markerCb->combo()->addItem("Peak", MarkerController::MC_PEAK);
-	markerCb->combo()->addItem("Fixed", MarkerController::MC_FIXED);
-	markerCb->combo()->addItem("Single Tone", MarkerController::MC_SINGLETONE);
+	markerCb->combo()->addItem("Peak", PlotMarkerController::MC_PEAK);
+	markerCb->combo()->addItem("Fixed", PlotMarkerController::MC_FIXED);
+	markerCb->combo()->addItem("Single Tone", PlotMarkerController::MC_SINGLETONE);
 	if(m_complex) {
-		markerCb->combo()->addItem("Image", MarkerController::MC_IMAGE);
+		markerCb->combo()->addItem("Image", PlotMarkerController::MC_IMAGE);
 	}
 
 	markerCb->combo()->setCurrentIndex(0);
@@ -224,18 +248,20 @@ QWidget *GRFFTChannelComponent::createMarkerMenu(QWidget *parent)
 
 	connect(section->collapseSection()->header(), &QAbstractButton::toggled, this, [=](bool b) {
 		if(b) {
-			auto markerType =
-				static_cast<MarkerController::MarkerTypes>(markerCb->combo()->currentData().toInt());
+			auto markerType = static_cast<PlotMarkerController::MarkerTypes>(
+				markerCb->combo()->currentData().toInt());
 			m_fftPlotComponentChannel->markerController()->setMarkerType(markerType);
 		} else {
-			m_fftPlotComponentChannel->markerController()->setMarkerType(MarkerController::MC_NONE);
+			m_fftPlotComponentChannel->markerController()->setMarkerType(PlotMarkerController::MC_NONE);
 		}
 	});
 
 	connect(markerCb->combo(), qOverload<int>(&QComboBox::currentIndexChanged), this, [=](int idx) {
-		auto markerType = static_cast<MarkerController::MarkerTypes>(markerCb->combo()->currentData().toInt());
+		auto markerType =
+			static_cast<PlotMarkerController::MarkerTypes>(markerCb->combo()->currentData().toInt());
 		m_fftPlotComponentChannel->markerController()->setMarkerType(markerType);
-		fixedMarkerEditBtn->setVisible(markerCb->combo()->currentData().toInt() == MarkerController::MC_FIXED);
+		fixedMarkerEditBtn->setVisible(markerCb->combo()->currentData().toInt() ==
+					       PlotMarkerController::MC_FIXED);
 	});
 
 	layout->addWidget(markerCb);

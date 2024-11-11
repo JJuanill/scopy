@@ -1,3 +1,24 @@
+/*
+ * Copyright (c) 2024 Analog Devices Inc.
+ *
+ * This file is part of Scopy
+ * (see https://www.github.com/analogdevicesinc/scopy).
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program. If not, see <https://www.gnu.org/licenses/>.
+ *
+ */
+
 #include "searchbarwidget.hpp"
 #include "utils.hpp"
 #include "utils.h"
@@ -7,8 +28,10 @@
 #include <qboxlayout.h>
 #include <qlineedit.h>
 #include <qpushbutton.h>
+#include <style.h>
 #include <stylehelper.h>
 #include "regmapstylehelper.hpp"
+#include <style_properties.h>
 
 using namespace scopy;
 using namespace regmap;
@@ -24,10 +47,16 @@ SearchBarWidget::SearchBarWidget(QWidget *parent)
 	searchBar->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Preferred);
 	searchBar->setPlaceholderText("Search for register ");
 	searchButton = new QPushButton(this);
-	QIcon icon1;
-	icon1.addPixmap(Util::ChangeSVGColor(":/gui/icons/scopy-default/icons/search.svg", "white", 1));
-	StyleHelper::SquareToggleButtonWithIcon(searchButton, "search_btn", false);
-	searchButton->setIcon(icon1);
+
+	QString iconPath = ":/gui/icons/" + Style::getAttribute(json::theme::icon_theme_folder) + "/icons/search.svg";
+	searchButton->setIcon(Style::getPixmap(iconPath, Style::getColor(json::theme::content_default)));
+
+	connect(searchButton, &QPushButton::toggled, this, [=](bool toggle) {
+		const char *color = toggle ? json::theme::content_inverse : json::theme::content_default;
+		searchButton->setIcon(Style::getPixmap(iconPath, Style::getColor(color)));
+	});
+
+	Style::setStyle(searchButton, style::properties::button::squareIconButton, true, true);
 
 	QObject::connect(searchBar, &QLineEdit::returnPressed, searchButton, &QPushButton::pressed);
 
@@ -52,4 +81,4 @@ void SearchBarWidget::setEnabled(bool enabled)
 	this->searchButton->setVisible(enabled);
 }
 
-void SearchBarWidget::applyStyle() { RegmapStyleHelper::searchBarStyle(this); }
+void SearchBarWidget::applyStyle() { Style::setStyle(searchBar, style::properties::regmap::searchBar, true, true); }
