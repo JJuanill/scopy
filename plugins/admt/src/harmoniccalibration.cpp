@@ -583,7 +583,7 @@ ToolTemplate* HarmonicCalibration::createCalibrationWidget()
 	calibrationRawDataXPlotAxis = new PlotAxis(QwtAxis::XBottom, calibrationRawDataPlotWidget, scopyBluePen);
 	calibrationRawDataXPlotAxis->setMin(0);
 	calibrationRawDataYPlotAxis = new PlotAxis(QwtAxis::YLeft, calibrationRawDataPlotWidget, scopyBluePen);
-	calibrationRawDataYPlotAxis->setInterval(0, 400);
+	calibrationRawDataYPlotAxis->setInterval(0, 400);	
 
 	calibrationRawDataPlotChannel = new PlotChannel("Samples", scopyBluePen, calibrationRawDataXPlotAxis, calibrationRawDataYPlotAxis);
 	calibrationSineDataPlotChannel = new PlotChannel("Sine", sinePen, calibrationRawDataXPlotAxis, calibrationRawDataYPlotAxis);
@@ -596,6 +596,10 @@ ToolTemplate* HarmonicCalibration::createCalibrationWidget()
 	calibrationSineDataPlotChannel->setEnabled(true);
 	calibrationCosineDataPlotChannel->setEnabled(true);
 	calibrationRawDataPlotWidget->selectChannel(calibrationRawDataPlotChannel);
+
+	calibrationRawDataPlotWidget->setShowXAxisLabels(true);
+	calibrationRawDataPlotWidget->setShowYAxisLabels(true);
+	calibrationRawDataPlotWidget->showAxisLabels();
 
 	calibrationRawDataPlotWidget->replot();
 
