@@ -101,7 +101,11 @@ WaveformInstrument::WaveformInstrument(ToolMenuEntry *tme, QString uri, QWidget 
 	connect(m_singleBtn, SIGNAL(toggled(bool)), this, SLOT(toggleWaveform(bool)));
 }
 
-WaveformInstrument::~WaveformInstrument() { m_xTime.clear(); }
+WaveformInstrument::~WaveformInstrument()
+{
+	m_xTime.clear();
+	ResourceManager::close("pqm" + m_uri);
+}
 
 void WaveformInstrument::showOneBuffer(bool hasFwVers)
 {
