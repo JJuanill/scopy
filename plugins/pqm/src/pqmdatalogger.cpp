@@ -35,11 +35,19 @@ using namespace scopy::pqm;
 PqmDataLogger::PqmDataLogger(QObject *parent)
 	: QObject(parent)
 	, m_crtInstr(None)
+	, m_writeFw(nullptr)
 {
 	m_writeFw = new QFutureWatcher<void>(this);
 }
 
-PqmDataLogger::~PqmDataLogger() {}
+PqmDataLogger::~PqmDataLogger()
+{
+	if(m_writeFw) {
+		m_writeFw->waitForFinished();
+		m_writeFw->deleteLater();
+		m_writeFw = nullptr;
+	}
+}
 
 void PqmDataLogger::setChnlsName(QVector<QString> chnlsName) { m_chnlsName = chnlsName.toList(); }
 
