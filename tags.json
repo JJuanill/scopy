@@ -1,4 +1,10 @@
-[
-  "scopy_testing_results",
-  ""
-]
+{
+  "scopy_testing_results": [
+    "scopy_testing_results",
+    "testing"
+  ],
+  "": [
+    "main",
+    "unstable"
+  ]
+}
