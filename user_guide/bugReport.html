@@ -4,15 +4,13 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+<meta content="A Software_bug is a flaw, error in a software application that causes it to behave unexpected, hang or even crash. No matter how sharp our skills are, or rigorous our testing, a few bugs are bound to slip through the cracks every now and then. As much as you don’t want them; we don’t want/like them either. However, some bugs can be difficult to replicate, track down and eventually fix without a well written bug report. If you encounter one of the what you believe is a software bug, this guide is here to provide a step by step approach into reporting the bug on our issue tracker ." name="description" />
 
     <title>Reporting a Bug &#8212; Scopy  documentation</title>
     <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=8e8a900e" />
-    <link rel="stylesheet" type="text/css" href="../_static/app.min.css?v=0ea85bdb" />
+    <link rel="stylesheet" type="text/css" href="../_static/app.min.css?v=3f4bd1a2" />
     <link rel="stylesheet" type="text/css" href="../_static/custom.css" />
-    <script src="../_static/documentation_options.js?v=5929fcd5"></script>
-    <script src="../_static/doctools.js?v=9bcbadda"></script>
-    <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
-    <script defer="" src="../_static/app.umd.js?v=25136f1d"></script>
+    <script async="async" src="../_static/app.umd.js?v=75bad8ae"></script>
     <link rel="icon" href="../_static/scopy.png"/>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
@@ -20,8 +18,12 @@
     <link rel="prev" title="Scopy Preferences" href="preferences.html" />
    
   
+  
   <meta name="repository" content="scopy">
   <meta name="version" content="main">
+  
+    <meta name="page_source_suffix" content=".rst">
+  
   
 
 
@@ -49,8 +51,7 @@
   <div class="search-area">
     <form action="" method="get">
       <input type="text" name="q" aria-labelledby="search-documentation" value="" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" role="search" placeholder="Search"/>
-      <button value="search" class="icon"></button>
-      <span id="search-progress"></span>
+      <button class="icon"></button>
     </form>
   </div>
   
@@ -61,9 +62,11 @@
     </div>
     <div id="right">
       <span>
-        <a id="logo-org" href="https://analog.com"></a>
+        <a id="logo-org" href="https://analog.com" aria-label="Analog Devices Inc. landing page"></a>
         <div class="vertical-divider"></div>
+        
         <label id="show-repotoc" for="input-show-repotoc" title="Show/hide docs" tabindex="0">Docs</label>
+        
         <a id="logo" href="../index.html">
           <div>Scopy</div>
         </a>
@@ -168,10 +171,24 @@ Content on this topic
 <li class="toctree-l3"><a class="reference internal" href="../plugins/registermap/registermap.html">Register Map</a></li>
 </ul>
 </li>
+<li class="toctree-l2"><input class="toctree-collapse" type="checkbox" name="toctree-collapse-2-5" id="toctree-collapse-2-5"/><div class="collapse"><a class="reference internal" href="../plugins/ad936x/index.html">AD936x</a><label for="toctree-collapse-2-5"><div class="icon"></div></label></div><ul>
+<li class="toctree-l3"><a class="reference internal" href="../plugins/ad936x/ad936x.html">AD936X</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../plugins/ad936x/ad936x_advanced.html">AD936X Advanced</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><input class="toctree-collapse" type="checkbox" name="toctree-collapse-2-6" id="toctree-collapse-2-6"/><div class="collapse"><a class="reference internal" href="../plugins/ad9084/index.html">APOLLO</a><label for="toctree-collapse-2-6"><div class="icon"></div></label></div><ul>
+<li class="toctree-l3"><a class="reference internal" href="../plugins/ad9084/ad9084.html">AD9084</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../plugins/jesdstatus/index.html">JESD Status</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../plugins/scripting/scripting.html">Scripting Tool</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../plugins/scripting/scripting.html#supported-commands">Supported Commands</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><input class="toctree-collapse" type="checkbox" name="toctree-collapse-3" id="toctree-collapse-3"/><div class="collapse"><a class="reference internal" href="../developer_guide/index.html">Scopy developer guide</a><label for="toctree-collapse-3"><div class="icon"></div></label></div><ul>
 <li class="toctree-l2"><a class="reference internal" href="../developer_guide/style.html">Style Tutorial</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../developer_guide/package_generator.html">Package Generator</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../developer_guide/plugin_developer_guide.html">Plugin Developer Guide</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><input class="toctree-collapse" type="checkbox" name="toctree-collapse-4" id="toctree-collapse-4"/><div class="collapse"><a class="reference internal" href="../tests/index.html">Test Cases</a><label for="toctree-collapse-4"><div class="icon"></div></label></div><ul>
@@ -219,6 +236,18 @@ Content on this topic
 <li class="toctree-l4"><a class="reference internal" href="../tests/plugins/debugger/debugger_preferences_tests.html">Debugger Preferences - Test Suite</a></li>
 </ul>
 </li>
+<li class="toctree-l3"><input class="toctree-collapse" type="checkbox" name="toctree-collapse-4-1-9" id="toctree-collapse-4-1-9"/><div class="collapse"><a class="reference internal" href="../tests/plugins/jesd/index.html">JESD STATUS</a><label for="toctree-collapse-4-1-9"><div class="icon"></div></label></div><ul>
+<li class="toctree-l4"><a class="reference internal" href="../tests/plugins/jesd/jesd_status_tests.html">JESD STATUS Test Suite</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><input class="toctree-collapse" type="checkbox" name="toctree-collapse-4-1-10" id="toctree-collapse-4-1-10"/><div class="collapse"><a class="reference internal" href="../tests/plugins/ad936x/index.html">AD936X</a><label for="toctree-collapse-4-1-10"><div class="icon"></div></label></div><ul>
+<li class="toctree-l4"><a class="reference internal" href="../tests/plugins/ad936x/ad936x_tests.html">AD936x Test Suite</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><input class="toctree-collapse" type="checkbox" name="toctree-collapse-4-1-11" id="toctree-collapse-4-1-11"/><div class="collapse"><a class="reference internal" href="../tests/plugins/ad9084/index.html">AD9084</a><label for="toctree-collapse-4-1-11"><div class="icon"></div></label></div><ul>
+<li class="toctree-l4"><a class="reference internal" href="../tests/plugins/ad9084/ad9084_tests.html">AD9084 Test Suite</a></li>
+</ul>
+</li>
 </ul>
 </li>
 <li class="toctree-l2"><input class="toctree-collapse" type="checkbox" name="toctree-collapse-4-2" id="toctree-collapse-4-2"/><div class="collapse"><a class="reference internal" href="../tests/general/index.html">General Test Cases</a><label for="toctree-collapse-4-2"><div class="icon"></div></label></div><ul>
@@ -231,6 +260,8 @@ Content on this topic
 <li class="toctree-l3"><a class="reference internal" href="../tests/general/core/dev_tests.html">Device interaction</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../tests/general/instrument_detaching_tests.html">Instrument Detaching - Test Suite</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../tests/general/general_preferences_tests.html">General Preferences - Test Suite</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../tests/general/package_manager_tests.html">Package Manager - Test Suite</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../tests/general/scripting_tool.html">Scripting Tool - Test Suite</a></li>
 </ul>
 </li>
 </ul>
@@ -249,14 +280,16 @@ Content on this topic
   <div class="document">
       <div class="documentwrapper">
         <div class="bodywrapper" id="top-anchor">
-          
+          <div class="body-header">
+  <nav class="breadcrumb empty"><ol></ol></nav>
+</div>
           <div class="body" role="main">
             
   <section id="reporting-a-bug">
 <span id="bug-report"></span><h1>Reporting a Bug<a class="headerlink" href="#reporting-a-bug" title="Link to this heading"></a></h1>
 <section id="bug">
 <h2>Bug<a class="headerlink" href="#bug" title="Link to this heading"></a></h2>
-<p>A <a class="reference external" href="https://en.wikipedia.org/wiki/Software_bug">Software_bug</a> is a flaw, error
+<p>A <a class="icon link reference external" href="https://en.wikipedia.org/wiki/Software_bug" target="_blank">Software_bug</a> is a flaw, error
 in a software application that causes it to <strong>behave unexpected</strong>, <strong>hang</strong> or
 even <strong>crash</strong>. No matter how sharp our skills are, or rigorous our testing, a
 few bugs are bound to slip through the cracks every now and then. As much as you
@@ -264,7 +297,7 @@ don’t want them; we don’t want/like them either. However, some bugs can be
 difficult to replicate, track down and eventually fix without a well written bug
 report. If you encounter one of the what you believe is a software bug, this
 guide is here to provide a step by step approach into reporting the bug on our
-<a class="reference external" href="https://github.com/analogdevicesinc/scopy/issues">issue tracker</a> .</p>
+<a class="icon link reference external" href="https://github.com/analogdevicesinc/scopy/issues" target="_blank">issue tracker</a> .</p>
 <dl class="simple">
 <dt>What we need is:</dt><dd><ul class="simple">
 <li><p>Brief description of the bug</p></li>
@@ -278,18 +311,18 @@ guide is here to provide a step by step approach into reporting the bug on our
 <section id="before-reporting-a-bug">
 <h2>Before reporting a bug<a class="headerlink" href="#before-reporting-a-bug" title="Link to this heading"></a></h2>
 <p>Is it a bug? or is it a feature request? Something not working properly (a bug)
-is different than something working differently than you want. <a class="reference external" href="https://github.com/analogdevicesinc/scopy/issues">Feature
+is different than something working differently than you want. <a class="icon link reference external" href="https://github.com/analogdevicesinc/scopy/issues" target="_blank">Feature
 requests</a> are tracked in
 the same place as bugs, but will not have a ‘’bug’’ label.</p>
 <p>Some <a class="reference internal" href="troubleshooting.html#troubleshooting"><span class="std std-ref">troubleshooting steps</span></a>
 that might be worth looking at to understand if you have a potential common
 hardware problem.</p>
 <p>Scopy is continuously being improved from one version to another, (with bug
-fixes) and with new features. Ensure you are using the <a class="reference external" href="https://github.com/analogdevicesinc/scopy/releases/latest">latest release
+fixes) and with new features. Ensure you are using the <a class="icon link reference external" href="https://github.com/analogdevicesinc/scopy/releases/latest" target="_blank">latest release
 version</a> of scopy.
 Try to replicate the bug on latest release and if the bug persists first
 check to see if someone else has reported the same
-<a class="reference external" href="https://github.com/analogdevicesinc/scopy/issues?q=is%3Aissue+is%3Aopen+label%3Abug">bug.</a></p>
+<a class="icon link reference external" href="https://github.com/analogdevicesinc/scopy/issues?q=is%3Aissue+is%3Aopen+label%3Abug" target="_blank">bug.</a></p>
 <p>If the bug has not yet been reported follow the steps bellow.</p>
 </section>
 <section id="description-of-the-bug">
@@ -300,7 +333,7 @@ uses <strong>.ini</strong> files to load its previous state when it was closed. 
 are located in:</p>
 <ul class="simple">
 <li><p><strong>Windows:</strong> C:\Users\&lt;your_username&gt;\AppData\Local\ADI\Scopy-v2 Sometimes this is a
-hidden directory, and you <a class="reference external" href="https://cybertext.wordpress.com/2012/05/29/cant-see-the-appdata-folder/">unhide
+hidden directory, and you <a class="icon link reference external" href="https://cybertext.wordpress.com/2012/05/29/cant-see-the-appdata-folder/" target="_blank">unhide
 it.</a></p></li>
 <li><p><strong>Linux:</strong> /home/&lt;your_username&gt;/.config/ADI/Scopy-v2/</p></li>
 <li><p><strong>Mac:</strong> /Users/&lt;your_username&gt;/.config/analog.com</p></li>
@@ -382,8 +415,6 @@ and the logging files if present</p>
         </div>
       </div>
   </div>
-
-  <div id="vertical-border"></div>
 
   <label id="cancel-area-show-toc" for="input-show-toc"></label>
   <label id="cancel-area-show-localtoc" for="input-show-localtoc"></label>

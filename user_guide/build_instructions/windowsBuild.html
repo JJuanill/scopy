@@ -4,15 +4,13 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+<meta content="In order to emulate a UNIX-like environment for building Scopy on Windows, we use MSYS2." name="description" />
 
     <title>Windows Build Instructions &#8212; Scopy  documentation</title>
     <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=8e8a900e" />
-    <link rel="stylesheet" type="text/css" href="../../_static/app.min.css?v=0ea85bdb" />
+    <link rel="stylesheet" type="text/css" href="../../_static/app.min.css?v=3f4bd1a2" />
     <link rel="stylesheet" type="text/css" href="../../_static/custom.css" />
-    <script src="../../_static/documentation_options.js?v=5929fcd5"></script>
-    <script src="../../_static/doctools.js?v=9bcbadda"></script>
-    <script src="../../_static/sphinx_highlight.js?v=dc90522c"></script>
-    <script defer="" src="../../_static/app.umd.js?v=25136f1d"></script>
+    <script async="async" src="../../_static/app.umd.js?v=75bad8ae"></script>
     <link rel="icon" href="../../_static/scopy.png"/>
     <link rel="index" title="Index" href="../../genindex.html" />
     <link rel="search" title="Search" href="../../search.html" />
@@ -20,8 +18,12 @@
     <link rel="prev" title="Scopy Overview" href="../index.html" />
    
   
+  
   <meta name="repository" content="scopy">
   <meta name="version" content="main">
+  
+    <meta name="page_source_suffix" content=".rst">
+  
   
 
 
@@ -49,8 +51,7 @@
   <div class="search-area">
     <form action="" method="get">
       <input type="text" name="q" aria-labelledby="search-documentation" value="" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" role="search" placeholder="Search"/>
-      <button value="search" class="icon"></button>
-      <span id="search-progress"></span>
+      <button class="icon"></button>
     </form>
   </div>
   
@@ -61,9 +62,11 @@
     </div>
     <div id="right">
       <span>
-        <a id="logo-org" href="https://analog.com"></a>
+        <a id="logo-org" href="https://analog.com" aria-label="Analog Devices Inc. landing page"></a>
         <div class="vertical-divider"></div>
+        
         <label id="show-repotoc" for="input-show-repotoc" title="Show/hide docs" tabindex="0">Docs</label>
+        
         <a id="logo" href="../../index.html">
           <div>Scopy</div>
         </a>
@@ -168,10 +171,24 @@ Content on this topic
 <li class="toctree-l3"><a class="reference internal" href="../../plugins/registermap/registermap.html">Register Map</a></li>
 </ul>
 </li>
+<li class="toctree-l2"><input class="toctree-collapse" type="checkbox" name="toctree-collapse-2-5" id="toctree-collapse-2-5"/><div class="collapse"><a class="reference internal" href="../../plugins/ad936x/index.html">AD936x</a><label for="toctree-collapse-2-5"><div class="icon"></div></label></div><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../plugins/ad936x/ad936x.html">AD936X</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../plugins/ad936x/ad936x_advanced.html">AD936X Advanced</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><input class="toctree-collapse" type="checkbox" name="toctree-collapse-2-6" id="toctree-collapse-2-6"/><div class="collapse"><a class="reference internal" href="../../plugins/ad9084/index.html">APOLLO</a><label for="toctree-collapse-2-6"><div class="icon"></div></label></div><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../plugins/ad9084/ad9084.html">AD9084</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../../plugins/jesdstatus/index.html">JESD Status</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../plugins/scripting/scripting.html">Scripting Tool</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../plugins/scripting/scripting.html#supported-commands">Supported Commands</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><input class="toctree-collapse" type="checkbox" name="toctree-collapse-3" id="toctree-collapse-3"/><div class="collapse"><a class="reference internal" href="../../developer_guide/index.html">Scopy developer guide</a><label for="toctree-collapse-3"><div class="icon"></div></label></div><ul>
 <li class="toctree-l2"><a class="reference internal" href="../../developer_guide/style.html">Style Tutorial</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../developer_guide/package_generator.html">Package Generator</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../developer_guide/plugin_developer_guide.html">Plugin Developer Guide</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><input class="toctree-collapse" type="checkbox" name="toctree-collapse-4" id="toctree-collapse-4"/><div class="collapse"><a class="reference internal" href="../../tests/index.html">Test Cases</a><label for="toctree-collapse-4"><div class="icon"></div></label></div><ul>
@@ -219,6 +236,18 @@ Content on this topic
 <li class="toctree-l4"><a class="reference internal" href="../../tests/plugins/debugger/debugger_preferences_tests.html">Debugger Preferences - Test Suite</a></li>
 </ul>
 </li>
+<li class="toctree-l3"><input class="toctree-collapse" type="checkbox" name="toctree-collapse-4-1-9" id="toctree-collapse-4-1-9"/><div class="collapse"><a class="reference internal" href="../../tests/plugins/jesd/index.html">JESD STATUS</a><label for="toctree-collapse-4-1-9"><div class="icon"></div></label></div><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../tests/plugins/jesd/jesd_status_tests.html">JESD STATUS Test Suite</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><input class="toctree-collapse" type="checkbox" name="toctree-collapse-4-1-10" id="toctree-collapse-4-1-10"/><div class="collapse"><a class="reference internal" href="../../tests/plugins/ad936x/index.html">AD936X</a><label for="toctree-collapse-4-1-10"><div class="icon"></div></label></div><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../tests/plugins/ad936x/ad936x_tests.html">AD936x Test Suite</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><input class="toctree-collapse" type="checkbox" name="toctree-collapse-4-1-11" id="toctree-collapse-4-1-11"/><div class="collapse"><a class="reference internal" href="../../tests/plugins/ad9084/index.html">AD9084</a><label for="toctree-collapse-4-1-11"><div class="icon"></div></label></div><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../tests/plugins/ad9084/ad9084_tests.html">AD9084 Test Suite</a></li>
+</ul>
+</li>
 </ul>
 </li>
 <li class="toctree-l2"><input class="toctree-collapse" type="checkbox" name="toctree-collapse-4-2" id="toctree-collapse-4-2"/><div class="collapse"><a class="reference internal" href="../../tests/general/index.html">General Test Cases</a><label for="toctree-collapse-4-2"><div class="icon"></div></label></div><ul>
@@ -231,6 +260,8 @@ Content on this topic
 <li class="toctree-l3"><a class="reference internal" href="../../tests/general/core/dev_tests.html">Device interaction</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../../tests/general/instrument_detaching_tests.html">Instrument Detaching - Test Suite</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../../tests/general/general_preferences_tests.html">General Preferences - Test Suite</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../tests/general/package_manager_tests.html">Package Manager - Test Suite</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../tests/general/scripting_tool.html">Scripting Tool - Test Suite</a></li>
 </ul>
 </li>
 </ul>
@@ -250,13 +281,8 @@ Content on this topic
       <div class="documentwrapper">
         <div class="bodywrapper" id="top-anchor">
           <div class="body-header">
-    <nav class="breadcrumb">
-        <ol>
-          <li><a href="../index.html">Scopy Overview</a></li>
-          </ol>
-    </nav>
-  </div>
-
+  <nav class="breadcrumb"><ol><li><a href="../index.html">Scopy Overview</a></li></ol></nav>
+</div>
           <div class="body" role="main">
             
   <section id="windows-build-instructions">
@@ -264,7 +290,7 @@ Content on this topic
 <section id="building-scopy">
 <h2>Building Scopy<a class="headerlink" href="#building-scopy" title="Link to this heading"></a></h2>
 <p>In order to emulate a UNIX-like environment for building Scopy on Windows, we use MSYS2.</p>
-<p>To install MSYS2, follow these instructions: <a class="reference external" href="https://www.msys2.org/#installation">MSYS2 Installation</a>.
+<p>To install MSYS2, follow these instructions: <a class="icon link reference external" href="https://www.msys2.org/#installation" target="_blank">MSYS2 Installation</a>.
 We suggest installing the MSYS2 in root of the <strong>C:\</strong> partition. In this tutorial the MSYS2 install path is <strong>C:\msys64</strong>, if you choose a different install directory, make sure to also update the paths.</p>
 <div class="admonition tip">
 <p class="admonition-title">Tip</p>
@@ -361,7 +387,7 @@ The option “Edit environment variables for your account” should appear; Clic
 <ol class="arabic">
 <li><p>Install Qt Creator:</p>
 <ul class="simple">
-<li><p>Download the Qt Creator installer (offline or online) from the official <a class="reference external" href="https://www.qt.io/download-dev">Qt Downloads page</a>.</p></li>
+<li><p>Download the Qt Creator installer (offline or online) from the official <a class="icon link reference external" href="https://www.qt.io/download-dev" target="_blank">Qt Downloads page</a>.</p></li>
 <li><p>During the installation process, select only the <strong>Qt Creator</strong> option. This ensures that only the Qt Creator IDE is installed. The necessary Qt libraries will be sourced from the MSYS2 folder.</p></li>
 <li><p>Once the installation is complete, open Qt Creator.</p></li>
 </ul>
@@ -389,7 +415,7 @@ The option “Edit environment variables for your account” should appear; Clic
 </section>
 <section id="creating-an-installer">
 <h2>Creating an Installer<a class="headerlink" href="#creating-an-installer" title="Link to this heading"></a></h2>
-<p>To create an installer, the first step is to install the <a class="reference external" href="https://files.jrsoftware.org/is/6/innosetup-6.2.2.exe">Inno Setup Compiler</a>.</p>
+<p>To create an installer, the first step is to install the <a class="icon link reference external" href="https://files.jrsoftware.org/is/6/innosetup-6.2.2.exe" target="_blank">Inno Setup Compiler</a>.</p>
 <p>After that, there is only one more step:</p>
 <ul>
 <li><p>Run the command:</p>
@@ -408,12 +434,12 @@ The option “Edit environment variables for your account” should appear; Clic
 is essentially a snapshot of an operating system that includes all the libraries and dependencies required to build the application.</p>
 <p>This tutorial has only two requirements:</p>
 <ul class="simple">
-<li><p><a class="reference external" href="https://git-scm.com/downloads/win">Git</a>: Used to download the source code from GitHub.</p></li>
-<li><p><a class="reference external" href="https://docs.docker.com/desktop/setup/install/windows-install/">Docker Desktop</a>: Used to download and run the Docker image.</p></li>
+<li><p><a class="icon link reference external" href="https://git-scm.com/downloads/win" target="_blank">Git</a>: Used to download the source code from GitHub.</p></li>
+<li><p><a class="icon link reference external" href="https://docs.docker.com/desktop/setup/install/windows-install/" target="_blank">Docker Desktop</a>: Used to download and run the Docker image.</p></li>
 </ul>
 <p>To simplify the process, you can download a pre-configured Docker image specifically set
-up to build and package the Scopy application. These Docker images are hosted on <a class="reference external" href="https://hub.docker.com/u/cristianbindea">Docker Hub</a>
-and are free to download. Additionally, the recipe for each image is available in the <a class="reference external" href="https://github.com/analogdevicesinc/scopy/tree/main/ci">Scopy repository</a>.</p>
+up to build and package the Scopy application. These Docker images are hosted on <a class="icon link reference external" href="https://hub.docker.com/u/cristianbindea" target="_blank">Docker Hub</a>
+and are free to download. Additionally, the recipe for each image is available in the <a class="icon link reference external" href="https://github.com/analogdevicesinc/scopy/tree/main/ci" target="_blank">Scopy repository</a>.</p>
 <p>After you have installed Docker Desktop, the next steps will be run inside a powershell terminal.</p>
 <ol class="arabic">
 <li><p>Clone the Scopy repository</p>
@@ -465,8 +491,6 @@ Enter the repository location using File Explorer and you will find the Scopy in
         </div>
       </div>
   </div>
-
-  <div id="vertical-border"></div>
 
   <label id="cancel-area-show-toc" for="input-show-toc"></label>
   <label id="cancel-area-show-localtoc" for="input-show-localtoc"></label>
